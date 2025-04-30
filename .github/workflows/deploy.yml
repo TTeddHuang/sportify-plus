@@ -51,9 +51,13 @@ jobs:
   deploy-preview:
     needs: build
     if: github.event_name == 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.preview.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Preview
+        id: preview
         uses: actions/deploy-pages@v4
         with:
           preview: true
