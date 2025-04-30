@@ -3,6 +3,8 @@ name: Deploy to Github Pages
 on:
   push:
     branches: ['main']
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions:
@@ -15,10 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,6 +37,27 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
+  deploy-prod:
+    needs: build
+    if: github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+  deploy-preview:
+    needs: build
+    if: github.event_name == 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.preview.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Preview
+        id: preview
+        uses: actions/deploy-pages@v4
+        with:
+          preview: true
