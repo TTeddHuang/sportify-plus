@@ -2,16 +2,25 @@
   <div
     class="home d-flex flex-column justify-content-center align-items-center text-center"
   >
-    <h1 class="mb-4">歡迎來到我們的運動平台！</h1>
-    <p class="mb-5">快來加入我們，開始你的學習之旅吧！</p>
+    <div>
+      <h2 class="mb-3 fs-2">Sporify yourself</h2>
+      <p class="fs-5">Anytime, Anywhere</p>
+    </div>
 
     <div class="d-flex gap-3">
-      <router-link to="/login" class="btn btn-primary-200 btn-lg">
-        立即登入
-      </router-link>
-      <router-link to="/register" class="btn btn-secondary-200 btn-lg">
-        註冊帳號
-      </router-link>
+      <nav class="navbar">
+       <div class="container-fluid">
+        <form class="d-flex" role="search">
+        <div class="input-group">
+          <span class="input-group-text bg-white ">
+            <i class="bi bi-search text-primary border border-0"></i>
+          </span>
+          <input class="form-control me-2 rounded-end border-start-0 ps-0" type="search" placeholder="探索 Sportify+" aria-label="Search">
+          <button class="btn btn-primary-600 rounded-3" type="submit">開始探索</button>
+        </div>
+        </form>
+        </div>
+      </nav>
     </div>
   </div>
 </template>
