@@ -55,9 +55,6 @@ const route = useRoute()
             <router-link
               to="/login"
               class="nav-link"
-              :class="{
-                active: route.path === '/login' || route.path === '/register'
-              }"
               >登入/註冊</router-link
             >
           </li>
@@ -136,12 +133,6 @@ a:focus {
   justify-content: space-between;
 }
 
-.nav-link {
-  color: $primary-000;
-  margin-left: 8px;
-  text-decoration: none;
-}
-
 .nav-link:hover {
   background-color: $primary-300;
   color: $primary-700;
@@ -159,6 +150,8 @@ a:focus {
 .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23ECEFFD' viewBox='0 0 30 30'%3e%3cpath stroke='%23ECEFFD' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
+
+
 .nav-link {
   color: $primary-000;
   &:hover {
