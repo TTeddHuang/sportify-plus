@@ -48,6 +48,11 @@
           </div>
           <button class="btn btn-primary-200 custom-btn mt-5" :disabled="emailError || passwordError || checkPasswordError">註冊</button>
         </form>
+        <div class="d-flex justify-content-between mt-5">
+          <p class="mb-0">
+            已有帳號？<router-link to="/login" class="text-primary-500 text-decoration-underline">立即登入</router-link>
+          </p>
+        </div>
       </div>
     </div>
   </div>
