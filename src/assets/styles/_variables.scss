@@ -405,23 +405,6 @@ $escaped-characters: (
 //
 // Quickly modify global styling by enabling or disabling optional features.
 
-<<<<<<< HEAD
-$enable-caret:                true !default;
-$enable-rounded:              true !default;
-$enable-shadows:              false !default;
-$enable-gradients:            false !default;
-$enable-transitions:          true !default;
-$enable-reduced-motion:       true !default;
-$enable-smooth-scroll:        true !default;
-$enable-grid-classes:         true !default;
-$enable-container-classes:    true !default;
-$enable-cssgrid:              false !default;
-$enable-button-pointers:      true !default;
-// $enable-rfs:                  true !default;
-$enable-rfs:                  false !default;
-$enable-validation-icons:     true !default;
-$enable-negative-margins:     false !default;
-=======
 $enable-caret: true !default;
 $enable-rounded: true !default;
 $enable-shadows: false !default;
@@ -436,7 +419,6 @@ $enable-button-pointers: true !default;
 $enable-rfs: true !default;
 $enable-validation-icons: true !default;
 $enable-negative-margins: false !default;
->>>>>>> origin/feature/midterm
 $enable-deprecation-messages: true !default;
 $enable-important-utilities: true !default;
 
@@ -475,11 +457,13 @@ $spacers: (
   3: $spacer,
   4: $spacer * 1.25,
   5: $spacer * 1.5,
-  6: $spacer * 2.25,
-  7: $spacer * 2.5,
-  8: $spacer * 3,
-  9: $spacer * 3.75,
-  10: $spacer * 5
+  6: $spacer * 2,
+  7: $spacer * 2.25,
+  8: $spacer * 2.5,
+  9: $spacer * 3,
+  10: $spacer * 3.75,
+  11: $spacer * 4,
+  12: $spacer * 5
 ) !default;
 // scss-docs-end spacer-variables-maps
 

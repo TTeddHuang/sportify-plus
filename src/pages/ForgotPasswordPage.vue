@@ -14,8 +14,8 @@
               v-model="email"
               type="email"
               class="form-control"
-              @blur="validateEmail"
               required
+              @blur="validateEmail"
             />
             <p v-if="emailError" class="text-danger mt-1">*不是正確 Email 格式！</p>
           </div>

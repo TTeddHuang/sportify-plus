@@ -10,7 +10,7 @@ const routes = [
   { path: '/login', component: LoginPage },
   { path: '/register', component: RegisterPage },
   { path: '/profile', component: ProfilePage },
-  { path: '/forgot-password', component: ForgotPasswordPage },
+  { path: '/forgot-password', component: ForgotPasswordPage }
 ]
 
 const router = createRouter({
