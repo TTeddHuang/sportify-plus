@@ -24,4 +24,8 @@
 // }
 .btn {
   color: $primary-000;
+  &:hover {
+    background-color: $primary-300;
+    color: $primary-700;
+  }
 }
