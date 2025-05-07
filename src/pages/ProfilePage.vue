@@ -28,17 +28,23 @@
         <div class="col-6">
           <div class="mb-3">
             <label class="form-label">會員名</label>
-            <input type="text" class="form-control" />
+            <input
+              v-model="userName"
+              type="text"
+              class="form-control"
+              disabled
+            />
           </div>
           <div class="mb-3">
             <label class="form-label">Email</label>
-            <input type="email" class="form-control" />
+            <input
+              v-model="userEmail"
+              type="email"
+              class="form-control"
+              disabled
+            />
           </div>
-          <div class="mb-3">
-            <label class="form-label">密碼</label>
-            <input type="password" class="form-control" />
-          </div>
-          <button class="btn btn-primary-600 mt-1 d-block mx-auto">
+          <button class="btn btn-primary-600 d-block my-5 mx-auto">
             編輯個人資料
           </button>
         </div>
@@ -47,15 +53,64 @@
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const userName = ref('elsa')
+const userEmail = ref('1234@g23.com')
+
+onMounted(async () => {
+  const token = JSON.parse(localStorage.getItem('token'))
+  const userId = await verifyLogin(token)
+  const userData = await getUserData(token, userId)
+  userName.value = userData.name
+  userEmail.value = userData.email
+})
+
+// 驗證登入
+async function verifyLogin(token) {
+  try {
+    const {
+      data: { id }
+    } = await axios.get(
+      'https://sportify-backend-i00k.onrender.com/api/v1/auth/me',
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+    return id
+  } catch (error) {
+    console.error(error)
+  }
+}
+// 取得使用者資料
+async function getUserData(token, userId) {
+  try {
+    const {
+      data: { data }
+    } = await axios.get(
+      `https://sportify-backend-i00k.onrender.com/api/v1/users/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+    return data
+  } catch (error) {
+    console.error(error)
+  }
+}
+</script>
+
 <style scoped lang="scss">
 .container {
   max-width: 1296px;
   margin: 0 auto;
 }
 
-.side-nav,
-.user-profile {
+.side-nav {
   border: 1px solid $primary-100;
+  border-top: none;
 }
 
 .side-nav {
@@ -87,6 +142,17 @@
   }
   .profile-avatar {
     width: 300px;
+  }
+}
+// input的樣式，可以考慮放到全域
+.form-control {
+  background-color: $grey-000;
+  border-color: $primary-700;
+  color: $grey-700;
+  &:disabled {
+    background-color: $grey-200;
+    border-color: $grey-300;
+    color: $grey-500;
   }
 }
 
