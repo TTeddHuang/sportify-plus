@@ -18,11 +18,7 @@
           <div
             class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
           >
-            <img
-              src="https://ankemedia.com/wp-content/uploads/2021/12/%E6%88%91%E6%98%AF%E9%81%BA%E7%85%A7%E6%94%9D%E5%BD%B1%E5%B8%AB1-1.jpg"
-              alt="個人照片"
-              class="object-fit-cover"
-            />
+            <img :src="userAvatar" alt="個人照片" class="object-fit-cover" />
           </div>
         </div>
         <div class="col-6">
@@ -32,7 +28,7 @@
               v-model="userName"
               type="text"
               class="form-control"
-              disabled
+              :disabled="inputState === 'readOnly'"
             />
           </div>
           <div class="mb-3">
@@ -44,9 +40,55 @@
               disabled
             />
           </div>
-          <button class="btn btn-primary-600 d-block my-5 mx-auto">
-            編輯個人資料
-          </button>
+          <div v-if="inputState === 'inEdit'">
+            <div class="mb-3">
+              <label class="form-label">目前密碼</label>
+              <input
+                v-model="userOldPwd"
+                type="password"
+                class="form-control"
+                placeholder="如需修改密碼，再輸入"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">新密碼</label>
+              <input
+                v-model="userNewPwd"
+                type="password"
+                class="form-control"
+                placeholder="如需修改密碼，再輸入"
+                :disabled="!isNewPwdEnabled"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">再輸入一次新密碼</label>
+              <input
+                v-model="userCheckPwd"
+                type="password"
+                class="form-control"
+                placeholder="如需修改密碼，再輸入"
+                :disabled="!isCheckPwdEnabled"
+              />
+            </div>
+            <!-- 佔用於密碼狀態提示，後面可換成 vee-validation之類的? -->
+            <p>{{ pwdValidMessage }}</p>
+          </div>
+          <div v-if="inputState === 'readOnly'" class="my-5 text-center">
+            <button class="btn btn-primary-600" @click="goEdit">
+              編輯個人資料
+            </button>
+          </div>
+          <div
+            v-else-if="inputState === 'inEdit'"
+            class="my-5 text-center d-flex justify-content-evenly"
+          >
+            <button class="btn btn-primary-600" @click="confirmEdit">
+              確定修改
+            </button>
+            <button class="btn btn-notification" @click="cancelEdit">
+              取消修改
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -54,21 +96,101 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 
-const userName = ref('elsa')
-const userEmail = ref('1234@g23.com')
+const userToken = ref(null)
+const userId = ref(null)
+
+const userName = ref('使用者名稱')
+const userEmail = ref('使用者信箱')
+const userAvatar = ref(
+  'https://ankemedia.com/wp-content/uploads/2021/12/%E6%88%91%E6%98%AF%E9%81%BA%E7%85%A7%E6%94%9D%E5%BD%B1%E5%B8%AB1-1.jpg'
+)
+const userOldPwd = ref('')
+const userNewPwd = ref('')
+const userCheckPwd = ref('')
+// inputState 的值為 readOnly/inEdit，決定input可否輸入的狀態，與要呈現哪些button
+const inputState = ref('readOnly')
+const backupData = ref({})
+const pwdValidMessage = ref('')
+const pwdValidStatus = ref(false)
+const editData = ref({})
+
+const isNewPwdEnabled = computed(() => userOldPwd.value !== '')
+const isCheckPwdEnabled = computed(() => userNewPwd.value !== '')
+
+const pwdRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,16}$/
+
+// 撰寫驗證訊息
+watch([userOldPwd, userNewPwd, userCheckPwd], () => {
+  pwdValidMessage.value = ''
+  // 避免輸入完後又刪除欄位內資料，造成 pwdValidStatus 仍為 true
+  pwdValidStatus.value = false
+  // 開始輸入新密碼後，才會顯示驗證訊息
+  if (!userNewPwd.value.length) {
+    return
+  }
+  // 新密碼不符合規則，顯示 "密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字"
+  if (!pwdRule.test(userNewPwd.value)) {
+    pwdValidMessage.value =
+      '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字'
+    return
+  }
+  // 目前密碼 === 新密碼時，顯示 "新密碼請勿與舊密碼相同"
+  if (userOldPwd.value === userNewPwd.value) {
+    pwdValidMessage.value = '新密碼請勿與舊密碼相同'
+    return
+  }
+  // 密碼欄位三缺一，顯示 "密碼欄位請填寫完整"
+  if ([userOldPwd, userNewPwd, userCheckPwd].some(pwd => !pwd.value)) {
+    pwdValidMessage.value = '密碼欄位請填寫完整'
+    return
+  }
+  // 新密碼 !== 再輸入一次新密碼時，顯示 "密碼不一致，請重新輸入"
+  if (userCheckPwd.value !== userNewPwd.value) {
+    pwdValidMessage.value = '密碼不一致，請重新輸入'
+  }
+  pwdValidStatus.value = true
+})
+
+// 送 API 的欄位驗證，通過才放入
+const validInput = () => {
+  // 名稱沒輸入跳出
+  // 名稱有更改 → 加入 editData
+  // 名稱重複 → 不會被加入 editData
+  if (!userName.value.trim()) {
+    alert('請填寫使用者名稱')
+    return false
+  } else if (userName.value.trim() !== backupData.value.name) {
+    editData.value.name = userName.value
+  }
+
+  // 加入密碼
+  // 密碼全空白 > 不加入
+  // 密碼欄位全填且驗證通過 > 加入三個密碼欄位資料
+  if (pwdValidStatus.value) {
+    editData.value.oldPassword = userOldPwd.value
+    editData.value.newPassword = userNewPwd.value
+    editData.value.newPassword_check = userCheckPwd.value
+  }
+  // 舊的判斷邏輯，資料庫更新後刪除
+  editData.value.name = userName.value
+  editData.value.profile_image_url = userAvatar.value
+  editData.value.oldPassword = userOldPwd.value
+  editData.value.newPassword = userNewPwd.value
+  editData.value.newPassword_check = userCheckPwd.value
+}
 
 onMounted(async () => {
-  const token = JSON.parse(localStorage.getItem('token'))
-  const userId = await verifyLogin(token)
-  const userData = await getUserData(token, userId)
+  userToken.value = JSON.parse(localStorage.getItem('token'))
+  userId.value = await verifyLogin(userToken.value)
+  const userData = await getUserData(userToken.value, userId.value)
   userName.value = userData.name
   userEmail.value = userData.email
 })
 
-// 驗證登入
+// 驗證登入API
 async function verifyLogin(token) {
   try {
     const {
@@ -84,7 +206,7 @@ async function verifyLogin(token) {
     console.error(error)
   }
 }
-// 取得使用者資料
+// 取得使用者資料API
 async function getUserData(token, userId) {
   try {
     const {
@@ -98,6 +220,60 @@ async function getUserData(token, userId) {
     return data
   } catch (error) {
     console.error(error)
+  }
+}
+// 修改使用者資料API
+async function editUserData(token, userId) {
+  validInput()
+  try {
+    const res = await axios.patch(
+      `https://sportify-backend-i00k.onrender.com/api/v1/users/${userId}`,
+      editData.value,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+    return res
+  } catch (error) {
+    console.error(error)
+    return error
+  }
+}
+
+// 複製資料, 切換畫面
+const goEdit = () => {
+  backupData.value = { name: userName.value, email: userEmail.value }
+  inputState.value = 'inEdit'
+}
+
+// 取消修改
+// 恢復畫面, 資料存回
+const cancelEdit = () => {
+  userName.value = backupData.value.name
+  userEmail.value = backupData.value.email
+  userOldPwd.value = ''
+  userNewPwd.value = ''
+  userCheckPwd.value = ''
+  backupData.value = {}
+  inputState.value = 'readOnly'
+}
+
+// 確認修改
+// 戳 API, 恢復畫面
+const confirmEdit = async () => {
+  const res = await editUserData(userToken.value, userId.value)
+  // 修改成功，status會是true
+  if (res.response.status === 200) {
+    userName.value = res.name || backupData.value.name
+    backupData.value = {}
+    userOldPwd.value = ''
+    userNewPwd.value = ''
+    userCheckPwd.value = ''
+    inputState.value = 'readOnly'
+  } else {
+    // 修改失敗
+    // 保持現狀，使用提示視窗(先用原生的，後續再改為Bootstrap Modal或Sweet Alert套件)
+    alert(res.response.data.message)
   }
 }
 </script>
@@ -154,9 +330,22 @@ async function getUserData(token, userId) {
     border-color: $grey-300;
     color: $grey-500;
   }
+  &::placeholder {
+    color: $grey-500;
+  }
 }
 
 .btn-primary {
   padding: 8px 16px;
+}
+
+.btn-notification {
+  // background-color: $primary-300;
+  color: #fff0f0;
+  &:hover {
+    background-color: #ff8080;
+    border-color: #ff8080;
+    color: #800000;
+  }
 }
 </style>
