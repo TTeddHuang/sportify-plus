@@ -8,7 +8,7 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage.vue'
 const routes = [
   { path: '/', component: HomePage },
   { path: '/login', component: LoginPage },
-  { path: '/register', component: RegisterPage },
+  { path: '/users/signup', component: RegisterPage },
   { path: '/profile', component: ProfilePage },
   { path: '/forgot-password', component: ForgotPasswordPage }
 ]

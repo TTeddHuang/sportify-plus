@@ -1,7 +1,25 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { user, initUser, clearUser } from '@/store/user'
 
 const route = useRoute()
+const router = useRouter()
+
+const isLogin = computed(() => !!user.value)
+const userName = computed(() => user.value?.name || '使用者')
+const avatar = computed(
+  () => user.value?.avatar || 'https://via.placeholder.com/40'
+)
+
+onMounted(() => {
+  initUser()
+})
+
+function handleLogout() {
+  clearUser()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -9,20 +27,18 @@ const route = useRoute()
     class="header navbar navbar-expand-lg border-bottom border-primary-000"
   >
     <div class="container d-flex justify-content-between align-items-center">
-      <!-- Logo -->
       <div class="logo">
         <router-link to="/">
           <img src="@/assets/images/logo-s.png" alt="Logo" class="img-fluid" />
         </router-link>
       </div>
 
-      <!-- 桌面版選單（LG以上顯示） -->
       <nav class="d-none d-lg-block">
         <ul class="navbar-nav d-flex flex-row mb-0">
           <li class="nav-item me-3">
             <router-link
               to="/courses"
-              class="nav-link"
+              class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/courses') }"
               >課程分類</router-link
             >
@@ -30,7 +46,7 @@ const route = useRoute()
           <li class="nav-item me-3">
             <router-link
               to="/coaches"
-              class="nav-link"
+              class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/coaches') }"
               >教練列表</router-link
             >
@@ -38,7 +54,7 @@ const route = useRoute()
           <li class="nav-item me-3">
             <router-link
               to="/create-course"
-              class="nav-link"
+              class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/create-course') }"
               >我要開課</router-link
             >
@@ -46,22 +62,51 @@ const route = useRoute()
           <li class="nav-item me-3">
             <router-link
               to="/learning-center"
-              class="nav-link"
+              class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/learning-center') }"
               >學習中心</router-link
             >
           </li>
-          <li class="nav-item">
-            <router-link
-              to="/login"
-              class="nav-link"
+
+          <li v-if="isLogin" class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle d-flex align-items-center text-primary-000"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <img
+                :src="avatar"
+                alt="avatar"
+                class="rounded-circle me-2"
+                width="36"
+                height="36"
+              />
+              {{ userName }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <router-link to="/profile" class="dropdown-item"
+                  >個人資料</router-link
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" @click.prevent="handleLogout"
+                  >登出</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <li v-else class="nav-item">
+            <router-link to="/login" class="nav-link text-primary-000"
               >登入/註冊</router-link
             >
           </li>
         </ul>
       </nav>
 
-      <!-- 漢堡按鈕（LG以下顯示） -->
       <button
         class="navbar-toggler d-lg-none"
         type="button"
@@ -73,34 +118,39 @@ const route = useRoute()
       </button>
     </div>
 
-    <!-- 手機版 offcanvas 選單 -->
     <div
+      id="offcanvasMenu"
       class="offcanvas offcanvas-end d-lg-none"
       tabindex="-1"
-      id="offcanvasMenu"
       aria-labelledby="offcanvasMenuLabel"
     >
       <div class="offcanvas-header"></div>
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <router-link to="/courses" class="nav-link">課程分類</router-link>
+            <router-link to="/courses" class="nav-link text-primary-000"
+              >課程分類</router-link
+            >
           </li>
           <li class="nav-item">
-            <router-link to="/coaches" class="nav-link">教練列表</router-link>
+            <router-link to="/coaches" class="nav-link text-primary-000"
+              >教練列表</router-link
+            >
           </li>
           <li class="nav-item">
-            <router-link to="/create-course" class="nav-link"
+            <router-link to="/create-course" class="nav-link text-primary-000"
               >我要開課</router-link
             >
           </li>
           <li class="nav-item">
-            <router-link to="/learning-center" class="nav-link"
+            <router-link to="/learning-center" class="nav-link text-primary-000"
               >學習中心</router-link
             >
           </li>
           <li class="nav-item">
-            <router-link to="/login" class="nav-link">登入/註冊</router-link>
+            <router-link to="/login" class="nav-link text-primary-000"
+              >登入/註冊</router-link
+            >
           </li>
         </ul>
       </div>
@@ -111,87 +161,15 @@ const route = useRoute()
 <style scoped lang="scss">
 @import '@/assets/styles/all.scss';
 
-a,
-a:visited,
-a:hover,
-a:active,
-a:focus {
-  color: inherit;
-  text-decoration: none;
-}
-
-.header {
-  padding: 16px 0;
-}
-
-.logo img {
-  max-width: 117px;
-}
-
-.nav {
-  display: flex;
-  justify-content: space-between;
-}
-
-.nav-link:hover {
-  background-color: $primary-300;
-  color: $primary-700;
-  border-radius: 8px;
-}
-.nav-link:focus {
-  color: $primary-000;
-}
-.router-link-active {
-  background-color: $primary-700;
-  color: $primary-000;
-  border-radius: 8px;
-}
-
-.navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23ECEFFD' viewBox='0 0 30 30'%3e%3cpath stroke='%23ECEFFD' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-
-
-.nav-link {
-  color: $primary-000;
-  &:hover {
-    background-color: $primary-300;
-    color: $primary-700;
-    border-radius: 8px;
-  }
-}
-
-.router-link-active {
-  background-color: $primary-700;
-  color: $primary-000;
-  border-radius: 8px;
-}
-
-
-.offcanvas .nav-link {
-  color: #0044cc;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
 .offcanvas {
-  top: 72px !important; // 強制頂部留出空間
-  height: calc(100% - 72px) !important;
+  background-color: #ffffff !important; // 白色背景
+  top: 56px !important; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
+  height: calc(100% - 56px) !important;
   border-top: 1px solid #ccc;
-  // 預設寬度
-  max-width: 207px;
-
+  box-shadow: 0 4px 12 px rgba(0, 0, 0, 0.1);
 }
-
-// 手機選單內部文字置中
-.offcanvas-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center; // 水平置中
-}
-
-.offcanvas-body .nav-link {
-  text-align: center; // 文字置中
-  width: 100%; // 滿寬方便點擊
+.offcanvas .nav-link {
+  color: $primary-600 !important;
+  text-align: center;
 }
 </style>
