@@ -71,7 +71,7 @@
               />
             </div>
             <!-- 佔用於密碼狀態提示，後面可換成 vee-validation之類的? -->
-            <p>{{ pwdValidMessage }}</p>
+            <p class="valid-message">{{ pwdValidMessage }}</p>
           </div>
           <div v-if="inputState === 'readOnly'" class="my-5 text-center">
             <button class="btn btn-primary-600" @click="goEdit">
@@ -347,5 +347,9 @@ const confirmEdit = async () => {
     border-color: #ff8080;
     color: #800000;
   }
+}
+
+.valid-message {
+  color: $notification;
 }
 </style>
