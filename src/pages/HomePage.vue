@@ -18,8 +18,8 @@
               style="max-width: 485px; width: 100%"
               role="search"
             >
-              <div class="input-group w-100 ">
-                <span class="input-group-text  bg-grey-000">
+              <div class="input-group w-100">
+                <span class="input-group-text bg-grey-000">
                   <i class="bi bi-search text-primary border border-0"></i>
                 </span>
                 <input
@@ -41,52 +41,31 @@
         </nav>
       </div>
     </div>
-    <div class="container text-center text-primary-000 py-10 fw-bold">
-      <h2 class="mb-4 text-2xl font-bold">
-        豐富多元的運動課程，任你自由探索！
-      </h2>
-      <div class="flex items-center justify-center gap-4 overflow-x-auto px-4">
-
-        <div
-          v-for="item in courseList"
-          :key="item.name"
-          class="flex flex-col items-center p-4 rounded-lg transition hover:scale-105 border border-purple-500"
-          style="max-width: 224px;"
-        >
-        <div class="mt-2 text-lg">{{ item.name }}</div>
-          <img
-            :src="item.image"
-            :alt="item.name"
-            class="rounded"
-                        style="max-width: 224px;"
-          />
-
-        </div>
-      </div>
-      <p class="mt-6 text-lg">
-        Sportify+ 已經幫助超過
-        <span class="text-pink-400 text-2xl font-bold">3,067</span>
-        人，展開全新的運動旅程。
-      </p>
-    </div>
+    <CategoryCarousel
+      :categories="categories"
+      :slides-per-view="5"
+      :space-between="44"
+    />
+    <DetailCarousel />
+    <CoachGrid />
+    <SubscriptionPlans />
+    <FAQ />
   </div>
 </template>
 
 <script setup>
-const courseList = [
-  { name: '皮拉提斯', image: new URL('@/assets/images/yoga.png', import.meta.url).href },
-  { name: '重訓', image: '/images/weight.jpg' },
-  { name: '登山', image: '/images/mountain.jpg' },
-  { name: '籃球', image: '/images/basketball.jpg' },
-  { name: '滑板', image: '/images/skateboard.jpg' }
-]
+import { ref } from 'vue'
+import CategoryCarousel from '@/components/CategoryCarousel.vue'
+import DetailCarousel from '@/components/DetailCarousel.vue'
+import CoachGrid from '@/components/CoachGrid.vue'
+import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
+import FAQ from '@/components/FAQ.vue'
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 @import '../assets/styles/all.scss';
 .home {
   min-height: 80vh;
-  padding: 40px;
   background-color: $primary-900; /* 你可以自訂背景色 */
   color: $primary-000; /* 你的主文字色 */
 
