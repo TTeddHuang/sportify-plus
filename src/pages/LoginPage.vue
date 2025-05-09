@@ -69,7 +69,7 @@
 import { ref } from 'vue'
 import { login, getUserProfile } from '@/api/auth'
 import { useRouter } from 'vue-router'
-import { setUser, initUser } from '@/store/user'
+import { setUser } from '@/store/user'
 
 const router = useRouter()
 const email = ref('')

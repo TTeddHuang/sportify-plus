@@ -26,6 +26,7 @@ $utilities: map-merge(
   color: $primary-000;
   &:hover {
     background-color: $primary-300;
+    border-color: $primary-300;
     color: $primary-700;
   }
 }
