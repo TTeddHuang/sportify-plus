@@ -10,12 +10,7 @@
           <!-- 姓名 -->
           <div class="mb-3 mt-3">
             <label class="form-label fs-5">姓名</label>
-            <input
-              v-model="name"
-              type="text"
-              class="form-control"
-              required
-            />
+            <input v-model="name" type="text" class="form-control" required />
           </div>
 
           <!-- Email -->
@@ -28,7 +23,9 @@
               required
               @blur="validateEmail"
             />
-            <p v-if="emailError" class="text-danger mt-1">*不是正確Email格式!</p>
+            <p v-if="emailError" class="text-danger mt-1">
+              *不是正確Email格式!
+            </p>
           </div>
 
           <!-- 密碼 -->
@@ -68,7 +65,10 @@
         <div class="d-flex justify-content-between mt-5">
           <p class="mb-0">
             已有帳號？
-            <router-link to="/login" class="text-primary-500 text-decoration-underline">
+            <router-link
+              to="/login"
+              class="text-primary-500 text-decoration-underline"
+            >
               立即登入
             </router-link>
           </p>
@@ -111,15 +111,19 @@ async function handleRegister() {
   validateEmail()
   validatePassword()
   validateCheckPassword()
-  if (emailError.value || passwordError.value || checkPasswordError.value) return
+  if (emailError.value || passwordError.value || checkPasswordError.value)
+    return
 
   try {
-    await axios.post('https://sportify-backend-i00k.onrender.com/api/v1/auth/users/signup', {
-      name: name.value,
-      email: email.value,
-      password: password.value,
-      password_check: checkPassword.value,
-    })
+    await axios.post(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/users/signup',
+      {
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        password_check: checkPassword.value
+      }
+    )
 
     alert('註冊成功')
     router.push('/login')

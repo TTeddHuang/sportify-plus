@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://sportify-backend-i00k.onrender.com/api/v1/auth',
+  baseURL: 'https://sportify-backend-1wt9.onrender.com/api/v1/auth',
   headers: {
     'Content-Type': 'application/json'
   }
