@@ -1,10 +1,7 @@
 <!-- 會跑出X軸要再調整 -->
 <template>
   <div>
-
-    <div class="wave-wrapper">
-
-    </div>
+    <div class="wave-wrapper"></div>
 
     <section class="coaches text-center my-lg-12 text-white">
       <div class="container">

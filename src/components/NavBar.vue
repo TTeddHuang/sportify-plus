@@ -54,7 +54,7 @@ function handleLogout() {
           </li>
           <li v-if="!isLogin" class="nav-item me-3">
             <router-link
-              to="/create-course"
+              to="/coaches/signup"
               class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/create-course') }"
               >我要開課</router-link
@@ -100,14 +100,10 @@ function handleLogout() {
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
-                <router-link to="/" class="dropdown-item"
-                  >訂閱紀錄</router-link
-                >
+                <router-link to="/" class="dropdown-item">訂閱紀錄</router-link>
               </li>
               <li>
-                <router-link to="/" class="dropdown-item"
-                  >我的課程</router-link
-                >
+                <router-link to="/" class="dropdown-item">我的課程</router-link>
               </li>
               <li>
                 <router-link to="/profile" class="dropdown-item"
