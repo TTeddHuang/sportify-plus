@@ -47,8 +47,10 @@
       :space-between="44"
     />
     <DetailCarousel />
+    <WaveBanner />
     <CoachGrid />
     <SubscriptionPlans />
+    <WaveBannerReverse />
     <FAQ />
   </div>
 </template>
@@ -59,12 +61,14 @@ import DetailCarousel from '@/components/DetailCarousel.vue'
 import CoachGrid from '@/components/CoachGrid.vue'
 import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 import FAQ from '@/components/FAQ.vue'
+import WaveBanner from '@/components/WaveBanner.vue'
+import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
 </script>
 
 <style lang="scss">
 @import '../assets/styles/all.scss';
 .home {
-  min-height: 80vh;
+  min-height: 100vh;
   background-color: $primary-900; /* 你可以自訂背景色 */
   color: $primary-000; /* 你的主文字色 */
 

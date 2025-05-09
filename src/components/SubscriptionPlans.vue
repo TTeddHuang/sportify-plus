@@ -56,7 +56,6 @@
         <button class="btn-primary-600 btn px-lg-5 py-lg-3" type="button">免費試用 7日 Eagerness 方案</button>
       </div>
     </div>
-    <div class="wave-wrapper" style="margin-bottom: 120px;"></div>
   </section>
 </template>
 
