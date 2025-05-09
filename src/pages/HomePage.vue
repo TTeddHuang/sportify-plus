@@ -54,7 +54,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import CategoryCarousel from '@/components/CategoryCarousel.vue'
 import DetailCarousel from '@/components/DetailCarousel.vue'
 import CoachGrid from '@/components/CoachGrid.vue'

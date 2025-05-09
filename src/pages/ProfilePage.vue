@@ -98,7 +98,9 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const userToken = ref(null)
 const userId = ref(null)
 
@@ -182,6 +184,9 @@ const validInput = () => {
 
 onMounted(async () => {
   userToken.value = localStorage.getItem('token')
+  if (!userToken.value) {
+    router.push('/login')
+  }
   userId.value = await verifyLogin(userToken.value)
   const userData = await getUserData(userToken.value, userId.value)
   userName.value = userData.name
