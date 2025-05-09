@@ -2,15 +2,27 @@
   <div class="container mt-10">
     <div class="row">
       <div class="col-lg-6">
-        <img src="../assets/images/logo.png" alt="" class="img-fluid" />
+        <div class="image-wrapper">
+          <img
+            src="../assets/images/coach-logo.png"
+            alt="教練圖片"
+            class="crop-img"
+          />
+        </div>
       </div>
       <div class="col-lg-6">
-        <h2>註冊</h2>
+        <h2>教練註冊</h2>
         <form @submit.prevent="handleRegister">
           <!-- 姓名 -->
+          <p>*sportify+會保護您的個資，您將以暱稱授課</p>
           <div class="mb-3 mt-3">
-            <label class="form-label fs-5">姓名</label>
-            <input v-model="name" type="text" class="form-control" required />
+            <label class="form-label fs-5">取個暱稱</label>
+            <input
+              v-model="nickname"
+              type="text"
+              class="form-control"
+              required
+            />
           </div>
 
           <!-- Email -->
@@ -55,7 +67,7 @@
           </div>
 
           <button
-            class="btn btn-primary-600 custom-btn mt-5"
+            class="btn btn-lg btn-primary-600 custom-btn mt-5"
             :disabled="emailError || passwordError || checkPasswordError"
           >
             註冊
@@ -83,7 +95,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 
-const name = ref('')
+const nickname = ref('')
 const email = ref('')
 const password = ref('')
 const checkPassword = ref('')
@@ -116,9 +128,9 @@ async function handleRegister() {
 
   try {
     await axios.post(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/users/signup',
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/coaches/signup',
       {
-        name: name.value,
+        nickname: nickname.value,
         email: email.value,
         password: password.value,
         password_check: checkPassword.value
@@ -140,5 +152,19 @@ async function handleRegister() {
   margin: 0 auto;
   width: 200px;
   max-width: 100%;
+}
+.image-wrapper {
+  width: 100%;
+  height: 570px;
+  overflow: hidden;
+}
+
+.crop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center; /* 或 center center 視圖片位置而定 */
+  display: block;
+  border-radius: 12px;
 }
 </style>

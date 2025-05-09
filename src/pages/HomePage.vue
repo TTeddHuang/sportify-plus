@@ -23,7 +23,7 @@
                   <i class="bi bi-search text-primary border border-0"></i>
                 </span>
                 <input
-                  class="form-control rounded-end border-start-0 ps-0 bg-grey-000"
+                  class="form-control rounded-end border-start-0 ps-0 bg-grey-000 search-input"
                   type="search"
                   placeholder="探索 Sportify+"
                   aria-label="Search"
@@ -76,5 +76,9 @@ import FAQ from '@/components/FAQ.vue'
 
 .btn {
   min-width: 150px;
+}
+.form-control::placeholder {
+  color: $grey-500;
+  opacity: 1;
 }
 </style>

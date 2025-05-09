@@ -110,7 +110,7 @@ async function handleLogin() {
     setUser({
       token: res.token,
       name: me.name,
-      avatar: me.profile_image_url || 'https://via.placeholder.com/40',
+      avatar: me.profile_image_url || '',
       role: me.role
     })
 
