@@ -125,7 +125,6 @@ const pwdRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,16}$/
 // 撰寫驗證訊息
 watch([userOldPwd, userNewPwd, userCheckPwd], () => {
   pwdValidMessage.value = ''
-  // 避免輸入完後又刪除欄位內資料，造成 pwdValidStatus 仍為 true
   pwdValidStatus.value = false
   // 開始輸入新密碼後，才會顯示驗證訊息
   if (!userNewPwd.value.length) {
@@ -162,28 +161,27 @@ const validInput = () => {
   if (!userName.value.trim()) {
     alert('請填寫使用者名稱')
     return false
-  } else if (userName.value.trim() !== backupData.value.name) {
+  }
+  if (userName.value.trim() !== backupData.value.name) {
     editData.value.name = userName.value
   }
-
   // 加入密碼
-  // 密碼全空白 > 不加入
+  // 密碼全空白 > 驗證通過，不加入資料
   // 密碼欄位全填且驗證通過 > 加入三個密碼欄位資料
-  if (pwdValidStatus.value) {
-    editData.value.oldPassword = userOldPwd.value
-    editData.value.newPassword = userNewPwd.value
-    editData.value.newPassword_check = userCheckPwd.value
+  const allPwdEmpty =
+    !userOldPwd.value && !userNewPwd.value && !userCheckPwd.value
+  if (allPwdEmpty) return true
+
+  if (!pwdValidStatus.value) {
+    return false
   }
-  // 舊的判斷邏輯，資料庫更新後刪除
-  editData.value.name = userName.value
-  editData.value.profile_image_url = userAvatar.value
   editData.value.oldPassword = userOldPwd.value
   editData.value.newPassword = userNewPwd.value
   editData.value.newPassword_check = userCheckPwd.value
 }
 
 onMounted(async () => {
-  userToken.value = JSON.parse(localStorage.getItem('token'))
+  userToken.value = localStorage.getItem('token')
   userId.value = await verifyLogin(userToken.value)
   const userData = await getUserData(userToken.value, userId.value)
   userName.value = userData.name
@@ -196,7 +194,7 @@ async function verifyLogin(token) {
     const {
       data: { id }
     } = await axios.get(
-      'https://sportify-backend-i00k.onrender.com/api/v1/auth/me',
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -212,7 +210,7 @@ async function getUserData(token, userId) {
     const {
       data: { data }
     } = await axios.get(
-      `https://sportify-backend-i00k.onrender.com/api/v1/users/${userId}`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -224,20 +222,13 @@ async function getUserData(token, userId) {
 }
 // 修改使用者資料API
 async function editUserData(token, userId) {
-  validInput()
-  try {
-    const res = await axios.patch(
-      `https://sportify-backend-i00k.onrender.com/api/v1/users/${userId}`,
-      editData.value,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    )
-    return res
-  } catch (error) {
-    console.error(error)
-    return error
-  }
+  return await axios.patch(
+    `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
+    editData.value,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  )
 }
 
 // 複製資料, 切換畫面
@@ -261,19 +252,28 @@ const cancelEdit = () => {
 // 確認修改
 // 戳 API, 恢復畫面
 const confirmEdit = async () => {
-  const res = await editUserData(userToken.value, userId.value)
-  // 修改成功，status會是true
-  if (res.response.status === 200) {
-    userName.value = res.name || backupData.value.name
-    backupData.value = {}
+  if (validInput() === false) {
+    return
+  }
+  try {
+    const { status, data } = await editUserData(userToken.value, userId.value)
+    if (status === 200) {
+      alert('更新成功')
+      userName.value = data.data.name || backupData.value.name
+      backupData.value = {}
+      userOldPwd.value = ''
+      userNewPwd.value = ''
+      userCheckPwd.value = ''
+      inputState.value = 'readOnly'
+    }
+  } catch (err) {
+    // 修改失敗
+    // 保持現狀，使用提示視窗(先用原生的，後續再改為Bootstrap Modal或Sweet Alert套件)
+    alert('請重新確認欄位')
+    userName.value = backupData.value.name
     userOldPwd.value = ''
     userNewPwd.value = ''
     userCheckPwd.value = ''
-    inputState.value = 'readOnly'
-  } else {
-    // 修改失敗
-    // 保持現狀，使用提示視窗(先用原生的，後續再改為Bootstrap Modal或Sweet Alert套件)
-    alert(res.response.data.message)
   }
 }
 </script>
@@ -281,12 +281,13 @@ const confirmEdit = async () => {
 <style scoped lang="scss">
 .container {
   max-width: 1296px;
+  height: 100%;
   margin: 0 auto;
 }
 
 .side-nav {
-  border: 1px solid $primary-100;
-  border-top: none;
+  border-left: 1px solid $primary-100;
+  border-right: 1px solid $primary-100;
 }
 
 .side-nav {
