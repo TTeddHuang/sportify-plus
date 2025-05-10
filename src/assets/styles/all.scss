@@ -22,14 +22,39 @@ $utilities: map-merge(
 
 @import "bootstrap/scss/utilities/api";
 
+// .btn {
+//   color: $primary-000;
+//   &:hover {
+//     background-color: $primary-300;
+//     border-color: $primary-300;
+//     color: $primary-700;
+//   }
+// }
+
 .btn {
   color: $primary-000;
+
   &:hover {
     background-color: $primary-300;
     border-color: $primary-300;
     color: $primary-700;
   }
+
+  &.selected {
+    background-color: $primary-700;
+    border-color: $primary-700;
+    color: $primary-000;
+  }
+
+  &:disabled {
+    background-color: $grey-200;
+    border-color: $grey-200;
+    color: $grey-000;
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
 }
+
 
 // custom.scss（或 all.scss）
 // 1. 先 override Bootstrap 變數：
