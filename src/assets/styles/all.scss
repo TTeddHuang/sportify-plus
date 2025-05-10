@@ -30,3 +30,26 @@ $utilities: map-merge(
     color: $primary-700;
   }
 }
+
+// custom.scss（或 all.scss）
+// 1. 先 override Bootstrap 變數：
+$btn-font-weight: 500 !default;
+$btn-border-radius: .375rem !default;
+
+/* 預設 btn */
+$btn-padding-y: .5rem;       // 8px
+$btn-padding-x: 1rem;        // 16px
+$btn-font-size: 1rem;        // 16px
+
+/* 小 btn-sm */
+$btn-sm-padding-y: .25rem;   // 4px
+$btn-sm-padding-x: .5rem;    // 8px
+$btn-sm-font-size: .875rem;  // 14px
+
+/* 大 btn-lg */
+$btn-lg-padding-y: .75rem;   // 12px
+$btn-lg-padding-x: 1.5rem;   // 24px
+$btn-lg-font-size: 1.25rem;  // 20px
+
+
+

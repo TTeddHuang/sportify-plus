@@ -1,5 +1,5 @@
 <template>
-  <section class="subscription-plans my-lg-12">
+  <section class="subscription-plans y-lg-12">
     <div class="container">
       <h2 class="plans-title text-center mb-4 fs-lg-2 mb-lg-12">
         從這裡開始，一起尋找你喜歡的運動方式！
@@ -11,16 +11,15 @@
             <tr>
               <td class="label-cell fw-semibold fs-lg-6">方案</td>
               <td v-for="plan in plans" :key="plan.name">
-                <div class="plan-card fs-lg-6">
-                  <h5 class="plan-name mb-2">
-                    {{ plan.name }} 方案
-                  </h5>
-                  <p class="plan-price mb-3 fs-lg-3">
+                <div class="plan-card fs-lg-6 my-lg-12">
+                  <h5 class="plan-name mb-5">{{ plan.name }} 方案</h5>
+                  <p class="plan-price mb-5 fs-lg-3">
                     {{ plan.price }}<small class="ms-1 fs-lg-6">/月</small>
                   </p>
                   <button
                     :class="[
                       'btn',
+                      'btn-lg',
                       plan.action.type === 'solid'
                         ? 'btn-primary-600'
                         : 'btn-outline-light'
@@ -33,14 +32,21 @@
             </tr>
             <!-- 其餘行：各項規格，手動加粗處理 -->
             <tr v-for="row in rows" :key="row.label">
-              <td class="label-cell fw-semibold fs-lg-6">
+              <td class="label-cell fw-semibold fs-lg-6 py-lg-12 px-4">
                 {{ row.label }}
               </td>
-              <td v-for="(parts, idx) in row.values" :key="idx" class="fs-lg-6">
+              <td
+                v-for="(parts, idx) in row.values"
+                :key="idx"
+                class="fs-lg-4 fw-bold"
+              >
                 <span>
-                  <span v-for="(part, pidx) in parts" :key="pidx">
-                    <strong v-if="part.bold" class="fs-lg-4 fw-bold">{{ part.text }}</strong>
-                    <span v-else>{{ part.text }}</span>
+                  <span
+                    v-for="(part, pidx) in parts"
+                    :key="pidx"
+                    :class="part.bold ? 'fs-lg-4 fw-bold' : 'fs-lg-6'"
+                  >
+                    {{ part.text }}
                   </span>
                 </span>
               </td>
@@ -48,12 +54,17 @@
           </tbody>
         </table>
       </div>
-      <div class="my-lg-12 py-lg-8 border border-primary-000 text-center" style="border-radius: 16px;">
+      <div
+        class="my-lg-12 py-lg-8 border border-primary-000 text-center"
+        style="border-radius: 16px"
+      >
         <div class="mb-lg-8">
           <p class="fs-lg-4 mb-lg-2">準備好開啟全新的健身旅程了嗎？</p>
           <p class="fs-lg-6">加入 Sportify+，和上千名會員一起改變生活。</p>
         </div>
-        <button class="btn-primary-600 btn px-lg-5 py-lg-3" type="button">免費試用 7日 Eagerness 方案</button>
+        <button class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6" type="button">
+          免費試用 7日 Eagerness 方案
+        </button>
       </div>
     </div>
   </section>
@@ -104,17 +115,17 @@ const rows = [
   {
     label: '影片畫質',
     values: [
-      [{ text: '720p', bold: false }],
-      [{ text: '1080p', bold: false }],
-      [{ text: '4k', bold: false }]
+      [{ text: '720p', bold: true }],
+      [{ text: '1080p', bold: true }],
+      [{ text: '4k', bold: true }]
     ]
   },
   {
     label: '收看直播課程',
     values: [
-      [{ text: '無', bold: false }],
-      [{ text: '可', bold: false }],
-      [{ text: '可', bold: false }]
+      [{ text: '無', bold: true }],
+      [{ text: '可', bold: true }],
+      [{ text: '可', bold: true }]
     ]
   }
 ]
@@ -131,12 +142,13 @@ const rows = [
   background-repeat: no-repeat;
 }
 .table-responsive {
-  border: 1px solid #ECEFFD;
+  border: 1px solid #eceffd;
   border-radius: 16px;
   overflow: hidden;
 }
 .subscription-plans {
-  &, & * {
+  &,
+  & * {
     color: $primary-000 !important;
   }
 }
@@ -146,7 +158,7 @@ const rows = [
 }
 .plan-table td,
 .plan-table th {
-  border: 1px solid #ECEFFD;
+  border: 1px solid #eceffd;
   vertical-align: middle;
   padding: 1.5rem;
   text-align: center;

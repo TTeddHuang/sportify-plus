@@ -5,6 +5,7 @@ import RegisterPage from '@/pages/RegisterPage.vue'
 import ProfilePage from '@/pages/ProfilePage.vue'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.vue'
 import CoachRegisterPage from '@/pages/CoachRegisterPage.vue'
+import UserSubscriptionPage from '@/pages/UserSubscriptionPage.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -12,7 +13,8 @@ const routes = [
   { path: '/users/signup', component: RegisterPage },
   { path: '/profile', component: ProfilePage },
   { path: '/forgot-password', component: ForgotPasswordPage },
-  { path: '/coaches/signup', component: CoachRegisterPage }
+  { path: '/coaches/signup', component: CoachRegisterPage },
+  { path: '/users/subscription', component: UserSubscriptionPage }
 ]
 
 const router = createRouter({

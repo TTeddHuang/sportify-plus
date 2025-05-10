@@ -1,5 +1,5 @@
 <template>
-  <section class="faq-section position-relative py-5 text-white">
+  <section class="faq-section position-relative py-lg-12 text-white">
     <div class="container d-flex">
       <!-- 標題與裝飾 -->
       <div
