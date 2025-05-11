@@ -1,12 +1,13 @@
 <!-- src/components/SubscriptionSelector.vue -->
 <template>
-  <section class="subscription-plans py-lg-12">
+  <section class="subscription-plans mt-lg-10">
     <div class="container">
+      <h2 class="text-center mb-lg-10">選擇你的訂閱方案</h2>
       <!-- 1. 目前方案顯示 -->
 
       <!-- 2. 方案卡片 -->
       <div class="row gx-5 gy-4">
-        <div v-for="plan in plans" :key="plan.key" class="col-lg-4">
+        <div v-for="plan in plans" :key="plan.key" class="col-lg  -4">
           <div
             class="card h-100 rounded-4 border border-primary-000"
             :class="{
@@ -46,20 +47,23 @@
           </div>
         </div>
       </div>
-      <div class="text-center mb-4 fs-lg-4">
+      <div class="text-center my-lg-12 fs-lg-4">
         您目前選擇
         <strong class="text-primary">
           {{ selectedPlanLabel }}
         </strong>
         <span v-if="!selectedPlan">(尚未選擇)</span>
+        <p v-if="selectedCount < limit" class="text-danger">
+          您需要選擇 {{ limit }} 種運動
+        </p>
       </div>
 
       <!-- 3. 運動種類選擇（Eagerness 無需選擇） -->
       <div v-if="selectedPlan && limit < Infinity" class="mt-5">
         <div class="row gx-4">
-          <div v-for="group in groups" :key="group.title" class="col-md-6 mb-4">
+          <div v-for="group in groups" :key="group.title" class="col-md-6 mb-4 text-center">
             <h5 class="fw-semibold mb-2">{{ group.title }}</h5>
-            <div>
+            <div class="d-flex justify-content-center flex-wrap">
               <button
                 v-for="item in group.items"
                 :key="item.label"
@@ -67,7 +71,7 @@
                 :class="
                   isSelected(item.label)
                     ? 'btn-primary'
-                    : 'btn-outline-secondary'
+                    : 'btn-grey-500 text-black'
                 "
                 :disabled="!isSelected(item.label) && selectedCount >= limit"
                 @click="toggle(item.label)"
@@ -84,9 +88,9 @@
             </div>
           </div>
         </div>
-        <p v-if="selectedCount < limit" class="text-danger">
+        <!-- <p v-if="selectedCount < limit" class="text-danger">
           您需要選擇 {{ limit }} 種運動
-        </p>
+        </p> -->
       </div>
 
       <!-- 4. 送出按鈕 -->
