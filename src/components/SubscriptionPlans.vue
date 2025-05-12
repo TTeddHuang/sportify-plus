@@ -1,5 +1,5 @@
 <template>
-  <section class="subscription-plans y-lg-12">
+  <section class="subscription-plans py-lg-12">
     <div class="container">
       <h2 class="plans-title text-center mb-4 fs-lg-2 mb-lg-12">
         從這裡開始，一起尋找你喜歡的運動方式！
@@ -62,7 +62,10 @@
           <p class="fs-lg-4 mb-lg-2">準備好開啟全新的健身旅程了嗎？</p>
           <p class="fs-lg-6">加入 Sportify+，和上千名會員一起改變生活。</p>
         </div>
-        <button class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6" type="button">
+        <button
+          class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6"
+          type="button"
+        >
           免費試用 7日 Eagerness 方案
         </button>
       </div>
@@ -132,15 +135,6 @@ const rows = [
 </script>
 
 <style scoped lang="scss">
-.wave-wrapper {
-  width: 100%;
-  max-width: 1920px;
-  height: 172px;
-  background-image: url('../assets/images/Frame-919.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
 .table-responsive {
   border: 1px solid #eceffd;
   border-radius: 16px;

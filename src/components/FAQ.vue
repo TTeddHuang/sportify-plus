@@ -12,23 +12,27 @@
       </div>
 
       <!-- Accordion，置中顯示 -->
-      <div id="faqAccordion" class="accordion w-100" style="max-width: 900px; margin-left: 120px;">
+      <div
+        id="faqAccordion"
+        class="accordion w-100"
+        style="max-width: 900px; margin-left: 120px"
+      >
         <div
           v-for="(item, idx) in faqList"
           :key="idx"
           class="accordion-item bg-transparent border-0"
         >
-          <h2 :id="`heading${idx}`" class="accordion-header ">
+          <h2 :id="`heading${idx}`" class="accordion-header">
             <button
               class="accordion-button collapsed bg-transparent text-white fs-lg-5"
               type="button"
               @click="toggle(idx)"
             >
               {{ item.question }}
-              <!-- <i
+              <i
                 class="bi ms-auto"
                 :class="openIndexes[idx] ? 'bi-chevron-up' : 'bi-chevron-down'"
-              ></i> -->
+              ></i>
             </button>
           </h2>
           <div
@@ -102,7 +106,6 @@ function scrollToTop() {
 </script>
 
 <style scoped>
-
 /* 裝飾線圖檔 */
 .corner-decor {
   position: absolute;
@@ -123,7 +126,7 @@ function scrollToTop() {
 .accordion-button {
   padding: 24px 0;
   border: none;
-  border-bottom: 1px solid #ECEFFD;
+  border-bottom: 1px solid #eceffd;
 }
 .accordion-button:focus {
   box-shadow: none;
@@ -143,5 +146,8 @@ function scrollToTop() {
   position: absolute;
   right: 60px;
   bottom: -30px;
+}
+.accordion-button::after {
+  display: none;
 }
 </style>
