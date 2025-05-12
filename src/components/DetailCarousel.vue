@@ -129,25 +129,8 @@ const onSwiper = swiper => {
   right: -48px;
 }
 
-/* 分頁小點 */
-.custom-pagination {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
 
-  .swiper-pagination-bullet {
-    width: 12px;
-    height: 12px;
-    background: rgba(214, 255, 0, 0.4);
-    opacity: 1;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-  }
 
-  .swiper-pagination-bullet-active {
-    background: #e7ff37;
-  }
-}
 .detail-swiper,
 .detail-swiper .text-block .small-image {
   max-width: 352px;

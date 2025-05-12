@@ -1,8 +1,6 @@
 <!-- 會跑出X軸要再調整 -->
 <template>
   <div>
-    <div class="wave-wrapper"></div>
-
     <section class="coaches text-center my-lg-12 text-white">
       <div class="container">
         <h2 class="mb-lg-12">你的專屬教練群</h2>
@@ -82,16 +80,6 @@ const coaches = ref([
 
 <style scoped lang="scss">
 /* 波浪圖樣式 */
-.wave-wrapper {
-  width: 100%;
-  max-width: 1920px;
-  height: 172px;
-  background-image: url('../assets/images/Frame-923.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
 .coach-col {
   flex: 0 0 325.33px;
 }
