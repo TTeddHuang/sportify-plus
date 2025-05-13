@@ -48,7 +48,14 @@
     />
     <DetailCarousel />
     <WaveBanner />
-    <CoachGrid />
+    <!-- 專屬教練CoachGrid -->
+    <div class="coaches text-center my-lg-12 text-white">
+      <div class="container">
+        <h2 class="mb-lg-12">你的專屬教練群</h2>
+        <CoachGrid />
+      </div>
+    </div>
+
     <SubscriptionPlans />
     <WaveBannerReverse />
     <FAQ />

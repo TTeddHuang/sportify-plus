@@ -67,7 +67,7 @@
           </div>
 
           <button
-            class="btn btn-lg btn-primary-600 custom-btn mt-5"
+            class="btn btn-lg btn-primary custom-btn mt-5"
             :disabled="emailError || passwordError || checkPasswordError"
           >
             註冊

@@ -1,56 +1,51 @@
 <!-- 會跑出X軸要再調整 -->
 <template>
+  <!-- 使用 Flex 排版，自訂固定寬度 -->
   <div>
-    <section class="coaches text-center my-lg-12 text-white">
-      <div class="container">
-        <h2 class="mb-lg-12">你的專屬教練群</h2>
+    <!-- 使用 Flex 排版，自訂固定寬度 -->
+    <div class="d-flex flex-wrap justify-content-center gap-7">
+      <div v-for="coach in coaches" :key="coach.name" class="coach-col">
+        <div
+          class="card coach-card position-relative"
+          style="background-color: rgba(255, 255, 255, 0.1)"
+        >
+          <!-- 圖片區 (固定寬高) -->
+          <div class="coach-img-wrapper position-relative">
+            <img
+              :src="coach.image"
+              :alt="coach.name"
+              class="coach-img rounded"
+            />
+            <!-- 四角＋號 -->
+            <img :src="lineImg" alt="" class="plus-icon top start" />
+            <img :src="lineImg" alt="" class="plus-icon bottom end" />
+          </div>
 
-        <!-- 使用 Flex 排版，自訂固定寬度 -->
-        <div class="d-flex flex-wrap justify-content-center gap-7">
-          <div v-for="coach in coaches" :key="coach.name" class="coach-col">
-            <div
-              class="card coach-card position-relative"
-              style="background-color: rgba(255, 255, 255, 0.1)"
-            >
-              <!-- 圖片區 (固定寬高) -->
-              <div class="coach-img-wrapper position-relative">
-                <img
-                  :src="coach.image"
-                  :alt="coach.name"
-                  class="coach-img rounded"
-                />
-                <!-- 四角＋號 -->
-                <img :src="lineImg" alt="" class="plus-icon top start" />
-                <img :src="lineImg" alt="" class="plus-icon bottom end" />
-              </div>
-
-              <!-- 文字區 -->
-              <div class="card-body mt-5 rounded text-start p-0">
-                <div class="d-flex align-items-center mb-2">
-                  <h5 class="card-title fw-bold fs-lg-4">
-                    {{ coach.name }}
-                  </h5>
-                  <span class="badge ms-2">{{ coach.tag }}</span>
-                </div>
-
-                <p class="fs-lg-6 fw-bold mb-2">
-                  {{ coach.title }}
-                </p>
-                <p class="card-text mb-2">
-                  {{ coach.description }}
-                </p>
-                <a
-                  href="#"
-                  class="text-decoration-none text-grey-000 text-center d-block px-2 py-1"
-                >
-                  查看更多
-                </a>
-              </div>
+          <!-- 文字區 -->
+          <div class="card-body mt-5 rounded text-start p-0">
+            <div class="d-flex align-items-center mb-2">
+              <h5 class="card-title fw-bold fs-lg-4">
+                {{ coach.name }}
+              </h5>
+              <span class="badge ms-2">{{ coach.tag }}</span>
             </div>
+
+            <p class="fs-lg-6 fw-bold mb-2">
+              {{ coach.title }}
+            </p>
+            <p class="card-text mb-2">
+              {{ coach.description }}
+            </p>
+            <a
+              href="#"
+              class="text-decoration-none text-grey-000 text-center d-block px-2 py-1"
+            >
+              查看更多
+            </a>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   </div>
 </template>
 
