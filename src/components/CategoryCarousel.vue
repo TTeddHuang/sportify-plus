@@ -5,9 +5,19 @@
         <h2 class="fw-bold mb-lg-12">豐富多元的運動課程，任你自由探索！</h2>
 
         <div class="swiper-wrapper-container position-relative mb-lg-12">
-          <div class="swiper-button-prev"></div>
-          <div class="swiper-button-next"></div>
-          <swiper
+          <!-- <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next"></div> -->
+          <div
+            class="swiper-button-prev swiper-button-prev-custom d-none d-md-flex"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </div>
+          <div
+            class="swiper-button-next swiper-button-next-custom d-none d-md-flex"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </div>
+          <!-- <swiper
             :modules="[Navigation]"
             :slides-per-view="5"
             :space-between="44"
@@ -15,6 +25,40 @@
             class="mySwiper"
           >
             <swiper-slide v-for="(cat, index) in categories" :key="index">
+              <div class="category-card">
+                <p class="category-title mt-lg-3 text-primary-000 fs-lg-4">
+                  {{ cat.name }}
+                </p>
+                <div class="category-img-wrapper">
+                  <img
+                    v-if="cat.name === '皮拉提斯'"
+                    :src="decoPilates"
+                    class="decoration"
+                    alt="裝飾方框"
+                    :style="{ top: '60px', left: '-100px' }"
+                  />
+                  <img
+                    v-if="cat.name === '滑板'"
+                    :src="decoSkate"
+                    class="decoration"
+                    alt="裝飾方框"
+                    :style="{ top: '-130px', right: '-61px' }"
+                  />
+                  <img :src="cat.image" class="category-img" alt="" />
+                </div>
+              </div>
+            </swiper-slide>
+          </swiper> -->
+          <swiper
+            v-bind="swiperOptions"
+            class="mySwiper"
+            :navigation="{
+              nextEl: '.swiper-button-next-custom',
+              prevEl: '.swiper-button-prev-custom'
+            }"
+          >
+            <swiper-slide v-for="(cat, index) in categories" :key="index">
+              <!-- 原本的 category-card 放這裡 -->
               <div class="category-card">
                 <p class="category-title mt-lg-3 text-primary-000 fs-lg-4">
                   {{ cat.name }}
@@ -85,6 +129,22 @@ const categories = ref([
     image: new URL('@/assets/images/skateboarding.png', import.meta.url).href
   }
 ])
+const swiperOptions = {
+  modules: [Navigation],
+  slidesPerView: 5,
+  spaceBetween: 44,
+  breakpoints: {
+    1200: { slidesPerView: 5 },
+    992: { slidesPerView: 4 },
+    768: { slidesPerView: 3 },
+    576: { slidesPerView: 2 },
+    0: { slidesPerView: 1 }
+  },
+  navigation: {
+    nextEl: '.swiper-button-next-custom',
+    prevEl: '.swiper-button-prev-custom'
+  }
+}
 </script>
 
 <style scoped lang="scss">

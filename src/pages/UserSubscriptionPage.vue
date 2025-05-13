@@ -7,7 +7,7 @@
 
       <!-- 2. 方案卡片 -->
       <div class="row gx-5 gy-4">
-        <div v-for="plan in plans" :key="plan.key" class="col-lg  -4">
+        <div v-for="plan in plans" :key="plan.key" class="col-lg -4">
           <div
             class="card h-100 rounded-4 border border-primary-000"
             :class="{
@@ -61,7 +61,11 @@
       <!-- 3. 運動種類選擇（Eagerness 無需選擇） -->
       <div v-if="selectedPlan && limit < Infinity" class="mt-5">
         <div class="row gx-4">
-          <div v-for="group in groups" :key="group.title" class="col-md-6 mb-4 text-center">
+          <div
+            v-for="group in groups"
+            :key="group.title"
+            class="col-md-6 mb-4 text-center"
+          >
             <h5 class="fw-semibold mb-2">{{ group.title }}</h5>
             <div class="d-flex justify-content-center flex-wrap">
               <button
@@ -108,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 // 1. 用 import.meta.glob，並加上 eager: true
@@ -124,87 +128,111 @@ const icons = Object.fromEntries(
   })
 )
 
-// 方案資料
-const plans = [
-  {
-    key: 'Wellness',
-    name: 'Wellness',
-    description:
-      '這是入門級方案，讓您每月可以選擇觀看一種類別的課程，專注於提升身心健康，適合有特定需求的使用者。',
-    price: 'NT$400',
-    features: ['可指定觀看一種類別課程', '最高可觀看達到 720p'],
-    buttonText: '選擇方案',
-    buttonClass: 'btn-outline-primary',
-    bodyClass: '',
-    titleClass: 'fs-lg-4'
-  },
-  {
-    key: 'Fitness',
-    name: 'Fitness',
-    description:
-      '無論是瑜伽、足球或重量訓練，任意組合你喜歡的課程類別，挑戰自己，讓每次運動都充滿成就感！',
-    price: 'NT$700',
-    features: [
-      '任選組合三種類別課程',
-      '最高可觀看達到 1080p',
-      '可參與教練直播課程'
-    ],
-    buttonText: '選擇方案',
-    buttonClass: 'btn-outline-primary',
-    bodyClass: '',
-    titleClass: 'fs-lg-4'
-  },
-  {
-    key: 'Eagerness',
-    name: 'Eagerness',
-    description:
-      '全平台無限開放，隨時隨地挑選你喜歡的課程，無限挑戰，讓運動成為習慣，打造最強身體！',
-    price: 'NT$900',
-    features: [
-      '自由學習全平台所有課程',
-      '最高可觀看達到 4K',
-      '可參與教練直播課程'
-    ],
-    buttonText: '選擇方案',
-    buttonClass: 'btn-primary',
-    bodyClass: '',
-    titleClass: 'fs-lg-4'
-  }
-]
+// 訂閱方案
+const plans = ref([])
+const limitMap = ref({})
 
-// 選擇限制
-const limitMap = {
-  Wellness: 1,
-  Fitness: 3,
-  Eagerness: Infinity
+// 運動項目
+const groups = ref([])
+
+onMounted(async () => {
+  try {
+    // 取得運動種類
+    const sportsRes = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/show-sports-type'
+    )
+    const { indoor, outdoor } = sportsRes.data.data
+
+    groups.value = [
+      {
+        title: '室內運動',
+        items: indoor.map(item => ({
+          label: item.name,
+          iconName: labelToIcon[item.name] || 'default'
+        }))
+      },
+      {
+        title: '戶外運動',
+        items: outdoor.map(item => ({
+          label: item.name,
+          iconName: labelToIcon[item.name] || 'default'
+        }))
+      }
+    ]
+
+    // ✅ 取得方案資料
+    const planRes = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/plan-info'
+    )
+    const planData = planRes.data.data
+
+    plans.value = planData.map(plan => {
+      const resolutionLabel =
+        plan.max_resolution === 2160
+          ? '4K'
+          : plan.max_resolution === 1080
+            ? '1080p'
+            : plan.max_resolution === 720
+              ? '720p'
+              : `${plan.max_resolution}p`
+
+      return {
+        key: plan.name.replace('方案', ''), // 例如 "Wellness"
+        name: plan.name.replace('方案', ''),
+        description: plan.intro,
+        price: `NT$${plan.pricing}`,
+        features: [
+          plan.sports_choice > 0
+            ? `任選 ${plan.sports_choice} 種課程類別`
+            : '自由學習全平台所有課程',
+          `最高可觀看達到 ${resolutionLabel}`,
+          plan.livestream ? '可參與教練直播課程' : null
+        ].filter(Boolean),
+        buttonText: '選擇方案',
+        buttonClass:
+          plan.pricing === 0
+            ? 'btn-outline-secondary'
+            : plan.name.includes('Eagerness')
+              ? 'btn-primary'
+              : 'btn-outline-primary',
+        bodyClass: '',
+        titleClass: 'fs-lg-4'
+      }
+    })
+
+    // ✅ 產生限制對照表
+    limitMap.value = Object.fromEntries(
+      planData.map(plan => [
+        plan.name.replace('方案', ''), // e.g., "Wellness"
+        plan.sports_choice === 0 ? Infinity : plan.sports_choice
+      ])
+    )
+  } catch (err) {
+    console.error('載入資料失敗', err)
+  }
+})
+
+const limit = computed(() => limitMap.value?.[selectedPlan.value] ?? 0)
+const selectedPlanLabel = computed(() => {
+  const p = plans.value.find(p => p.key === selectedPlan.value)
+  return p ? p.name + ' 方案' : ''
+})
+
+// 對照表
+const labelToIcon = {
+  瑜珈: 'yoga',
+  皮拉提斯: 'pilates',
+  重訓: 'weight-lifting',
+  有氧: 'aerobic',
+  舞蹈: 'dance',
+  足球: 'football',
+  單車: 'bicycle',
+  籃球: 'basketball',
+  登山: 'hiking',
+  羽球: 'badminton',
+  滑板: 'skateboard',
+  游泳: 'swimming'
 }
-
-// 運動分組
-const groups = [
-  {
-    title: '室內運動',
-    items: [
-      { label: '重量訓練', iconName: 'weight-lifting' },
-      { label: '游泳',     iconName: 'swimming' },
-      { label: '瑜珈',     iconName: 'yoga' },
-      { label: '皮拉提斯', iconName: 'pilates' },
-      { label: '拳擊',     iconName: 'boxing' },
-      { label: '溜冰',     iconName: 'ice-skate' }
-    ]
-  },
-  {
-    title: '戶外運動',
-    items: [
-      { label: '登山',     iconName: 'hiking' },
-      { label: '直排輪',   iconName: 'roller-skate' },
-      { label: '滑板',     iconName: 'skateboard' },
-      { label: '攀岩',     iconName: 'climbing' },
-      { label: '街舞',     iconName: 'street-dance' },
-      { label: '球類運動', iconName: 'ball-sports' },
-      { label: '自行車',   iconName: 'bicycle' }
-    ]
-  }
-]
 
 // state
 const selectedPlan = ref('')
@@ -216,7 +244,6 @@ function selectPlan(key) {
   selectedItems.value = []
 }
 
-const limit = computed(() => limitMap[selectedPlan.value] || 0)
 const selectedCount = computed(() => selectedItems.value.length)
 
 function isSelected(item) {
@@ -230,11 +257,6 @@ function toggle(item) {
     selectedItems.value.push(item)
   }
 }
-
-const selectedPlanLabel = computed(() => {
-  const p = plans.find(p => p.key === selectedPlan.value)
-  return p ? p.name + ' 方案' : ''
-})
 
 const canSubmit = computed(() => {
   if (!selectedPlan.value) return false

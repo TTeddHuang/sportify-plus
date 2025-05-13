@@ -1,7 +1,7 @@
 <template>
   <div class="detail-carousel-wrapper py-5">
     <div class="detail-carousel-container-outer mb-lg-5">
-      <div class="container detail-carousel-container">
+      <div class="container detail-carousel-container px-0">
         <swiper
           :modules="[Navigation, Pagination]"
           :slides-per-view="1"
@@ -9,6 +9,7 @@
           navigation
           :pagination="{ el: '.custom-pagination', clickable: true }"
           class="detail-swiper"
+          style="background-color: rgba(255, 255, 255, 0.1)"
           @swiper="onSwiper"
         >
           <swiper-slide v-for="(item, index) in slides" :key="index">
@@ -16,7 +17,7 @@
               class="detail-slide d-flex flex-column flex-lg-row justify-content-between align-items-center p-lg-8"
             >
               <div class="text-block mb-4 mb-lg-0 h-100">
-                <h2 class="detail-title text-white fw-bold mb-lg-2 fs-lg-3">
+                <h2 class="detail-title fw-bold mb-lg-2 fs-lg-3">
                   {{ item.title }}
                 </h2>
                 <p class="detail-desc text-light mb-lg-5">
@@ -26,12 +27,12 @@
                   v-if="item.image"
                   :src="item.image"
                   :alt="`${item.title} 小圖`"
-                  class="rounded w-100"
+                  class="rounded w-100 d-block object-fit-cover"
                   style="width: 352px; height: 400px"
                 />
               </div>
 
-              <div class="media-block position-relative">
+              <div class="media-block position-relative d-block">
                 <img
                   :src="item.videoCover"
                   :alt="`${item.title} 預覽`"
@@ -128,8 +129,6 @@ const onSwiper = swiper => {
 ::v-deep(.swiper-button-next) {
   right: -48px;
 }
-
-
 
 .detail-swiper,
 .detail-swiper .text-block .small-image {

@@ -54,7 +54,7 @@ function handleLogout() {
           </li>
           <li v-if="!isLogin" class="nav-item me-3">
             <router-link
-              to="/coaches/signup"
+              to="/become-coach"
               class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/create-course') }"
               >我要開課</router-link
