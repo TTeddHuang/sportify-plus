@@ -52,7 +52,9 @@
     <div class="custom-pagination my-lg-8"></div>
     <div class="text-center mt-4">
       <button class="btn btn-primary-600 px-lg-5 py-lg-3 fs-lg-6">
-        我要體驗
+        <router-link to="/users/subscription" class="text-primary-000">
+          我要體驗
+        </router-link>
       </button>
     </div>
   </div>

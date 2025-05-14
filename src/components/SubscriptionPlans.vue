@@ -25,7 +25,12 @@
                         : 'btn-outline-light'
                     ]"
                   >
-                    {{ plan.action.text }}
+                    <router-link
+                      to="/users/subscription"
+                      class="text-primary-000"
+                    >
+                      {{ plan.action.text }}
+                    </router-link>
                   </button>
                 </div>
               </td>
@@ -66,7 +71,9 @@
           class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6"
           type="button"
         >
-          免費試用 7日 Eagerness 方案
+          <router-link to="/users/subscription" class="text-primary-000">
+            免費試用 7日 Eagerness 方案
+          </router-link>
         </button>
       </div>
     </div>
