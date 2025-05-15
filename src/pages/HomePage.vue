@@ -65,7 +65,7 @@ import WaveBanner from '@/components/WaveBanner.vue'
 import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 @import '../assets/styles/all.scss';
 .home {
   min-height: 100vh;
