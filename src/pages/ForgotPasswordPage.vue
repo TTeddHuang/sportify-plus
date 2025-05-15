@@ -6,7 +6,9 @@
       </div>
       <div class="col-lg-6">
         <h2 class="mb-5">忘記密碼</h2>
-        <p class="fs-5">輸入註冊帳號所使用的Email信箱，我們將發送一組密碼給您。</p>
+        <p class="fs-5">
+          輸入註冊帳號所使用的Email信箱，我們將發送一組密碼給您。
+        </p>
         <form @submit.prevent="handleForgotPassword">
           <div class="mb-3">
             <label class="form-label fs-5">Email</label>
@@ -17,18 +19,33 @@
               required
               @blur="validateEmail"
             />
-            <p v-if="emailError" class="text-danger mt-1">*不是正確 Email 格式！</p>
+            <p v-if="emailError" class="text-danger mt-1">
+              *不是正確 Email 格式！
+            </p>
           </div>
 
-          <button class="btn btn-primary-100 btn-lg custom-btn mt-5" :disabled="emailError">發送重設連結</button>
+          <button
+            class="btn btn-primary-600 btn-lg custom-btn mt-5"
+            :disabled="emailError"
+          >
+            發送重設連結
+          </button>
         </form>
 
         <div class="d-flex justify-content-between mt-5">
           <p class="mb-0">
-            已有帳號？<router-link to="/login" class="text-primary-500 text-decoration-underline">立即登入</router-link>
+            已有帳號？<router-link
+              to="/login"
+              class="text-primary-500 text-decoration-underline"
+              >立即登入</router-link
+            >
           </p>
           <p class="mb-0">
-            <router-link to="/register" class="text-primary-500 text-decoration-underline">建立新帳號</router-link>
+            <router-link
+              to="/users/signup"
+              class="text-primary-500 text-decoration-underline"
+              >建立新帳號</router-link
+            >
           </p>
         </div>
       </div>
