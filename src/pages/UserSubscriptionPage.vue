@@ -2,10 +2,18 @@
 <template>
   <section class="subscription-plans mt-lg-10">
     <div class="container">
-      <h2 class="text-center mb-lg-10">選擇你的訂閱方案</h2>
-      <!-- 1. 目前方案顯示 -->
+      <h4 v-if="userInfo?.hasTrial || !userInfo" class="text-center mb-lg-5">
+        就差一步，改變正要開始！
+      </h4>
+      <h2 class="text-center mb-lg-10">
+        {{
+          userInfo?.hasTrial || !userInfo
+            ? '我們的訂閱方案'
+            : '選擇你的訂閱方案'
+        }}
+      </h2>
 
-      <!-- 2. 方案卡片 -->
+      <!-- 方案卡片 -->
       <div class="row gx-5 gy-4">
         <div v-for="plan in plans" :key="plan.key" class="col-lg -4">
           <div
@@ -37,6 +45,7 @@
                 </li>
               </ul>
               <button
+                v-if="userInfo && !userInfo.hasTrial"
                 class="mt-auto btn btn-lg btn-primary"
                 :class="plan.buttonClass"
                 @click="selectPlan(plan.key)"
@@ -47,19 +56,30 @@
           </div>
         </div>
       </div>
-      <div class="text-center my-lg-12 fs-lg-4">
+
+      <!-- 目前選擇顯示 -->
+      <div
+        v-if="userInfo && !userInfo?.hasTrial"
+        class="text-center my-lg-12 fs-lg-4"
+      >
         您目前選擇
         <strong class="text-primary">
           {{ selectedPlanLabel }}
         </strong>
         <span v-if="!selectedPlan">(尚未選擇)</span>
-        <p v-if="selectedCount < limit" class="text-danger">
-          您需要選擇 {{ limit }} 種運動
-        </p>
+
+        <template v-if="selectedPlan">
+          <p v-if="limit === Infinity" class="text-danger">
+            此方案不需要選擇運動類別
+          </p>
+          <p v-else-if="selectedCount < limit" class="text-danger">
+            您需要選擇 {{ limit }} 種運動
+          </p>
+        </template>
       </div>
 
-      <!-- 3. 運動種類選擇（Eagerness 無需選擇） -->
-      <div v-if="selectedPlan && limit < Infinity" class="mt-5">
+      <!-- 運動種類選擇 -->
+      <div v-if="userInfo && selectedPlan && limit < Infinity" class="mt-5">
         <div class="row gx-4">
           <div
             v-for="group in groups"
@@ -92,14 +112,20 @@
             </div>
           </div>
         </div>
-        <!-- <p v-if="selectedCount < limit" class="text-danger">
-          您需要選擇 {{ limit }} 種運動
-        </p> -->
       </div>
 
-      <!-- 4. 送出按鈕 -->
-      <div class="text-center mt-4">
+      <!-- 送出按鈕 -->
+      <div class="text-center mt-lg-10">
         <button
+          v-if="userInfo?.hasTrial || !userInfo"
+          class="btn btn-success btn-lg"
+          @click="submitTrial"
+        >
+          試用 7 日 Eagerness 方案
+        </button>
+
+        <button
+          v-else
           class="btn btn-success btn-lg"
           :disabled="!canSubmit"
           @click="submit"
@@ -114,6 +140,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 // 1. 用 import.meta.glob，並加上 eager: true
 const iconModules = import.meta.glob('../assets/icons/*.png', {
@@ -134,6 +162,28 @@ const limitMap = ref({})
 
 // 運動項目
 const groups = ref([])
+
+// user資料
+const userInfo = ref(null)
+
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    const userRes = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+    userInfo.value = userRes.data.data
+  } catch (err) {
+    console.error('取得使用者資料失敗', err)
+  }
+})
 
 onMounted(async () => {
   try {
@@ -160,7 +210,7 @@ onMounted(async () => {
       }
     ]
 
-    // ✅ 取得方案資料
+    //  取得方案資料
     const planRes = await axios.get(
       'https://sportify-backend-1wt9.onrender.com/api/v1/users/plan-info'
     )
@@ -200,7 +250,7 @@ onMounted(async () => {
       }
     })
 
-    // ✅ 產生限制對照表
+    //  產生限制對照表
     limitMap.value = Object.fromEntries(
       planData.map(plan => [
         plan.name.replace('方案', ''), // e.g., "Wellness"
@@ -215,7 +265,7 @@ onMounted(async () => {
 const limit = computed(() => limitMap.value?.[selectedPlan.value] ?? 0)
 const selectedPlanLabel = computed(() => {
   const p = plans.value.find(p => p.key === selectedPlan.value)
-  return p ? p.name + ' 方案' : ''
+  return p ? p.name + '方案' : ''
 })
 
 // 對照表
@@ -264,18 +314,57 @@ const canSubmit = computed(() => {
   return selectedCount.value === limit.value
 })
 
+// 試用七天
+async function submitTrial() {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('請先登入')
+      return
+    }
+
+    await axios.post(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
+      {
+        subscription_name: 'Eagerness方案-7天試用',
+        course_type: []
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+    alert('試用成功，歡迎加入！')
+    router.push('/') // 跳轉首頁
+  } catch (err) {
+    console.error(err)
+    alert('申請試用失敗')
+  }
+}
+
 // 提交
 async function submit() {
   const payload = {
     subscription_name: selectedPlanLabel.value,
     course_type: selectedPlan.value === 'Eagerness' ? [] : selectedItems.value
   }
+  console.log('送出的 payload', payload)
   try {
-    await axios.post('/api/subscription', payload)
+    const token = localStorage.getItem('token')
+    await axios.post(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
     alert('送出成功！')
   } catch (err) {
     console.error(err)
-    alert('送出失敗')
+    alert('請先登入')
   }
 }
 </script>
