@@ -43,10 +43,7 @@
             <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
             <div>
               <p class="mb-5">
-                從體態到強化，30天徹底喚醒你的核心力量！透過科學構築的皮拉提斯課表，集中鍛鍊腹部、背部與臀部深層肌群，全面提升穩定性、姿勢控制與運動表現。
-              </p>
-              <p class="mb-0">
-                課程設計由淺入深，循序漸進，讓每一位學員無論基礎如何，都能跟隨節奏穩步進步。專業教練將引導你細緻感受每一次呼吸與收縮，啟動核心深層肌群，並有效預防運動傷害。不僅雕塑出緊實有力的線條，更讓你在日常生活中感受到身體協調與能量的提升。適合想要雕塑線條、提升核心力量，或打好運動基礎、迎接更多運動挑戰的你。<br />給自己30天，讓身體變得更強大，讓每一步都更有力量！
+                {{ courseDetail[0].course.description }}
               </p>
             </div>
           </div>
@@ -253,7 +250,7 @@
                 class="modal-body bg-grey-000 text-grey-700 p-lg-5 rounded-bottom-3"
               >
                 <div
-                  v-for="rating in userRatings[0].ratingsWithUserNames"
+                  v-for="rating in paginatedRatings"
                   :key="rating.id"
                   class="mb-4 p-lg-3 bg-primary-000 rounded-3"
                 >
@@ -296,6 +293,39 @@
 
                   <p class="mt-2 mb-0 text-grey-700">{{ rating.comment }}</p>
                 </div>
+                <!-- Pagination 控制列 -->
+                <nav
+                  class="d-flex justify-content-center"
+                  style="padding-top: 4px"
+                >
+                  <ul class="pagination mb-0">
+                    <li
+                      class="page-item bg-grey-000"
+                      :class="{ disabled: currentPage === 1 }"
+                      @click="changePage(currentPage - 1)"
+                    >
+                      <a class="page-link me-12">上一頁</a>
+                    </li>
+
+                    <li
+                      v-for="page in totalPages"
+                      :key="page"
+                      class="page-item mx-2"
+                      :class="{ active: page === currentPage }"
+                      @click="changePage(page)"
+                    >
+                      <a class="page-link">{{ page }}</a>
+                    </li>
+
+                    <li
+                      class="page-item"
+                      :class="{ disabled: currentPage === totalPages }"
+                      @click="changePage(currentPage + 1)"
+                    >
+                      <a class="page-link ms-12">下一頁</a>
+                    </li>
+                  </ul>
+                </nav>
               </div>
             </div>
           </div>
@@ -380,7 +410,9 @@ const courseDetail = [
       student_amount: 2346,
       hours: 33,
       image_url:
-        'https://img.freepik.com/premium-photo/mature-fitness-coach-gym-beautiful-illustration-picture-generative-ai_146671-94599.jpg'
+        'https://img.freepik.com/premium-photo/mature-fitness-coach-gym-beautiful-illustration-picture-generative-ai_146671-94599.jpg',
+      description:
+        '清晨是啟動能量、調整呼吸與內在節奏的最佳時刻。本課程以晨間瑜伽為主軸，透過溫和伸展、呼吸練習與動靜整合的序列，引導你在一天開始前，釋放身體緊張、喚醒覺知，並建立身心協調的穩定感。課程安排包含基礎流動瑜伽（Vinyasa）、陰瑜伽與冥想，搭配引導語音與輔具使用技巧，適合各程度練習者。每天30分鐘的晨間練習，不只讓你活動筋骨，更是一種自我照顧的儀式，讓你在日常節奏中保留一段屬於自己的寧靜與力量。'
     },
     coach: {
       name: 'Michael',
@@ -543,6 +575,25 @@ const userRatings = [
     }
   }
 ]
+
+const currentPage = ref(1)
+const pageSize = 5
+
+const totalPages = computed(() =>
+  Math.ceil(userRatings[0]?.ratingsWithUserNames.length / pageSize)
+)
+
+const paginatedRatings = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return userRatings[0]?.ratingsWithUserNames.slice(start, end) || []
+})
+
+function changePage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -650,5 +701,28 @@ const userRatings = [
 }
 .card:last-child {
   margin-bottom: 0;
+}
+.page-link {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  color: $primary-700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(48, 79, 254, 0.1);
+  }
+}
+
+.page-item.active .page-link {
+  background-color: $primary-700;
+  color: $primary-100;
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

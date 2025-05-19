@@ -2,7 +2,7 @@
   <div class="container mt-10">
     <div class="row">
       <div class="col-lg-6">
-        <img src="../assets/images/logo.png" alt="" class="img-fluid" />
+        <img src="@/assets/images/logo.png" alt="logo" class="img-fluid" />
       </div>
       <div class="col-lg-6">
         <h2>登入</h2>
@@ -123,7 +123,7 @@ async function handleLogin() {
   }
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 .custom-btn {
   display: block;
   margin: 0 auto;
