@@ -8,13 +8,26 @@
         role="group"
         aria-label="Basic outlined button group"
       >
-        <a href="#" class="btn btn-outline-primary">所有課程</a>
-        <a href="#" class="btn btn-outline-primary">瑜珈</a>
-        <a href="#" class="btn btn-outline-primary">足球</a>
-        <a href="#" class="btn btn-outline-primary">單車</a>
-        <a href="#" class="btn btn-outline-primary">皮拉提斯</a>
-        <a href="#" class="btn btn-outline-primary">籃球</a>
-        <div class="dropdown">
+        <button
+          href="#"
+          class="btn btn-outline-primary"
+          :class="{ active: currentType === '' }"
+          @click="(currentType === '', (currentPage = 1))"
+        >
+          所有課程
+        </button>
+        <button
+          v-for="skill in skills"
+          :key="skill.type_id"
+          href="#"
+          class="btn btn-outline-primary"
+          :class="{ active: currentType === skill.type_id }"
+          @click="(currentType === skill.type_id, (currentPage = 1))"
+        >
+          {{ skill.course_type }}
+        </button>
+        <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
+        <!-- <div class="dropdown">
           <button
             id="dropdownMenuButton"
             class="btn btn-outline-primary dropdown-toggle"
@@ -29,49 +42,68 @@
             <li><a class="dropdown-item" href="#">有氧</a></li>
             <li><a class="dropdown-item" href="#">滑板</a></li>
           </ul>
-        </div>
+        </div> -->
       </div>
       <!-- 排序按鍵 -->
       <div class="d-flex gap-1 align-items-center sort-btn-group">
         <span>排序：</span>
-        <button type="button" class="btn btn-primary active">最熱門</button>
-        <button type="button" class="btn btn-primary">評價最高</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :class="{ active: currentSort === 'popular' }"
+        >
+          最熱門
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :class="{ active: currentSort === 'score' }"
+        >
+          評價最高
+        </button>
       </div>
     </div>
     <div class="card-section d-flex flex-wrap gap-8">
       <!-- 單一卡片範本-start -->
-      <div class="card position-relative">
-        <span class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >重訓</span
+      <div
+        v-for="course in courses"
+        :key="course.course_id"
+        class="card position-relative"
+      >
+        <span
+          class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
+          >{{ course.course_type }}</span
         >
         <img
-          src="https://github.com/TTeddHuang/sportify-img/blob/main/jared-rice-NTyBbu66_SI-unsplash.jpg?raw=true"
+          :src="`${course.course_image_url}`"
           class="card-img-top"
           alt="card-img-top"
         />
         <div class="card-body">
-          <h5 class="card-title fs-7-bold">科學化重訓入門實戰</h5>
+          <h5 class="card-title fs-7-bold">{{ course.course_name }}</h5>
           <div class="d-flex">
-            <p class="fs-7">Ethan</p>
+            <p class="fs-7">{{ course.coach_name }}</p>
             <span class="fs-7 px-2">I</span>
-            <p class="fs-7">NSCA 國家體能協會認證專家</p>
+            <p class="fs-7">{{ course.coach_title }}</p>
           </div>
           <div class="d-flex justify-content-between">
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined star"> star </span
-              ><span>4.3</span>
+              ><span>{{ course.course_score }}</span>
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> person </span
-              ><span>1988</span>位學生
+              ><span>{{ course.student_amount }}</span
+              >位學生
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> schedule </span
-              ><span>42</span>小時
+              ><span>{{ course.total_hours }}</span
+              >小時
             </p>
           </div>
           <p class="card-text">
-            告別盲目訓練，從理解身體開始科學變強！本課程以正確動作模式為核心，結合科學化負重進程與肌力養成理論，讓你打好深蹲、硬舉、推舉等基礎動作，建立安全、有效的訓練習慣。適合重訓新手或希望矯正動作、建立科學觀念的運動愛好者。我相信，每個球員都有屬於自己的風格與潛力，而我的使命，就是幫助他們在球場上找到定位，打出自信，打出影響力。
+            {{ course.course_description }}
           </p>
           <div class="card-link">
             <a href="#">查看更多</a>
@@ -79,173 +111,27 @@
         </div>
       </div>
       <!-- 單一卡片範本-end -->
-      <div class="card position-relative">
-        <span class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >重訓</span
-        >
-        <img
-          src="https://github.com/TTeddHuang/sportify-img/blob/main/jared-rice-NTyBbu66_SI-unsplash.jpg?raw=true"
-          class="card-img-top"
-          alt="card-img-top"
-        />
-        <div class="card-body">
-          <h5 class="card-title fs-7-bold">科學化重訓入門實戰</h5>
-          <div class="d-flex">
-            <p class="fs-7">Ethan</p>
-            <span class="fs-7 px-2">I</span>
-            <p class="fs-7">NSCA 國家體能協會認證專家</p>
-          </div>
-          <div class="d-flex justify-content-between">
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined star"> star </span
-              ><span>4.3</span>
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> person </span
-              ><span>1988</span>位學生
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> schedule </span
-              ><span>42</span>小時
-            </p>
-          </div>
-          <p class="card-text">
-            告別盲目訓練，從理解身體開始科學變強！本課程以正確動作模式為核心，結合科學化負重進程與肌力養成理論，讓你打好深蹲、硬舉、推舉等基礎動作，建立安全、有效的訓練習慣。適合重訓新手或希望矯正動作、建立科學觀念的運動愛好者。我相信，每個球員都有屬於自己的風格與潛力，而我的使命，就是幫助他們在球場上找到定位，打出自信，打出影響力。
-          </p>
-          <div class="card-link">
-            <a href="#">查看更多</a>
-          </div>
-        </div>
-      </div>
-      <div class="card position-relative">
-        <span class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >重訓</span
-        >
-        <img
-          src="https://github.com/TTeddHuang/sportify-img/blob/main/jared-rice-NTyBbu66_SI-unsplash.jpg?raw=true"
-          class="card-img-top"
-          alt="card-img-top"
-        />
-        <div class="card-body">
-          <h5 class="card-title fs-7-bold">科學化重訓入門實戰</h5>
-          <div class="d-flex">
-            <p class="fs-7">Ethan</p>
-            <span class="fs-7 px-2">I</span>
-            <p class="fs-7">NSCA 國家體能協會認證專家</p>
-          </div>
-          <div class="d-flex justify-content-between">
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined star"> star </span
-              ><span>4.3</span>
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> person </span
-              ><span>1988</span>位學生
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> schedule </span
-              ><span>42</span>小時
-            </p>
-          </div>
-          <p class="card-text">
-            告別盲目訓練，從理解身體開始科學變強！本課程以正確動作模式為核心，結合科學化負重進程與肌力養成理論，讓你打好深蹲、硬舉、推舉等基礎動作，建立安全、有效的訓練習慣。適合重訓新手或希望矯正動作、建立科學觀念的運動愛好者。我相信，每個球員都有屬於自己的風格與潛力，而我的使命，就是幫助他們在球場上找到定位，打出自信，打出影響力。
-          </p>
-          <div class="card-link">
-            <a href="#">查看更多</a>
-          </div>
-        </div>
-      </div>
-      <div class="card position-relative">
-        <span class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >重訓</span
-        >
-        <img
-          src="https://github.com/TTeddHuang/sportify-img/blob/main/jared-rice-NTyBbu66_SI-unsplash.jpg?raw=true"
-          class="card-img-top"
-          alt="card-img-top"
-        />
-        <div class="card-body">
-          <h5 class="card-title fs-7-bold">科學化重訓入門實戰</h5>
-          <div class="d-flex">
-            <p class="fs-7">Ethan</p>
-            <span class="fs-7 px-2">I</span>
-            <p class="fs-7">NSCA 國家體能協會認證專家</p>
-          </div>
-          <div class="d-flex justify-content-between">
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined star"> star </span
-              ><span>4.3</span>
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> person </span
-              ><span>1988</span>位學生
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> schedule </span
-              ><span>42</span>小時
-            </p>
-          </div>
-          <p class="card-text">
-            告別盲目訓練，從理解身體開始科學變強！本課程以正確動作模式為核心，結合科學化負重進程與肌力養成理論，讓你打好深蹲、硬舉、推舉等基礎動作，建立安全、有效的訓練習慣。適合重訓新手或希望矯正動作、建立科學觀念的運動愛好者。我相信，每個球員都有屬於自己的風格與潛力，而我的使命，就是幫助他們在球場上找到定位，打出自信，打出影響力。
-          </p>
-          <div class="card-link">
-            <a href="#">查看更多</a>
-          </div>
-        </div>
-      </div>
-      <div class="card position-relative">
-        <span class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >重訓</span
-        >
-        <img
-          src="https://github.com/TTeddHuang/sportify-img/blob/main/jared-rice-NTyBbu66_SI-unsplash.jpg?raw=true"
-          class="card-img-top"
-          alt="card-img-top"
-        />
-        <div class="card-body">
-          <h5 class="card-title fs-7-bold">科學化重訓入門實戰</h5>
-          <div class="d-flex">
-            <p class="fs-7">Ethan</p>
-            <span class="fs-7 px-2">I</span>
-            <p class="fs-7">NSCA 國家體能協會認證專家</p>
-          </div>
-          <div class="d-flex justify-content-between">
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined star"> star </span
-              ><span>4.3</span>
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> person </span
-              ><span>1988</span>位學生
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> schedule </span
-              ><span>42</span>小時
-            </p>
-          </div>
-          <p class="card-text">
-            告別盲目訓練，從理解身體開始科學變強！本課程以正確動作模式為核心，結合科學化負重進程與肌力養成理論，讓你打好深蹲、硬舉、推舉等基礎動作，建立安全、有效的訓練習慣。適合重訓新手或希望矯正動作、建立科學觀念的運動愛好者。我相信，每個球員都有屬於自己的風格與潛力，而我的使命，就是幫助他們在球場上找到定位，打出自信，打出影響力。
-          </p>
-          <div class="card-link">
-            <a href="#">查看更多</a>
-          </div>
-        </div>
-      </div>
     </div>
     <nav aria-label="Page navigation">
       <ul class="pagination d-flex justify-content-center mb-0">
-        <li class="page-item mx-7 disabled">
-          <a class="page-link" href="#" tabindex="-1" aria-disabled="true"
-            >上一頁</a
-          >
+        <li
+          class="page-item mx-7"
+          :class="{ disabled: !pagination.has_previous }"
+        >
+          <a class="page-link">上一頁</a>
         </li>
-        <li class="page-item mx-5"><a class="page-link" href="#">1</a></li>
-        <li class="page-item mx-5 active" aria-current="page">
-          <a class="page-link" href="#">2</a>
+        <li
+          v-for="page in pagination.total_pages"
+          :key="page + 123"
+          class="page-item mx-5"
+          :class="{ active: currentPage === page }"
+        >
+          <a class="page-link" href="#" @click.prevent="currentPage === page">{{
+            page
+          }}</a>
         </li>
-        <li class="page-item mx-5"><a class="page-link" href="#">3</a></li>
-        <li class="page-item mx-7">
-          <a class="page-link" href="#">下一頁</a>
+        <li class="page-item mx-7" :class="{ disabled: !pagination.has_next }">
+          <a class="page-link">下一頁</a>
         </li>
       </ul>
     </nav>
@@ -255,6 +141,62 @@
 
 <script setup>
 import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
+
+import axios from 'axios'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
+// 技能列表
+const skills = ref([])
+const courses = ref([])
+const filters = ref({})
+const pagination = ref({})
+
+const currentPage = ref(route.query.page || 1)
+const currentType = ref(route.query.type_id || '')
+const currentSort = ref(route.query.sort_by || 'popular')
+
+async function fetchCourses() {
+  const { data } = await axios.get(
+    `https://sportify-backend-1wt9.onrender.com/api/v1/courses`,
+    {
+      params: {
+        page: currentPage.value,
+        skillId: currentType.value,
+        sortBy: currentSort.value
+      }
+    }
+  )
+  courses.value = data.data
+  filters.value = data.meta.filter
+  pagination.value = data.meta.pagination
+}
+
+async function fetchSkill() {
+  const { data } = await axios.get(
+    `https://sportify-backend-1wt9.onrender.com/api/v1/courses/course-type`
+  )
+  skills.value = data.data
+}
+
+onMounted(async () => {
+  await fetchCourses()
+  await fetchSkill()
+})
+
+watch([currentPage, currentType, currentSort], () =>
+  router.push({
+    path: '/courses',
+    query: {
+      page: currentPage.value,
+      skillId: currentType.value,
+      sortBy: currentSort.value
+    }
+  })
+)
 </script>
 
 <style scoped lang="scss">
