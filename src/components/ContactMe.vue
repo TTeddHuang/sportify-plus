@@ -1,7 +1,7 @@
 <script setup></script>
 
 <template>
-  <footer class="text-white py-9">
+  <footer class="text-white py-11">
     <div class="mb-6">
       <div class="container text-center">
         <!-- Logo -->

@@ -18,7 +18,11 @@ const routes = [
   { path: '/coaches/signup', component: CoachRegisterPage },
   { path: '/users/subscription', component: UserSubscriptionPage },
   { path: '/become-coach', component: BecomeCoachPage },
-  { path: '/courses/:courseId/detail', component: CourseDetailPage }
+  {
+    path: '/courses/:courseId/details',
+    name: 'CourseDetails',
+    component: CourseDetailPage
+  }
 ]
 
 const router = createRouter({

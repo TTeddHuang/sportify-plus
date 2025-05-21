@@ -5,7 +5,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <footer class="text-white py-9">
+  <footer class="text-white py-10">
     <div class="mb-6">
       <div class="container text-center">
         <!-- Logo -->
