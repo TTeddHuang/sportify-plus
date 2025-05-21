@@ -342,7 +342,7 @@
                 v-for="(rating, index) in latestThreeRatings"
                 :key="rating.id"
                 :class="[
-                  'card',
+                  'card rating-card',
                   'h-100',
                   index === latestThreeRatings.length - 1 ? 'mb-0' : 'mb-5'
                 ]"
@@ -403,7 +403,7 @@
       </div>
     </div>
     <WaveBanner />
-    <div class="coaches my-lg-12 text-white">
+    <div class="coaches my-lg-12 my-8 text-white">
       <div class="container">
         <h3 class="mb-lg-8">你可能會喜歡</h3>
         <CourseCarousel />
@@ -644,5 +644,13 @@ onMounted(() => {
 .page-item.disabled .page-link {
   opacity: 0.4;
   cursor: not-allowed;
+}
+.rating-card {
+  width: 32%;
+  min-width: 280px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 </style>
