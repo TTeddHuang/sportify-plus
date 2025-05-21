@@ -8,6 +8,7 @@ import CoachRegisterPage from '@/pages/CoachRegisterPage.vue'
 import UserSubscriptionPage from '@/pages/UserSubscriptionPage.vue'
 import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
 import CourseDetailPage from '@/pages/CourseDetailPage.vue'
+import CoursesPage from '@/pages/CoursesPage.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -22,7 +23,8 @@ const routes = [
     path: '/courses/:courseId/details',
     name: 'CourseDetails',
     component: CourseDetailPage
-  }
+  },
+  { path: '/courses', component: CoursesPage }
 ]
 
 const router = createRouter({
