@@ -12,17 +12,17 @@
           href="#"
           class="btn btn-outline-primary"
           :class="{ active: currentType === '' }"
-          @click="(currentType === '', (currentPage = 1))"
+          @click="((currentType = ''), (currentPage = 1))"
         >
           所有課程
         </button>
         <button
           v-for="skill in skills"
-          :key="skill.type_id"
+          :key="skill.skill_id"
           href="#"
           class="btn btn-outline-primary"
-          :class="{ active: currentType === skill.type_id }"
-          @click="(currentType === skill.type_id, (currentPage = 1))"
+          :class="{ active: currentType === skill.skill_id }"
+          @click="((currentType = skill.skill_id), (currentPage = 1))"
         >
           {{ skill.course_type }}
         </button>
@@ -51,6 +51,7 @@
           type="button"
           class="btn btn-primary"
           :class="{ active: currentSort === 'popular' }"
+          @click="((currentSort = 'popular'), (currentPage = 1))"
         >
           最熱門
         </button>
@@ -58,6 +59,7 @@
           type="button"
           class="btn btn-primary"
           :class="{ active: currentSort === 'score' }"
+          @click="((currentSort = 'score'), (currentPage = 1))"
         >
           評價最高
         </button>
@@ -118,7 +120,7 @@
           class="page-item mx-7"
           :class="{ disabled: !pagination.has_previous }"
         >
-          <a class="page-link">上一頁</a>
+          <a class="page-link" @click="currentPage--">上一頁</a>
         </li>
         <li
           v-for="page in pagination.total_pages"
@@ -126,12 +128,10 @@
           class="page-item mx-5"
           :class="{ active: currentPage === page }"
         >
-          <a class="page-link" href="#" @click.prevent="currentPage === page">{{
-            page
-          }}</a>
+          <a class="page-link" @click="currentPage = page">{{ page }}</a>
         </li>
         <li class="page-item mx-7" :class="{ disabled: !pagination.has_next }">
-          <a class="page-link">下一頁</a>
+          <a class="page-link" @click="currentPage++">下一頁</a>
         </li>
       </ul>
     </nav>
@@ -155,8 +155,8 @@ const courses = ref([])
 const filters = ref({})
 const pagination = ref({})
 
-const currentPage = ref(route.query.page || 1)
-const currentType = ref(route.query.type_id || '')
+const currentPage = ref(Number(route.query.page) || 1)
+const currentType = ref(route.query.skillId || '')
 const currentSort = ref(route.query.sort_by || 'popular')
 
 async function fetchCourses() {
@@ -187,7 +187,7 @@ onMounted(async () => {
   await fetchSkill()
 })
 
-watch([currentPage, currentType, currentSort], () =>
+watch([currentPage, currentType, currentSort], () => {
   router.push({
     path: '/courses',
     query: {
@@ -196,7 +196,9 @@ watch([currentPage, currentType, currentSort], () =>
       sortBy: currentSort.value
     }
   })
-)
+  fetchCourses()
+  fetchSkill()
+})
 </script>
 
 <style scoped lang="scss">
