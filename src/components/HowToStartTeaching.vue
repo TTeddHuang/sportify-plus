@@ -1,22 +1,20 @@
 <template>
-  <section class="faq-section position-relative py-lg-12 text-white">
-    <div class="container d-flex">
+  <section class="faq-section position-relative py-12 text-white">
+    <div class="container d-lg-flex">
       <!-- 標題與裝飾 -->
       <div
-        class="faq-header position-relative d-flex align-items-start justify-content-center mb-4"
+        class="faq-header position-relative d-flex align-items-start justify-content-center mb-lg-4 mb-12"
       >
-        <h2 class="me-3 fs-lg-2 fw-bold">如何開始教學</h2>
+        <h2 class="faq-title me-3 fs-lg-2 fs-4 fw-bold position-relative">
+          如何開始教學
+        </h2>
         <!-- 左下與右上角裝飾 -->
-        <img :src="lineImg" alt="decor" class="corner-decor top-end" />
-        <img :src="lineImg" alt="decor" class="corner-decor bottom-start" />
+        <!-- <img :src="lineImg" alt="decor" class="corner-decor top-end" />
+        <img :src="lineImg" alt="decor" class="corner-decor bottom-start" /> -->
       </div>
 
       <!-- Accordion，置中顯示 -->
-      <div
-        id="faqAccordion"
-        class="accordion w-100"
-        style="max-width: 848px; margin-left: 120px"
-      >
+      <div id="faqAccordion" class="accordion w-100 accordion-custom px-2">
         <div
           v-for="(item, idx) in faqList"
           :key="idx"
@@ -24,7 +22,7 @@
         >
           <h2 :id="`heading${idx}`" class="accordion-header">
             <button
-              class="accordion-button collapsed bg-transparent text-white fs-lg-5"
+              class="accordion-button collapsed bg-transparent text-white fs-lg-5 fs-7 rounded-0"
               type="button"
               @click="toggle(idx)"
             >
@@ -42,7 +40,9 @@
             :aria-labelledby="`heading${idx}`"
             data-bs-parent="#faqAccordion"
           >
-            <div class="accordion-body fs-lg-6 text-primary-000 mb-lg-9 d-flex">
+            <div
+              class="accordion-body fs-lg-6 fs-8 text-primary-000 mb-lg-9 d-lg-flex"
+            >
               <img
                 v-if="item.image"
                 :src="item.image"
@@ -57,7 +57,7 @@
 
       <!-- 回頂部按鈕 (右下角) -->
       <button
-        class="btn btn-outline-light fs-lg-6 btn-top"
+        class="btn btn-outline-light fs-lg-6 btn-top d-lg-block d-none"
         @click="scrollToTop"
       >
         Top
@@ -68,7 +68,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import lineImg from '@/assets/images/line-16.png'
 
 // FAQ 問答內容
 const faqList = [
@@ -116,7 +115,12 @@ function scrollToTop() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.faq-header {
+  position: relative;
+  display: inline-block; // 讓 absolute 定位以 h2 為範圍
+}
+
 /* 裝飾線圖檔 */
 .corner-decor {
   position: absolute;
@@ -126,15 +130,35 @@ function scrollToTop() {
     0 0 10.8px #005ca4,
     0 0 10.8px #005ca4;
 }
-.corner-decor.top-end {
-  /* 右上 */
-  top: -55px;
-  right: -70px;
+
+.faq-title::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: -70px;
+  transform: translateY(-50%);
+  width: 93px;
+  height: 113px;
+  background-image: url('@/assets/images/line-16.png');
+  background-repeat: no-repeat;
+  background-size: contain;
 }
-/* 左下 */
-.corner-decor.bottom-start {
-  top: 10px;
-  left: -80px;
+.faq-title::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -75px;
+  transform: translateY(-50%);
+  width: 93px;
+  height: 113px;
+  background-image: url('@/assets/images/line-16.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+.accordion-item {
+  @media (max-width: 992px) {
+    margin-bottom: 56px;
+  }
 }
 .accordion-button {
   padding: 0;
@@ -148,6 +172,9 @@ function scrollToTop() {
 .accordion-body {
   padding: 0;
   padding-top: 24px;
+  @media (max-width: 992px) {
+    margin-bottom: 56px;
+  }
 }
 .text-gray-400 {
   color: rgba(255, 255, 255, 0.7);
@@ -168,6 +195,19 @@ function scrollToTop() {
   width: 160px;
   height: 160px;
   border-radius: 4px;
+  flex-shrink: 0;
   object-fit: cover;
+  @media (max-width: 992px) {
+    height: 120px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}
+.accordion-custom {
+  max-width: 848px;
+  margin-left: 120px;
+  @media (max-width: 992px) {
+    margin-left: 0;
+  }
 }
 </style>

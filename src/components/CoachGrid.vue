@@ -61,7 +61,7 @@
           </div>
         </div>
       </swiper-slide>
-      <div class="custom-pagination my-lg-8"></div>
+      <div class="custom-pagination my-lg-12 mt-8"></div>
     </swiper>
   </div>
 </template>
@@ -130,6 +130,13 @@ const coaches = ref([
     0 0 24px rgba(94, 142, 221, 1),
     0 0 5px rgba(94, 142, 221, 1);
 }
+.card-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+}
 .plus-icon {
   position: absolute;
   font-size: 1.6rem;
@@ -159,12 +166,12 @@ const coaches = ref([
 //swiper樣式
 
 .mySwiper {
-  padding: 0; // 🔥 padding 交由箭頭來控制位置
+  padding: 0 12px; //  padding 交由箭頭來控制位置
   position: relative; // 為絕對定位的箭頭提供定位基準
-  padding: 24px;
-  margin-left: -20px;
-  margin-right: -20px;
   overflow: hidden;
+  @media (min-width: 768px) {
+    padding: 0 24px;
+  }
 }
 
 .swiper-slide {
@@ -236,6 +243,6 @@ const coaches = ref([
 }
 .swiper-wrapper-with-nav {
   position: relative;
-  overflow-x: hidden; // ✅ 防止箭頭超出畫面導致 X 軸
+  overflow: visible; // 防止箭頭超出畫面導致 X 軸
 }
 </style>
