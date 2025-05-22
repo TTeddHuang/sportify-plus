@@ -10,23 +10,66 @@
 $utilities: map-merge(
   $utilities,
   (
-    "font-size":
-      map-merge(
-        map-get($utilities, "font-size"),
+    'font-size': map-merge(
+        map-get($utilities, 'font-size'),
         (
-          responsive: true,
+          responsive: true
         )
-      ),
+      )
   )
 );
 
-@import "bootstrap/scss/utilities/api";
+@import 'bootstrap/scss/utilities/api';
+
+// .btn {
+//   color: $primary-000;
+//   &:hover {
+//     background-color: $primary-300;
+//     border-color: $primary-300;
+//     color: $primary-700;
+//   }
+// }
 
 .btn {
   color: $primary-000;
+
   &:hover {
     background-color: $primary-300;
     border-color: $primary-300;
     color: $primary-700;
   }
+
+  &.selected {
+    background-color: $primary-700;
+    border-color: $primary-700;
+    color: $primary-000;
+  }
+
+  &:disabled {
+    background-color: $grey-200;
+    border-color: $grey-200;
+    color: $grey-000;
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
 }
+
+// custom.scss（或 all.scss）
+// 1. 先 override Bootstrap 變數：
+$btn-font-weight: 500 !default;
+$btn-border-radius: 0.375rem !default;
+
+/* 預設 btn */
+$btn-padding-y: 0.5rem; // 8px
+$btn-padding-x: 1rem; // 16px
+$btn-font-size: 1rem; // 16px
+
+/* 小 btn-sm */
+$btn-sm-padding-y: 0.25rem; // 4px
+$btn-sm-padding-x: 0.5rem; // 8px
+$btn-sm-font-size: 0.875rem; // 14px
+
+/* 大 btn-lg */
+$btn-lg-padding-y: 0.75rem; // 12px
+$btn-lg-padding-x: 1.5rem; // 24px
+$btn-lg-font-size: 1.25rem; // 20px

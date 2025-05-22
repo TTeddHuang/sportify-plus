@@ -23,7 +23,7 @@
                   <i class="bi bi-search text-primary border border-0"></i>
                 </span>
                 <input
-                  class="form-control rounded-end border-start-0 ps-0 bg-grey-000"
+                  class="form-control rounded-end border-start-0 ps-0 bg-grey-000 search-input"
                   type="search"
                   placeholder="探索 Sportify+"
                   aria-label="Search"
@@ -47,8 +47,17 @@
       :space-between="44"
     />
     <DetailCarousel />
-    <CoachGrid />
+    <WaveBanner />
+    <!-- 專屬教練CoachGrid -->
+    <div class="coaches text-center my-lg-12 text-white">
+      <div class="container">
+        <h2 class="mb-lg-12">你的專屬教練群</h2>
+        <CoachGrid />
+      </div>
+    </div>
+
     <SubscriptionPlans />
+    <WaveBannerReverse />
     <FAQ />
   </div>
 </template>
@@ -59,12 +68,14 @@ import DetailCarousel from '@/components/DetailCarousel.vue'
 import CoachGrid from '@/components/CoachGrid.vue'
 import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 import FAQ from '@/components/FAQ.vue'
+import WaveBanner from '@/components/WaveBanner.vue'
+import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 @import '../assets/styles/all.scss';
 .home {
-  min-height: 80vh;
+  min-height: 100vh;
   background-color: $primary-900; /* 你可以自訂背景色 */
   color: $primary-000; /* 你的主文字色 */
 
@@ -76,5 +87,9 @@ import FAQ from '@/components/FAQ.vue'
 
 .btn {
   min-width: 150px;
+}
+.form-control::placeholder {
+  color: $grey-500;
+  opacity: 1;
 }
 </style>
