@@ -9,6 +9,7 @@ import UserSubscriptionPage from '@/pages/UserSubscriptionPage.vue'
 import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
 import CourseDetailPage from '@/pages/CourseDetailPage.vue'
 import CoursesPage from '@/pages/CoursesPage.vue'
+import LearningCourses from '@/pages/LearningCourses.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -24,7 +25,12 @@ const routes = [
     name: 'CourseDetails',
     component: CourseDetailPage
   },
-  { path: '/courses', component: CoursesPage }
+  { path: '/courses', component: CoursesPage },
+  {
+    path: '/users/courses',
+    component: LearningCourses,
+    meta: { hideFooter: true }
+  }
 ]
 
 const router = createRouter({

@@ -196,6 +196,9 @@ const coaches = ref([
   height: 330px;
   max-height: 100%;
   object-fit: cover;
+  @media (max-width: 992px) {
+    object-position: center top;
+  }
 }
 
 /* 箭頭按鈕細框 + 高層級，不再被裁切 */
