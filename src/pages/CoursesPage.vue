@@ -108,7 +108,14 @@
             {{ course.course_description }}
           </p>
           <div class="card-link">
-            <a href="#">查看更多</a>
+            <router-link
+              :to="{
+                name: 'CourseDetails',
+                params: { courseId: course.course_id }
+              }"
+              class="stretched-link"
+              >查看更多</router-link
+            >
           </div>
         </div>
       </div>
