@@ -72,7 +72,14 @@
             {{ coach.coach_about_me }}
           </p>
           <div class="card-link">
-            <a href="#">查看更多</a>
+            <router-link
+              :to="{
+                name: 'CoachDetails',
+                params: { coachId: coach.coach_id }
+              }"
+              class="stretched-link"
+              >查看更多</router-link
+            >
           </div>
         </div>
       </div>
