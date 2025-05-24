@@ -23,7 +23,8 @@ const routes = [
   {
     path: '/courses/:courseId/details',
     name: 'CourseDetails',
-    component: CourseDetailPage
+    component: CourseDetailPage,
+    props: true
   },
   { path: '/courses', component: CoursesPage },
   { path: '/coaches', component: CoachesPage }
