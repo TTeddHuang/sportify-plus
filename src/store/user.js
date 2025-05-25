@@ -20,8 +20,8 @@ export async function initUser() {
       const profile = await getUserProfile()
       setUser({
         token,
-        name: profile.name,
-        avatar: profile.avatar || null
+        name: profile.displayName,
+        avatar: profile.profile_image_url || null
       })
     } catch {
       clearUser()

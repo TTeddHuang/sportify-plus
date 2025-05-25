@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="fs-2 primary-000 my-10">課程分類</h1>
+    <h1 class="fs-2 primary-000 my-10">教練列表</h1>
     <div class="d-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
       <div
@@ -9,17 +9,15 @@
         aria-label="Basic outlined button group"
       >
         <button
-          href="#"
           class="btn btn-outline-primary"
           :class="{ active: currentType === '' }"
           @click="((currentType = ''), (currentPage = 1))"
         >
-          所有課程
+          教練類別
         </button>
         <button
           v-for="skill in skills"
           :key="skill.skill_id"
-          href="#"
           class="btn btn-outline-primary"
           :class="{ active: currentType === skill.skill_id }"
           @click="((currentType = skill.skill_id), (currentPage = 1))"
@@ -44,74 +42,40 @@
           </ul>
         </div> -->
       </div>
-      <!-- 排序按鍵 -->
-      <div class="d-flex gap-1 align-items-center sort-btn-group">
-        <span>排序：</span>
-        <button
-          type="button"
-          class="btn btn-primary"
-          :class="{ active: currentSort === 'popular' }"
-          @click="((currentSort = 'popular'), (currentPage = 1))"
-        >
-          最熱門
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          :class="{ active: currentSort === 'score' }"
-          @click="((currentSort = 'score'), (currentPage = 1))"
-        >
-          評價最高
-        </button>
-      </div>
     </div>
     <div class="card-section d-flex flex-wrap gap-8">
       <!-- 單一卡片範本-start -->
       <div
-        v-for="course in courses"
-        :key="course.course_id"
+        v-for="coach in coaches"
+        :key="coach.coach_id"
         class="card position-relative"
       >
-        <span
+        <!-- 教練技能需要嗎? 有複數&空陣列 如何處理 -->
+        <!-- <span
           class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >{{ course.course_type }}</span
-        >
+          >{{ coach.coach_skills[0].skill_name }}</span
+        > -->
+        <!-- API缺少照片URL，先用random user API 擋一下 -->
         <img
-          :src="`${course.course_image_url}`"
+          :src="`https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 100)}.jpg`"
           class="card-img-top"
           alt="card-img-top"
         />
         <div class="card-body">
-          <h5 class="card-title fs-7-bold">{{ course.course_name }}</h5>
+          <h5 class="card-title fs-7-bold">
+            {{ coach.coach_name }}
+          </h5>
           <div class="d-flex">
-            <p class="fs-7">{{ course.coach_name }}</p>
-            <span class="fs-7 px-2">I</span>
-            <p class="fs-7">{{ course.coach_title }}</p>
-          </div>
-          <div class="d-flex justify-content-between">
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined star"> star </span
-              ><span>{{ course.course_score }}</span>
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> person </span
-              ><span>{{ course.student_amount }}</span
-              >位學生
-            </p>
-            <p class="d-flex align-items-center">
-              <span class="material-symbols-outlined"> schedule </span
-              ><span>{{ course.total_hours }}</span
-              >小時
-            </p>
+            <p class="fs-7">{{ coach.coach_title }}</p>
           </div>
           <p class="card-text">
-            {{ course.course_description }}
+            {{ coach.coach_about_me }}
           </p>
           <div class="card-link">
             <router-link
               :to="{
-                name: 'CourseDetails',
-                params: { courseId: course.course_id }
+                name: 'CoachDetails',
+                params: { coachId: coach.coach_id }
               }"
               class="stretched-link"
               >查看更多</router-link
@@ -131,7 +95,7 @@
         </li>
         <li
           v-for="page in pagination.total_pages"
-          :key="page + 123"
+          :key="page"
           class="page-item mx-5"
           :class="{ active: currentPage === page }"
         >
@@ -158,27 +122,23 @@ const router = useRouter()
 
 // 技能列表
 const skills = ref([])
-const courses = ref([])
-const filters = ref({})
+const coaches = ref([])
 const pagination = ref({})
 
 const currentPage = ref(Number(route.query.page) || 1)
 const currentType = ref(route.query.skillId || '')
-const currentSort = ref(route.query.sort_by || 'popular')
 
-async function fetchCourses() {
+async function fetchCoaches() {
   const { data } = await axios.get(
-    `https://sportify-backend-1wt9.onrender.com/api/v1/courses`,
+    `https://sportify-backend-1wt9.onrender.com/api/v1/courses/coaches`,
     {
       params: {
         page: currentPage.value,
-        skillId: currentType.value,
-        sortBy: currentSort.value
+        skillId: currentType.value
       }
     }
   )
-  courses.value = data.data
-  filters.value = data.meta.filter
+  coaches.value = data.data
   pagination.value = data.meta.pagination
 }
 
@@ -190,20 +150,19 @@ async function fetchSkill() {
 }
 
 onMounted(async () => {
-  await fetchCourses()
+  await fetchCoaches()
   await fetchSkill()
 })
 
-watch([currentPage, currentType, currentSort], () => {
+watch([currentPage, currentType], () => {
   router.push({
-    path: '/courses',
+    path: '/coaches',
     query: {
       page: currentPage.value,
-      skillId: currentType.value,
-      sortBy: currentSort.value
+      skillId: currentType.value
     }
   })
-  fetchCourses()
+  fetchCoaches()
   fetchSkill()
 })
 </script>
@@ -344,7 +303,7 @@ watch([currentPage, currentType, currentSort], () => {
 .card-text {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   overflow: hidden;
 }
 
