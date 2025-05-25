@@ -32,5 +32,5 @@ export async function getUserProfile() {
   const response = await api.get('/me', {
     headers: { Authorization: `Bearer ${token}` }
   })
-  return response.data
+  return response.data.data
 }
