@@ -1,40 +1,15 @@
-<script setup>
-import { computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { user, initUser, clearUser } from '@/store/user'
-
-const route = useRoute()
-const router = useRouter()
-
-const isLogin = computed(() => !!user.value)
-const userName = computed(() => user.value?.name || '使用者')
-const avatar = computed(() => {
-  const url = user.value?.avatar
-  return url && url !== 'null' ? url : null
-})
-
-onMounted(() => {
-  initUser()
-})
-
-function handleLogout() {
-  clearUser()
-  router.push('/')
-}
-</script>
-
 <template>
   <header
-    class="header navbar navbar-expand-lg border-bottom border-primary-000"
+    class="header navbar navbar-expand-lg border-bottom border-primary-000 py-3"
   >
-    <div class="container d-flex justify-content-between align-items-center">
+    <div class="container d-flex align-items-center">
       <div class="logo">
         <router-link to="/">
           <img src="@/assets/images/logo-s.png" alt="Logo" class="img-fluid" />
         </router-link>
       </div>
 
-      <nav class="d-none d-lg-block">
+      <nav class="d-none d-lg-block ms-auto">
         <ul class="navbar-nav d-flex flex-row mb-0 align-items-center">
           <li class="nav-item me-3">
             <router-link
@@ -77,27 +52,26 @@ function handleLogout() {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              <template v-if="avatar">
+              <div
+                class="rounded-circle me-2 d-flex justify-content-center align-items-center"
+                style="width: 40px; height: 40px"
+              >
                 <img
+                  v-if="avatar"
                   :src="avatar"
                   alt="avatar"
-                  class="rounded-circle me-2"
-                  width="40"
-                  height="40"
+                  class="rounded-circle w-100 h-100"
                 />
-              </template>
-              <template v-else>
-                <div
-                  class="default-avatar rounded-circle me-2 d-flex justify-content-center align-items-center"
-                  style="width: 40px; height: 40px"
+                <span
+                  v-else
+                  class="default-avatar rounded-circle text-white fw-bold d-flex justify-content-center align-items-center w-100 h-100"
                 >
-                  <span class="text-white fw-bold">{{
-                    userName.charAt(0).toUpperCase()
-                  }}</span>
-                </div>
-              </template>
+                  {{ userName.charAt(0).toUpperCase() }}
+                </span>
+              </div>
               <span class="user-name">{{ userName }}</span>
             </a>
+
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
                 <router-link to="/" class="dropdown-item">訂閱紀錄</router-link>
@@ -125,16 +99,64 @@ function handleLogout() {
           </li>
         </ul>
       </nav>
+      <!-- 平板或手機板、漢堡圖示 -->
+      <div class="d-flex align-items-center">
+        <button
+          class="navbar-toggler d-lg-none"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasMenu"
+          aria-controls="offcanvasMenu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div v-if="isLogin" class="d-lg-none ms-3 dropdown">
+          <a
+            class="nav-link dropdown-toggle d-flex align-items-center text-primary-000"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <div
+              class="rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
+              style="width: 40px; height: 40px"
+            >
+              <img
+                v-if="avatar"
+                :src="avatar"
+                alt="avatar"
+                class="w-100 h-100 object-fit-cover"
+              />
+              <span
+                v-else
+                class="default-avatar text-white fw-bold d-flex justify-content-center align-items-center w-100 h-100"
+              >
+                {{ userName.charAt(0).toUpperCase() }}
+              </span>
+            </div>
+          </a>
 
-      <button
-        class="navbar-toggler d-lg-none"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#offcanvasMenu"
-        aria-controls="offcanvasMenu"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
+          <ul class="dropdown-menu dropdown-menu-end mt-2">
+            <li>
+              <router-link to="/" class="dropdown-item">訂閱紀錄</router-link>
+            </li>
+            <li>
+              <router-link to="/" class="dropdown-item">我的課程</router-link>
+            </li>
+            <li>
+              <router-link to="/profile" class="dropdown-item"
+                >編輯個人資料</router-link
+              >
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" @click.prevent="handleLogout"
+                >登出</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div
@@ -177,6 +199,48 @@ function handleLogout() {
   </header>
 </template>
 
+<script setup>
+import { watch, ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { user, initUser, clearUser } from '@/store/user'
+import { Dropdown } from 'bootstrap'
+
+const route = useRoute()
+const router = useRouter()
+const dropdownToggleRef = ref(null)
+
+const isLogin = computed(() => !!user.value)
+const userName = computed(() => user.value?.name || '使用者')
+const avatar = computed(() => {
+  const url = user.value?.avatar
+  return url && url !== 'null' ? url : null
+})
+
+const initDropdowns = () => {
+  document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
+    Dropdown.getOrCreateInstance(el)
+  })
+}
+
+onMounted(async () => {
+  await initUser()
+  await nextTick()
+  initDropdowns()
+})
+
+watch(isLogin, async val => {
+  if (val) {
+    await nextTick()
+    initDropdowns()
+  }
+})
+
+function handleLogout() {
+  clearUser()
+  router.push('/')
+}
+</script>
+
 <style scoped lang="scss">
 @import '@/assets/styles/all.scss';
 
@@ -214,5 +278,12 @@ function handleLogout() {
 }
 .navbar-nav .dropdown-toggle::after {
   display: none;
+}
+.d-lg-none .dropdown-toggle::after {
+  display: none;
+}
+.default-avatar {
+  background-color: $primary-600;
+  font-size: 14px;
 }
 </style>

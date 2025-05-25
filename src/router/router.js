@@ -29,13 +29,29 @@ const routes = [
   {
     path: '/users/courses',
     component: LearningCourses,
-    meta: { hideFooter: true }
+    meta: { requiresAuth: true, hideFooter: true }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  if (requiresAuth && !token) {
+    return next('/login')
+  }
+
+  // 已登入的使用者進入 login 頁，自動導向首頁
+  if (to.path === '/login' && token) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router

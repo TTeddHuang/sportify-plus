@@ -104,7 +104,11 @@ async function handleLogin() {
     localStorage.setItem('token', res.token)
 
     // 2️⃣ 立即取得使用者完整資料
+
     const me = await getUserProfile()
+
+    //  儲存完整使用者資訊
+    localStorage.setItem('user', JSON.stringify(me))
 
     // 3️⃣ 寫入 user 狀態
     setUser({
