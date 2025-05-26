@@ -7,11 +7,14 @@
           <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
           <hr class="divider my-5" />
           <ul class="list-group list-group-flush">
-            <li
-              class="list-group-item"
-              :class="{ active: router.path === '/users/courses' }"
-            >
-              <router-link to="/users/courses" class="nav-link">
+            <li class="list-group-item">
+              <router-link
+                to="/users/courses"
+                class="nav-link"
+                :style="{
+                  color: router.path === '/users/courses' ? '#304ffe' : ''
+                }"
+              >
                 我的課程
               </router-link>
             </li>
@@ -145,19 +148,22 @@
                   <a href="#" class="btn btn-primary-600 w-100 mb-2"
                     >點擊上課</a
                   >
+
                   <a
                     href="#"
                     class="btn btn-outline-grey-400 w-100"
                     data-bs-toggle="modal"
                     data-bs-target="#ratingModal"
-                    @click.prevent="selectedCourse = course"
-                    >為此課程評分</a
+                    @click.prevent="openRatingModal(course)"
                   >
+                    {{ course.isRated ? '查看評分' : '我要評分' }}
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- 評分 Modal -->
         <div
           id="ratingModal"
           ref="modalRef"
@@ -169,7 +175,12 @@
           <div class="modal-dialog custom-modal-width">
             <div class="modal-content rounded-4 p-5 bg-grey-000">
               <div class="modal-header border-bottom text-grey-900 p-0 pb-3">
-                <h5 id="ratingModalLabel" class="modal-title fw-bold">評分</h5>
+                <h5
+                  id="ratingModalLabel"
+                  class="modal-title fw-bold text-primary-900"
+                >
+                  評分
+                </h5>
                 <button
                   type="button"
                   class="btn-close"
@@ -177,7 +188,8 @@
                   aria-label="Close"
                 ></button>
               </div>
-              <div class="modal-body p-0">
+              <div class="modal-body p-0 mb-6">
+                <!-- 評分顯示 -->
                 <div class="d-flex justify-content-center my-6 gap-6">
                   <i
                     v-for="i in 5"
@@ -189,29 +201,46 @@
                         : 'bi-star text-grey-400'
                     "
                     style="font-size: 32px; cursor: pointer"
-                    @click="rating = i"
+                    @click="isEditing && (rating = i)"
                   ></i>
                 </div>
-                <textarea
-                  v-model="comment"
-                  class="form-control bg-grey-000 text-grey-500"
-                  rows="4"
-                  placeholder="請分享你的課程心得"
-                  maxlength="100"
-                ></textarea>
-                <div class="text-end mt-1 fs-8 text-grey-500">
-                  {{ comment.length }}/100
+                <!-- 評語輸入 or 顯示 -->
+                <div v-if="isEditing">
+                  <textarea
+                    v-model="comment"
+                    class="form-control bg-grey-000 text-grey-500"
+                    rows="4"
+                    placeholder="請分享你的課程心得"
+                    maxlength="100"
+                  ></textarea>
+                  <div class="text-end mt-1 fs-8 text-grey-500">
+                    {{ comment.length }}/100
+                  </div>
+                </div>
+                <div v-else>
+                  <p class="text-grey-700">{{ comment }}</p>
                 </div>
               </div>
               <div class="modal-footer border-0 p-0">
-                <button
-                  type="button"
-                  class="btn btn-primary w-100"
-                  :disabled="!rating || !comment"
-                  @click="submitRating"
-                >
-                  送出
-                </button>
+                <template v-if="isEditing">
+                  <button
+                    type="button"
+                    class="btn btn-primary w-100"
+                    :disabled="!rating || !comment"
+                    @click="submitRating"
+                  >
+                    送出
+                  </button>
+                </template>
+                <template v-else>
+                  <button
+                    type="button"
+                    class="btn btn-primary-600 w-100"
+                    @click="isEditing = true"
+                  >
+                    編輯
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -225,7 +254,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { Modal } from 'bootstrap'
+import { user, initUser } from '@/store/user'
 
 import learningCourseImg1 from '@/assets/images/learningCourse-1.png'
 import learningCourseImg2 from '@/assets/images/learningCourse-2.png'
@@ -233,6 +262,7 @@ import learningCourseImg3 from '@/assets/images/learningCourse-3.png'
 import learningCourseImg4 from '@/assets/images/learningCourse-4.png'
 import learningCourseImg5 from '@/assets/images/learningCourse-5.png'
 import learningCourseImg6 from '@/assets/images/learningCourse-6.png'
+const modalInstance = ref(null)
 
 const router = useRouter()
 
@@ -242,6 +272,10 @@ const isFavoriteOnly = ref(false)
 const rating = ref(0)
 const comment = ref('')
 const selectedCourse = ref(null)
+const userRatings = ref([])
+
+const isModalOpen = ref(false) // 控制 modal 開關
+const isEditing = ref(false)
 
 const courses = ref([
   {
@@ -341,16 +375,27 @@ const fetchUserCourses = async token => {
         }
       }
     )
-    // 注意這邊是 res.data.data 才是課程陣列
-    courses.value = res.data.data || []
+    courses.value = res.data.data.map(course => ({
+      ...course,
+      isRated: course.isRated || false // 後端沒傳就預設 false
+    }))
   } catch (err) {
     console.error('載入課程失敗:', err)
   }
 }
 
+// 4. 修正 onMounted 中的初始化順序
 onMounted(async () => {
   checkOverflow()
   window.addEventListener('resize', checkOverflow)
+
+  // 先初始化使用者資料
+  await initUser()
+
+  const modalEl = document.getElementById('ratingModal')
+  if (modalEl) {
+    new bootstrap.Modal(modalEl)
+  }
 
   const token = localStorage.getItem('token')
   if (!token) {
@@ -360,9 +405,12 @@ onMounted(async () => {
   }
 
   try {
+    // 按順序載入資料
     await fetchUserCourses(token)
+    await fetchUserRatings()
+    combineCourseWithRatings()
   } catch (error) {
-    console.error('課程載入失敗:', error)
+    console.error('資料載入失敗:', error)
   }
 })
 
@@ -371,27 +419,205 @@ onBeforeUnmount(() => {
 })
 
 const submitRating = async () => {
-  const userData = JSON.parse(localStorage.getItem('user'))
-  if (!selectedCourse.value || !userData) return
+  const userWrapper = JSON.parse(localStorage.getItem('user'))
+  const userData = userWrapper?.data
 
-  const userId = userData._id || userData.id
-  const courseId = selectedCourse.value.id
-  const apiUrl = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/ratings/${courseId}`
+  if (!userData || !userData.id) {
+    console.warn('尚未登入或使用者資料未初始化')
+    return
+  }
+
+  const token = localStorage.getItem('token')
+  if (!selectedCourse.value || !userData || !token) return
+
+  const userId = userData.id
+  const courseId = selectedCourse.value.course_id || selectedCourse.value.id
+
+  const postUrl = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/ratings/${courseId}`
+  const patchUrl = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/rating/${courseId}`
+
+  const payload = {
+    score: rating.value,
+    comment: comment.value
+  }
 
   try {
-    await axios.post(apiUrl, {
-      rating: rating.value,
-      comment: comment.value
+    // 嘗試送出 POST
+    console.log('送出的 URL:', postUrl)
+    console.log('送出的 payload:', payload)
+
+    await axios.post(postUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
 
-    rating.value = 0
-    comment.value = ''
-    const modal = Modal.getInstance(document.getElementById('ratingModal'))
-    modal.hide()
+    selectedCourse.value.isRated = true // 成功新增才設定為已評價
+
+    alert('評分送出成功！')
   } catch (error) {
-    console.error('送出評價失敗:', error)
-    alert('送出失敗，請稍後再試')
+    const message = error.response?.data?.message
+    if (message === '已有評價資料') {
+      // 改用 PATCH 送出
+      try {
+        console.warn('已有評價資料，自動改為 PATCH')
+
+        await axios.patch(patchUrl, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        alert('評分已更新！')
+      } catch (patchErr) {
+        console.error('修改評價失敗:', patchErr)
+        alert('修改評價失敗，請稍後再試')
+        return
+      }
+    } else {
+      console.error('送出評價失敗:', error)
+      alert('送出失敗，請稍後再試')
+      return
+    }
   }
+
+  // 更新 local state
+  const index = courses.value.findIndex(c => (c.course_id || c.id) === courseId)
+  if (index !== -1) {
+    courses.value[index].isRated = true
+  }
+
+  rating.value = 0
+  comment.value = ''
+
+  // 關閉 modal
+  const modalEl = document.getElementById('ratingModal')
+  if (modalEl) {
+    const modalInstance =
+      bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
+    modalInstance.hide()
+  }
+}
+
+// 1. 修正 openRatingModal 函數中的使用者資料取得
+const openRatingModal = async course => {
+  const userWrapper = JSON.parse(localStorage.getItem('user'))
+  const userData = userWrapper?.data || userWrapper // 兼容不同的資料結構
+
+  if (!userData || (!userData.id && !userData._id)) {
+    console.warn('尚未登入或使用者資料未初始化')
+    return
+  }
+
+  selectedCourse.value = course
+
+  // 修正這裡的判斷條件
+  if (!course || (!course.course_id && !course.id)) {
+    console.warn('課程資料不完整')
+    return
+  }
+
+  // ✅ 正確初始化或取得 modal 實例
+  const modalEl = document.getElementById('ratingModal')
+  if (modalEl) {
+    modalInstance.value =
+      bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
+    modalInstance.value.show()
+  }
+
+  try {
+    // 修正使用者 ID 取得方式
+    const userId = userData._id || userData.id
+    const courseId = course.course_id || course.id
+
+    const url = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/rating/${courseId}`
+    console.log('取得評價的 URL:', url) // 除錯用
+
+    const token = localStorage.getItem('token')
+    const res = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (res.data && (res.data.score || res.data.data?.score)) {
+      // 兼容不同的回傳格式
+      const ratingData = res.data.data || res.data
+      rating.value = ratingData.score
+      comment.value = ratingData.comment || ''
+      selectedCourse.value.isRated = true
+      isEditing.value = false
+    } else {
+      // 沒有評價資料
+      rating.value = 0
+      comment.value = ''
+      selectedCourse.value.isRated = false
+      isEditing.value = true
+    }
+  } catch (error) {
+    console.log('尚未評分或讀取失敗', error)
+    // 檢查是否為 404 錯誤（尚未評分）
+    if (error.response?.status === 404) {
+      rating.value = 0
+      comment.value = ''
+      selectedCourse.value.isRated = false
+      isEditing.value = true
+    } else {
+      console.error('取得評價時發生錯誤:', error)
+    }
+  }
+}
+
+// 2. 修正 fetchUserRatings 函數
+const fetchUserRatings = async courseId => {
+  const token = localStorage.getItem('token')
+  const userWrapper = JSON.parse(localStorage.getItem('user'))
+  const userData = userWrapper?.data || userWrapper
+
+  if (!userData || (!userData._id && !userData.id)) {
+    console.warn('使用者資料不完整，無法取得評價')
+    return
+  }
+
+  try {
+    const res = await axios.get(
+      `https://sportify-backend-1wt9.onrender.com/api/v1/users/courses/${courseId}/ratings`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+
+    console.log('取得的評價資料:', res.data) // 除錯用
+
+    // 根據實際的回傳格式調整
+    userRatings.value = res.data.data || res.data || []
+  } catch (error) {
+    console.error('取得使用者評價資料失敗', error)
+    userRatings.value = []
+  }
+}
+
+// 3. 修正 combineCourseWithRatings 函數
+const combineCourseWithRatings = () => {
+  courses.value = courses.value.map(course => {
+    const courseId = course.course_id || course.id
+    const match = userRatings.value.find(
+      r => r.courseId === courseId || r.course_id === courseId
+    )
+    return {
+      ...course,
+      isRated: !!match,
+      ratingData: match || null
+    }
+  })
+}
+const debugUserData = () => {
+  console.log('localStorage user:', localStorage.getItem('user'))
+  console.log('user store:', user.value)
+  console.log('courses:', courses.value)
+  console.log('userRatings:', userRatings.value)
 }
 </script>
 
@@ -514,6 +740,7 @@ const submitRating = async () => {
 .card {
   border: 1px solid rgba(236, 239, 253, 1); // 邊框色
   box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1); // Drop shadow
+  background-color: rgba(252, 252, 252, 0.1);
 }
 .img-decorate {
   width: 100%;

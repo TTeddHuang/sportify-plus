@@ -1,3 +1,28 @@
+<script setup>
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { user, initUser, clearUser } from '@/store/user'
+
+const route = useRoute()
+const router = useRouter()
+
+const isLogin = computed(() => !!user.value)
+const userName = computed(() => user.value?.name || '使用者')
+const avatar = computed(() => {
+  const url = user.value?.avatar
+  return url && url !== 'null' ? url : null
+})
+
+onMounted(() => {
+  initUser()
+})
+
+function handleLogout() {
+  clearUser()
+  router.push('/')
+}
+</script>
+
 <template>
   <header
     class="header navbar navbar-expand-lg border-bottom border-primary-000 py-3"
@@ -198,48 +223,6 @@
     </div>
   </header>
 </template>
-
-<script setup>
-import { watch, ref, computed, onMounted, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { user, initUser, clearUser } from '@/store/user'
-import { Dropdown } from 'bootstrap'
-
-const route = useRoute()
-const router = useRouter()
-const dropdownToggleRef = ref(null)
-
-const isLogin = computed(() => !!user.value)
-const userName = computed(() => user.value?.name || '使用者')
-const avatar = computed(() => {
-  const url = user.value?.avatar
-  return url && url !== 'null' ? url : null
-})
-
-const initDropdowns = () => {
-  document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
-    Dropdown.getOrCreateInstance(el)
-  })
-}
-
-onMounted(async () => {
-  await initUser()
-  await nextTick()
-  initDropdowns()
-})
-
-watch(isLogin, async val => {
-  if (val) {
-    await nextTick()
-    initDropdowns()
-  }
-})
-
-function handleLogout() {
-  clearUser()
-  router.push('/')
-}
-</script>
 
 <style scoped lang="scss">
 @import '@/assets/styles/all.scss';
