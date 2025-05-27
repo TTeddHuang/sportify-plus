@@ -10,6 +10,7 @@ import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
 import CourseDetailPage from '@/pages/CourseDetailPage.vue'
 import CoursesPage from '@/pages/CoursesPage.vue'
 import LearningCourses from '@/pages/LearningCourses.vue'
+import SubscriptionRecord from '@/pages/SubscriptionRecord.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -30,6 +31,11 @@ const routes = [
     path: '/users/courses',
     component: LearningCourses,
     meta: { requiresAuth: true, hideFooter: true }
+  },
+  {
+    path: '/users/subscriptions',
+    component: SubscriptionRecord,
+    meta: { hideFooter: true }
   }
 ]
 

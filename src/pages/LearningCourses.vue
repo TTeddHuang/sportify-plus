@@ -7,23 +7,24 @@
           <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
           <hr class="divider my-5" />
           <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <router-link
-                to="/users/courses"
-                class="nav-link"
-                :style="{
-                  color: router.path === '/users/courses' ? '#304ffe' : ''
-                }"
-              >
-                我的課程
+            <li
+              class="list-group-item active"
+              :class="{ active: route.path === '/users/courses' }"
+            >
+              <router-link class="nav-link"> 我的課程 </router-link>
+            </li>
+            <li
+              class="list-group-item"
+              :class="{ active: route.path === '/users/subscriptions' }"
+            >
+              <router-link to="/users/subscriptions" class="nav-link">
+                訂閱紀錄
               </router-link>
             </li>
 
-            <li class="list-group-item">訂閱紀錄</li>
-
             <li
               class="list-group-item"
-              :class="{ active: router.path === '/profile' }"
+              :class="{ active: route.path === '/profile' }"
             >
               <router-link to="/profile" class="nav-link">
                 編輯個人資料
@@ -90,23 +91,6 @@
               >
                 {{ type }}
               </button>
-              <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
-              <!-- <div class="dropdown">
-          <button
-            id="dropdownMenuButton"
-            class="btn btn-outline-primary dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            其他分類
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <li><a class="dropdown-item" href="#">登山</a></li>
-            <li><a class="dropdown-item" href="#">有氧</a></li>
-            <li><a class="dropdown-item" href="#">滑板</a></li>
-          </ul>
-        </div> -->
             </div>
             <!-- 排序按鍵 -->
           </div>
@@ -115,7 +99,7 @@
 
         <div class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6">
           <div
-            v-for="course in filteredCourses"
+            v-for="course in pagedCourses"
             :key="course.course_id"
             class="mb-4 course-card"
           >
@@ -156,7 +140,7 @@
                     data-bs-target="#ratingModal"
                     @click.prevent="openRatingModal(course)"
                   >
-                    {{ course.isRated ? '查看評分' : '我要評分' }}
+                    {{ course.isRated ? '查看評分' : '為此課程評分' }}
                   </a>
                 </div>
               </div>
@@ -245,6 +229,37 @@
             </div>
           </div>
         </div>
+        <div class="mt-11">
+          <nav class="d-flex justify-content-center" style="padding-top: 4px">
+            <ul class="pagination mb-0">
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === 1 }"
+                @click="changePage(currentPage - 1)"
+              >
+                <a class="page-link me-11">上一頁</a>
+              </li>
+
+              <li
+                v-for="page in totalPages"
+                :key="page"
+                class="page-item mx-2"
+                :class="{ active: page === currentPage }"
+                @click="changePage(page)"
+              >
+                <a class="page-link">{{ page }}</a>
+              </li>
+
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === totalPages }"
+                @click="changePage(currentPage + 1)"
+              >
+                <a class="page-link ms-11">下一頁</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   </div>
@@ -252,7 +267,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { user, initUser } from '@/store/user'
 
@@ -264,7 +279,7 @@ import learningCourseImg5 from '@/assets/images/learningCourse-5.png'
 import learningCourseImg6 from '@/assets/images/learningCourse-6.png'
 const modalInstance = ref(null)
 
-const router = useRouter()
+const route = useRoute()
 
 const currentType = ref('')
 const currentPage = ref(1)
@@ -272,9 +287,7 @@ const isFavoriteOnly = ref(false)
 const rating = ref(0)
 const comment = ref('')
 const selectedCourse = ref(null)
-const userRatings = ref([])
 
-const isModalOpen = ref(false) // 控制 modal 開關
 const isEditing = ref(false)
 
 const courses = ref([
@@ -389,28 +402,17 @@ onMounted(async () => {
   checkOverflow()
   window.addEventListener('resize', checkOverflow)
 
-  // 先初始化使用者資料
   await initUser()
-
-  const modalEl = document.getElementById('ratingModal')
-  if (modalEl) {
-    new bootstrap.Modal(modalEl)
-  }
-
   const token = localStorage.getItem('token')
   if (!token) {
-    console.warn('未登入，導回登入頁')
-    router.push('/login')
+    route.push('/login')
     return
   }
 
-  try {
-    // 按順序載入資料
-    await fetchUserCourses(token)
-    await fetchUserRatings()
-    combineCourseWithRatings()
-  } catch (error) {
-    console.error('資料載入失敗:', error)
+  await fetchUserCourses(token)
+
+  for (const course of courses.value) {
+    await fetchUserRatingByCourseId(course)
   }
 })
 
@@ -494,6 +496,7 @@ const submitRating = async () => {
   const modalEl = document.getElementById('ratingModal')
   if (modalEl) {
     const modalInstance =
+      // eslint-disable-next-line no-undef
       bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modalInstance.hide()
   }
@@ -501,83 +504,73 @@ const submitRating = async () => {
 
 // 1. 修正 openRatingModal 函數中的使用者資料取得
 const openRatingModal = async course => {
-  const userWrapper = JSON.parse(localStorage.getItem('user'))
-  const userData = userWrapper?.data || userWrapper // 兼容不同的資料結構
-
-  if (!userData || (!userData.id && !userData._id)) {
-    console.warn('尚未登入或使用者資料未初始化')
-    return
-  }
-
   selectedCourse.value = course
 
-  // 修正這裡的判斷條件
-  if (!course || (!course.course_id && !course.id)) {
-    console.warn('課程資料不完整')
+  const userWrapper = JSON.parse(localStorage.getItem('user'))
+  const userData = userWrapper?.data || userWrapper
+  const username = userData.displayName
+  const token = localStorage.getItem('token')
+
+  if (!userData || !username) {
+    console.warn('使用者資料錯誤')
     return
   }
 
-  // ✅ 正確初始化或取得 modal 實例
-  const modalEl = document.getElementById('ratingModal')
-  if (modalEl) {
-    modalInstance.value =
-      bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
-    modalInstance.value.show()
+  const courseId = course.course_id || course.id
+  if (!courseId) {
+    console.warn('課程 ID 缺失')
+    return
   }
 
   try {
-    // 修正使用者 ID 取得方式
-    const userId = userData._id || userData.id
-    const courseId = course.course_id || course.id
-
-    const url = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/rating/${courseId}`
-    console.log('取得評價的 URL:', url) // 除錯用
-
-    const token = localStorage.getItem('token')
-    const res = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const res = await axios.get(
+      `https://sportify-backend-1wt9.onrender.com/api/v1/users/courses/${courseId}/ratings`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
       }
-    })
+    )
 
-    if (res.data && (res.data.score || res.data.data?.score)) {
-      // 兼容不同的回傳格式
-      const ratingData = res.data.data || res.data
-      rating.value = ratingData.score
-      comment.value = ratingData.comment || ''
-      selectedCourse.value.isRated = true
+    const allRatings = res.data.data?.paginatedData || []
+    const userRating = allRatings.find(r => r.username === username)
+
+    if (userRating) {
+      rating.value = userRating.score
+      comment.value = userRating.comment || ''
       isEditing.value = false
+      course.isRated = true
     } else {
-      // 沒有評價資料
       rating.value = 0
       comment.value = ''
-      selectedCourse.value.isRated = false
       isEditing.value = true
+      course.isRated = false
     }
-  } catch (error) {
-    console.log('尚未評分或讀取失敗', error)
-    // 檢查是否為 404 錯誤（尚未評分）
-    if (error.response?.status === 404) {
-      rating.value = 0
-      comment.value = ''
-      selectedCourse.value.isRated = false
-      isEditing.value = true
-    } else {
-      console.error('取得評價時發生錯誤:', error)
+
+    // 開啟 Modal
+    const modalEl = document.getElementById('ratingModal')
+    if (modalEl) {
+      modalInstance.value =
+        // eslint-disable-next-line no-undef
+        bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
+      modalInstance.value.show()
     }
+  } catch (err) {
+    console.error('查詢評價失敗', err)
+    rating.value = 0
+    comment.value = ''
+    isEditing.value = true
+    course.isRated = false
   }
 }
 
 // 2. 修正 fetchUserRatings 函數
-const fetchUserRatings = async courseId => {
+const fetchUserRatingByCourseId = async course => {
   const token = localStorage.getItem('token')
   const userWrapper = JSON.parse(localStorage.getItem('user'))
   const userData = userWrapper?.data || userWrapper
 
-  if (!userData || (!userData._id && !userData.id)) {
-    console.warn('使用者資料不完整，無法取得評價')
-    return
-  }
+  if (!course || (!course.id && !course.course_id)) return
+
+  const courseId = course.course_id || course.id
 
   try {
     const res = await axios.get(
@@ -589,35 +582,39 @@ const fetchUserRatings = async courseId => {
       }
     )
 
-    console.log('取得的評價資料:', res.data) // 除錯用
+    const ratings = res.data.data?.paginatedData || []
 
-    // 根據實際的回傳格式調整
-    userRatings.value = res.data.data || res.data || []
-  } catch (error) {
-    console.error('取得使用者評價資料失敗', error)
-    userRatings.value = []
+    // 比對使用者是否有留言（這裡假設比對 username）
+    const match = ratings.find(r => r.username === userData.displayName)
+
+    if (match) {
+      course.isRated = true
+      course.ratingData = match // 方便後續 modal 用
+    } else {
+      course.isRated = false
+      course.ratingData = null
+    }
+    const allRatings = res.data.data?.paginatedData || []
+    return allRatings.find(r => r.username === user.value.displayName) || null
+  } catch (err) {
+    console.error('查詢課程評價失敗', err)
+    course.isRated = false
+    course.ratingData = null
   }
 }
 
-// 3. 修正 combineCourseWithRatings 函數
-const combineCourseWithRatings = () => {
-  courses.value = courses.value.map(course => {
-    const courseId = course.course_id || course.id
-    const match = userRatings.value.find(
-      r => r.courseId === courseId || r.course_id === courseId
-    )
-    return {
-      ...course,
-      isRated: !!match,
-      ratingData: match || null
-    }
-  })
-}
-const debugUserData = () => {
-  console.log('localStorage user:', localStorage.getItem('user'))
-  console.log('user store:', user.value)
-  console.log('courses:', courses.value)
-  console.log('userRatings:', userRatings.value)
+const pageSize = 6
+const pagedCourses = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredCourses.value.slice(start, start + pageSize)
+})
+const totalPages = computed(() =>
+  Math.ceil(filteredCourses.value.length / pageSize)
+)
+function changePage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
 }
 </script>
 
@@ -779,5 +776,28 @@ textarea::placeholder {
 .form-control {
   min-height: 175px;
   resize: none;
+}
+
+.page-link {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  color: $primary-000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(48, 79, 254, 0.1);
+  }
+}
+.page-item.active .page-link {
+  background-color: $primary-700;
+  color: $primary-100;
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

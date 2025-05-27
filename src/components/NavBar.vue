@@ -62,9 +62,9 @@ function handleLogout() {
           </li>
           <li class="nav-item me-3">
             <router-link
-              to="/learning-center"
+              to="/users/courses"
               class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/learning-center') }"
+              :class="{ active: route.path.startsWith('/users/courses') }"
               >學習中心</router-link
             >
           </li>
