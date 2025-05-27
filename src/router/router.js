@@ -10,6 +10,8 @@ import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
 import CourseDetailPage from '@/pages/CourseDetailPage.vue'
 import CoursesPage from '@/pages/CoursesPage.vue'
 import LearningCourses from '@/pages/LearningCourses.vue'
+import CoachesPage from '@/pages/CoachesPage.vue'
+import CoachDetailPage from '@/pages/CoachDetailPage.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -20,16 +22,24 @@ const routes = [
   { path: '/coaches/signup', component: CoachRegisterPage },
   { path: '/users/subscription', component: UserSubscriptionPage },
   { path: '/become-coach', component: BecomeCoachPage },
+  { path: '/courses', component: CoursesPage },
   {
     path: '/courses/:courseId/details',
     name: 'CourseDetails',
-    component: CourseDetailPage
+    component: CourseDetailPage,
+    props: true
   },
   { path: '/courses', component: CoursesPage },
   {
     path: '/users/courses',
     component: LearningCourses,
     meta: { hideFooter: true }
+  { path: '/coaches', component: CoachesPage },
+  {
+    path: '/coaches/:coachId',
+    name: 'CoachDetails',
+    component: CoachDetailPage,
+    props: true
   }
 ]
 

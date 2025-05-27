@@ -197,7 +197,9 @@ onMounted(async () => {
 async function verifyLogin(token) {
   try {
     const {
-      data: { id }
+      data: {
+        data: { id }
+      }
     } = await axios.get(
       'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
       {
