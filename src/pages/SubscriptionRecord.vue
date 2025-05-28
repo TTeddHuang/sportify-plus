@@ -42,9 +42,94 @@
         <p class="fs-6">目前方案</p>
         <div class="subscription-card">
           <div class="card-wrapper"></div>
-          <div class="card-content">
-            <h5>Wellness方案</h5>
-            <p class="fs-6 fw-bold">下一次收費日期：2025/6/1</p>
+          <div class="card-content p-5 d-flex flex-column gap-4 mb-5">
+            <!-- 第一列：三個標題 -->
+            <div class="d-flex justify-content-between">
+              <p class="fs-4 fw-bold mb-0">Wellness方案</p>
+              <p class="fs-4 fw-bold mb-0">可觀看類別</p>
+              <p class="fs-4 fw-bold mb-0">NT$ 400</p>
+            </div>
+
+            <!-- 第二列：三個內容（同時垂直置中）-->
+            <div class="d-flex justify-content-between align-items-center">
+              <!-- 1. 日期 -->
+              <p class="fs-6 fw-bold mb-0">下一次收費日期：2025/6/1</p>
+
+              <!-- 2. 類別按鈕群 -->
+              <div class="d-flex">
+                <button class="btn btn-primary-600 me-2">瑜珈</button>
+                <button class="btn btn-primary-600 me-2">單車</button>
+                <button class="btn btn-primary-600">足球</button>
+              </div>
+
+              <!-- 3. 取消訂閱 -->
+              <button class="btn btn-secondary-700 fw-bold">取消訂閱</button>
+            </div>
+          </div>
+        </div>
+        <p class="fs-6">訂閱紀錄</p>
+        <div class="subscription-card">
+          <div class="card-wrapper"></div>
+          <div class="card-content p-5 mb-5">
+            <div class="table-responsive">
+              <table class="table table-striped mb-0 align-middle">
+                <thead class="">
+                  <tr class="text-center">
+                    <th class="th-custom">日期</th>
+                    <th class="th-custom">訂單編號</th>
+                    <th class="th-custom">付款內容</th>
+                    <th class="th-custom">訂閱期間</th>
+                    <th class="th-custom">付款方式</th>
+                    <th class="th-custom">發票</th>
+                    <th class="th-custom">金額</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in records" :key="item.id">
+                    <td>{{ item.purchased_at }}</td>
+                    <td>{{ item.order_number }}</td>
+                    <td>{{ item.plan }}</td>
+                    <td>{{ item.period }}</td>
+                    <td>{{ item.payment_method }}</td>
+                    <td>
+                      <a
+                        :href="item.invoice_image_url"
+                        target="_blank"
+                        class="text-decoration-none"
+                      >
+                        檢視
+                      </a>
+                    </td>
+                    <td class="text-end">NT$ {{ item.price }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 分頁（若需要） -->
+            <nav
+              v-if="meta.total_pages > 1"
+              aria-label="訂閱紀錄分頁"
+              class="mt-3"
+            >
+              <ul class="pagination justify-content-center mb-0">
+                <li class="page-item" :class="{ disabled: !meta.has_previous }">
+                  <button class="page-link" @click="changePage(meta.page - 1)">
+                    上一頁
+                  </button>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link"
+                    >{{ meta.page }} / {{ meta.total_pages }}</span
+                  >
+                </li>
+                <li class="page-item" :class="{ disabled: !meta.has_next }">
+                  <button class="page-link" @click="changePage(meta.page + 1)">
+                    下一頁
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
@@ -53,9 +138,57 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
+import { initUser } from '@/store/user'
 
 const route = useRoute()
+
+const subscriptions = ref([])
+const meta = ref({
+  page: 1,
+  total_pages: 1,
+  has_next: false,
+  has_previous: false
+})
+
+async function fetchSubscriptions(page = 1) {
+  const token = localStorage.getItem('token')
+  const userWrapper = JSON.parse(localStorage.getItem('user'))
+  const userId = userWrapper?.data?.id || userWrapper?.id
+
+  if (!token || !userId) {
+    route.push('/login')
+    return
+  }
+
+  try {
+    const res = await axios.get(
+      `https://sportify-backend-1wt9.onrender.com/api/v1/users/subscriptions`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+    if (res.data.status) {
+      subscriptions.value = res.data.data
+      meta.value = res.data.meta
+    }
+  } catch (err) {
+    console.error('取得訂閱紀錄失敗：', err)
+  }
+}
+
+function changePage(page) {
+  if (page >= 1 && page <= meta.value.total_pages) {
+    fetchSubscriptions(page)
+  }
+}
+
+onMounted(async () => {
+  await initUser()
+  await fetchSubscriptions()
+})
 </script>
 
 <style scoped lang="scss">
@@ -125,5 +258,9 @@ const route = useRoute()
   margin-top: -38px;
   padding: 24px;
   color: black;
+}
+.th-custom {
+  color: $primary-900;
+  background: $primary-000;
 }
 </style>
