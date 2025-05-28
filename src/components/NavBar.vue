@@ -99,10 +99,14 @@ function handleLogout() {
 
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
-                <router-link to="/" class="dropdown-item">訂閱紀錄</router-link>
+                <router-link to="/users/subscriptions" class="dropdown-item"
+                  >訂閱紀錄</router-link
+                >
               </li>
               <li>
-                <router-link to="/" class="dropdown-item">我的課程</router-link>
+                <router-link to="/users/courses" class="dropdown-item"
+                  >我的課程</router-link
+                >
               </li>
               <li>
                 <router-link to="/profile" class="dropdown-item"
