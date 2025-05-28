@@ -14,6 +14,10 @@
   height: 172px;
   max-width: 1920px;
 }
+.wave-wrapper {
+  width: 100%;
+  overflow-x: hidden;
+}
 .wave-banner::before,
 .wave-banner::after {
   content: '';

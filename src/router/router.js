@@ -9,6 +9,8 @@ import UserSubscriptionPage from '@/pages/UserSubscriptionPage.vue'
 import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
 import CourseDetailPage from '@/pages/CourseDetailPage.vue'
 import CoursesPage from '@/pages/CoursesPage.vue'
+import LearningCourses from '@/pages/LearningCourses.vue'
+import SubscriptionRecord from '@/pages/SubscriptionRecord.vue'
 import CoachesPage from '@/pages/CoachesPage.vue'
 import CoachDetailPage from '@/pages/CoachDetailPage.vue'
 
@@ -28,6 +30,17 @@ const routes = [
     component: CourseDetailPage,
     props: true
   },
+  { path: '/courses', component: CoursesPage },
+  {
+    path: '/users/courses',
+    component: LearningCourses,
+    meta: { requiresAuth: true, hideFooter: true }
+  },
+  {
+    path: '/users/subscriptions',
+    component: SubscriptionRecord,
+    meta: { hideFooter: true }
+  },
   { path: '/coaches', component: CoachesPage },
   {
     path: '/coaches/:coachId',
@@ -40,6 +53,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  if (requiresAuth && !token) {
+    return next('/login')
+  }
+
+  // 已登入的使用者進入 login 頁，自動導向首頁
+  if (to.path === '/login' && token) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router
