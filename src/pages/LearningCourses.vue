@@ -11,7 +11,9 @@
               class="list-group-item active"
               :class="{ active: route.path === '/users/courses' }"
             >
-              <router-link class="nav-link"> 我的課程 </router-link>
+              <router-link to="/users/courses" class="nav-link">
+                我的課程
+              </router-link>
             </li>
             <li
               class="list-group-item"
@@ -237,7 +239,7 @@
                 :class="{ disabled: currentPage === 1 }"
                 @click="changePage(currentPage - 1)"
               >
-                <a class="page-link me-11">上一頁</a>
+                <a class="page-link me-lg-11">上一頁</a>
               </li>
 
               <li
@@ -255,7 +257,7 @@
                 :class="{ disabled: currentPage === totalPages }"
                 @click="changePage(currentPage + 1)"
               >
-                <a class="page-link ms-11">下一頁</a>
+                <a class="page-link ms-lg-11">下一頁</a>
               </li>
             </ul>
           </nav>
@@ -272,11 +274,7 @@ import axios from 'axios'
 import { user, initUser } from '@/store/user'
 
 import learningCourseImg1 from '@/assets/images/learningCourse-1.png'
-import learningCourseImg2 from '@/assets/images/learningCourse-2.png'
-import learningCourseImg3 from '@/assets/images/learningCourse-3.png'
-import learningCourseImg4 from '@/assets/images/learningCourse-4.png'
-import learningCourseImg5 from '@/assets/images/learningCourse-5.png'
-import learningCourseImg6 from '@/assets/images/learningCourse-6.png'
+
 const modalInstance = ref(null)
 
 const route = useRoute()
@@ -290,56 +288,7 @@ const selectedCourse = ref(null)
 
 const isEditing = ref(false)
 
-const courses = ref([
-  {
-    id: 'course-001',
-    name: '全方位塑造優雅體態',
-    picture: learningCourseImg1,
-    coach: 'Cindy',
-    course_type: '皮拉提斯',
-    isFavorited: false
-  },
-  {
-    id: 'course-002',
-    name: '從零開始打造強壯體態',
-    picture: learningCourseImg2,
-    coach: 'Kelly',
-    course_type: '重訓',
-    isFavorited: false
-  },
-  {
-    id: 'course-003',
-    name: '皮拉提斯30天炸裂核心肌群',
-    picture: learningCourseImg3,
-    coach: 'Chloe',
-    course_type: '皮拉提斯',
-    isFavorited: false
-  },
-  {
-    id: 'course-004',
-    name: '深層修復放鬆瑜伽',
-    picture: learningCourseImg4,
-    coach: 'Cameron',
-    course_type: '瑜伽',
-    isFavorited: false
-  },
-  {
-    id: 'course-005',
-    name: '身心平衡晨間瑜伽',
-    picture: learningCourseImg5,
-    coach: 'Shane',
-    course_type: '瑜伽',
-    isFavorited: false
-  },
-  {
-    id: 'course-006',
-    name: '晚安舒眠陰瑜伽',
-    picture: learningCourseImg6,
-    coach: 'Marjorie',
-    course_type: '瑜伽',
-    isFavorited: false
-  }
-])
+const courses = ref([])
 
 const uniqueCourseTypes = computed(() => {
   const types = courses.value.map(c => c.course_type)
@@ -361,9 +310,48 @@ const filteredCourses = computed(() => {
 
   return filtered
 })
-const toggleFavorite = course => {
-  course.isFavorited = !course.isFavorited
+
+const toggleFavorite = async course => {
+  const token = localStorage.getItem('token')
+  const userData = user.value
+  const userId = userData?.id || userData?._id
+  const courseId = course.course_id || course.id
+  if (!userData || !token) {
+    alert('請先登入才能收藏課程')
+    return
+  }
+  if (!token || !userId || !courseId) return
+
+  try {
+    if (course.isFavorited) {
+      // 取消收藏
+      await axios.delete(
+        `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/favorites/${courseId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      course.isFavorited = false
+    } else {
+      // 加入收藏
+      await axios.post(
+        `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/favorites/${courseId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      course.isFavorited = true
+    }
+  } catch (error) {
+    console.error('收藏操作失敗:', error)
+  }
 }
+
 // 按鈕閃爍提醒可滑動
 const hasScrolled = ref(false)
 const onScroll = () => {
@@ -390,7 +378,8 @@ const fetchUserCourses = async token => {
     )
     courses.value = res.data.data.map(course => ({
       ...course,
-      isRated: course.isRated || false // 後端沒傳就預設 false
+      isRated: course.isRated || false,
+      isFavorited: course.isFavorited || false
     }))
   } catch (err) {
     console.error('載入課程失敗:', err)
@@ -421,8 +410,7 @@ onBeforeUnmount(() => {
 })
 
 const submitRating = async () => {
-  const userWrapper = JSON.parse(localStorage.getItem('user'))
-  const userData = userWrapper?.data
+  const userData = user.value
 
   if (!userData || !userData.id) {
     console.warn('尚未登入或使用者資料未初始化')
@@ -506,8 +494,7 @@ const submitRating = async () => {
 const openRatingModal = async course => {
   selectedCourse.value = course
 
-  const userWrapper = JSON.parse(localStorage.getItem('user'))
-  const userData = userWrapper?.data || userWrapper
+  const userData = user.value
   const username = userData.displayName
   const token = localStorage.getItem('token')
 
@@ -515,7 +502,10 @@ const openRatingModal = async course => {
     console.warn('使用者資料錯誤')
     return
   }
-
+  if (!userData || !userData.id) {
+    console.warn('尚未登入或使用者資料未初始化')
+    return
+  }
   const courseId = course.course_id || course.id
   if (!courseId) {
     console.warn('課程 ID 缺失')

@@ -18,11 +18,12 @@ export async function initUser() {
   if (token && !user.value) {
     try {
       const profile = await getUserProfile()
-      setUser({
-        token,
-        name: profile.displayName,
-        avatar: profile.profile_image_url || null
-      })
+      const fullUser = {
+        ...profile,
+        token
+      }
+      user.value = fullUser
+      localStorage.setItem('user', JSON.stringify(fullUser))
     } catch {
       clearUser()
     }
