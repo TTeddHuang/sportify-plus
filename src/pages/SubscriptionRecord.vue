@@ -42,27 +42,30 @@
         <p class="fs-6">目前方案</p>
         <div class="subscription-card">
           <div class="card-wrapper"></div>
-          <div class="card-content p-5 d-flex flex-column gap-4 mb-5">
-            <!-- 第一列：三個標題 -->
-            <div class="d-flex justify-content-between">
-              <p class="fs-4 fw-bold mb-0">Wellness方案</p>
-              <p class="fs-4 fw-bold mb-0">可觀看類別</p>
-              <p class="fs-4 fw-bold mb-0">NT$ 400</p>
+          <div
+            v-if="records.length > 0"
+            class="card-content p-5 d-lg-flex gap-12 mb-5"
+          >
+            <div class="mb-lg-0 mb-5">
+              <p class="fs-4 fw-bold mb-lg-6 mb-1">{{ records[0].plan }}</p>
+              <p
+                v-if="records.length > 0 && records[0].nextPayment"
+                class="fs-6 fw-bold mb-0 pe-lg-3 py-lg-1"
+              >
+                下一次收費日期：{{ records[0].nextPayment }}
+              </p>
+              <p v-else class="fs-6 text-muted mb-0">已到期／不續訂</p>
             </div>
-
-            <!-- 第二列：三個內容（同時垂直置中）-->
-            <div class="d-flex justify-content-between align-items-center">
-              <!-- 1. 日期 -->
-              <p class="fs-6 fw-bold mb-0">下一次收費日期：2025/6/1</p>
-
-              <!-- 2. 類別按鈕群 -->
+            <div class="mb-lg-0 mb-5 ms-lg-9">
+              <p class="fs-4 fw-bold mb-lg-6">可觀看類別</p>
               <div class="d-flex">
-                <button class="btn btn-primary-600 me-2">瑜珈</button>
-                <button class="btn btn-primary-600 me-2">單車</button>
-                <button class="btn btn-primary-600">足球</button>
+                <p class="btn btn-primary-600 me-2">瑜珈</p>
+                <p class="btn btn-primary-600 me-2">單車</p>
+                <p class="btn btn-primary-600">足球</p>
               </div>
-
-              <!-- 3. 取消訂閱 -->
+            </div>
+            <div class="mb-lg-0 mb-5 ms-lg-10">
+              <p class="fs-4 fw-bold mb-lg-6">NT$ {{ records[0].price }}</p>
               <button class="btn btn-secondary-700 fw-bold">取消訂閱</button>
             </div>
           </div>
@@ -74,7 +77,7 @@
             <div class="table-responsive">
               <table class="table table-striped mb-0 align-middle">
                 <thead class="">
-                  <tr class="text-center">
+                  <tr class="text-start">
                     <th class="th-custom">日期</th>
                     <th class="th-custom">訂單編號</th>
                     <th class="th-custom">付款內容</th>
@@ -86,51 +89,58 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in records" :key="item.id">
-                    <td>{{ item.purchased_at }}</td>
-                    <td>{{ item.order_number }}</td>
-                    <td>{{ item.plan }}</td>
-                    <td>{{ item.period }}</td>
-                    <td>{{ item.payment_method }}</td>
-                    <td>
+                    <td class="td-custom">{{ item.date }}</td>
+                    <td class="td-custom">{{ item.orderNumber }}</td>
+                    <td class="td-custom">{{ item.plan }}</td>
+                    <td class="td-custom">{{ item.period }}</td>
+                    <td class="td-custom">{{ item.paymentMethod }}</td>
+                    <td class="td-custom">
                       <a
-                        :href="item.invoice_image_url"
+                        :href="item.invoiceUrl"
                         target="_blank"
                         class="text-decoration-none"
                       >
                         檢視
                       </a>
                     </td>
-                    <td class="text-end">NT$ {{ item.price }}</td>
+                    <td class="td-custom">NT$ {{ item.price }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-
-            <!-- 分頁（若需要） -->
-            <nav
-              v-if="meta.total_pages > 1"
-              aria-label="訂閱紀錄分頁"
-              class="mt-3"
-            >
-              <ul class="pagination justify-content-center mb-0">
-                <li class="page-item" :class="{ disabled: !meta.has_previous }">
-                  <button class="page-link" @click="changePage(meta.page - 1)">
-                    上一頁
-                  </button>
-                </li>
-                <li class="page-item disabled">
-                  <span class="page-link"
-                    >{{ meta.page }} / {{ meta.total_pages }}</span
-                  >
-                </li>
-                <li class="page-item" :class="{ disabled: !meta.has_next }">
-                  <button class="page-link" @click="changePage(meta.page + 1)">
-                    下一頁
-                  </button>
-                </li>
-              </ul>
-            </nav>
           </div>
+        </div>
+        <!-- 分頁（若需要） v-if="meta.total_pages > 1" -->
+        <div class="mt-11">
+          <nav class="d-flex justify-content-center" style="padding-top: 4px">
+            <ul class="pagination mb-0">
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === 1 }"
+                @click="changePage(currentPage - 1)"
+              >
+                <a class="page-link me-lg-11">上一頁</a>
+              </li>
+
+              <li
+                v-for="page in totalPages"
+                :key="page"
+                class="page-item mx-2"
+                :class="{ active: page === currentPage }"
+                @click="changePage(page)"
+              >
+                <a class="page-link">{{ page }}</a>
+              </li>
+
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === totalPages }"
+                @click="changePage(currentPage + 1)"
+              >
+                <a class="page-link ms-lg-11">下一頁</a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
@@ -138,56 +148,70 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { initUser } from '@/store/user'
 
 const route = useRoute()
 
-const subscriptions = ref([])
-const meta = ref({
-  page: 1,
-  total_pages: 1,
-  has_next: false,
-  has_previous: false
-})
+// 1. 資料列表
+const records = ref([])
+// 2. 後端 meta
+const meta = ref({ page: 1, total_pages: 1 })
+// 3. 本地 currentPage（用來綁 UI）
+const currentPage = ref(1)
+// 4. 計算 totalPages
+const totalPages = computed(() => meta.value.total_pages)
 
+// 5. 抓資料
 async function fetchSubscriptions(page = 1) {
   const token = localStorage.getItem('token')
   const userWrapper = JSON.parse(localStorage.getItem('user'))
   const userId = userWrapper?.data?.id || userWrapper?.id
-
-  if (!token || !userId) {
-    route.push('/login')
-    return
-  }
+  if (!token || !userId) return route.push('/login')
 
   try {
     const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/users/subscriptions`,
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscriptions',
       {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page }
       }
     )
     if (res.data.status) {
-      subscriptions.value = res.data.data
+      // 你要的欄位映射
+      records.value = res.data.data.map(item => ({
+        id: item.id,
+        date: item.purchased_at,
+        orderNumber: item.order_number,
+        plan: item.plan,
+        period: item.period,
+        paymentMethod: item.payment_method,
+        invoiceUrl: item.invoice_image_url,
+        price: item.price,
+        nextPayment: item.next_payment
+      }))
+      // 更新後端回傳的 meta
       meta.value = res.data.meta
+      // 同步本地 currentPage
+      currentPage.value = res.data.meta.page
     }
   } catch (err) {
-    console.error('取得訂閱紀錄失敗：', err)
+    console.error('取得訂閱紀錄失敗：', err.response?.data || err)
   }
 }
 
+// 6. 切頁函式
 function changePage(page) {
-  if (page >= 1 && page <= meta.value.total_pages) {
-    fetchSubscriptions(page)
-  }
+  if (page < 1 || page > totalPages.value) return
+  fetchSubscriptions(page)
 }
 
+// 7. 初始呼叫
 onMounted(async () => {
   await initUser()
-  await fetchSubscriptions()
+  fetchSubscriptions(1)
 })
 </script>
 
@@ -262,5 +286,14 @@ onMounted(async () => {
 .th-custom {
   color: $primary-900;
   background: $primary-000;
+  font-size: 20px;
+}
+.td-custom {
+  color: $primary-900;
+  background: $primary-000;
+  font-size: 14px;
+}
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+  background-color: $primary-000; /* 你想要的斑馬底色 */
 }
 </style>
