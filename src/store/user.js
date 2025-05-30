@@ -11,6 +11,7 @@ export function setUser(data) {
 export function clearUser() {
   user.value = null
   localStorage.removeItem('token')
+  localStorage.removeItem('user')
 }
 
 export async function initUser() {

@@ -113,8 +113,8 @@ async function handleLogin() {
     // 3️⃣ 寫入 user 狀態
     setUser({
       token: res.token,
-      name: me.displayName,
-      avatar: me.profile_image_url || '',
+      displayName: me.displayName,
+      profile_image_url: me.profile_image_url || '',
       role: me.role
     })
 

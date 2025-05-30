@@ -7,14 +7,14 @@ const route = useRoute()
 const router = useRouter()
 
 const isLogin = computed(() => !!user.value)
-const userName = computed(() => user.value?.name || '使用者')
+const userName = computed(() => user.value?.displayName || '使用者')
 const avatar = computed(() => {
-  const url = user.value?.avatar
+  const url = user.value?.profile_image_url
   return url && url !== 'null' ? url : null
 })
 
-onMounted(() => {
-  initUser()
+onMounted(async () => {
+  await initUser()
 })
 
 function handleLogout() {
