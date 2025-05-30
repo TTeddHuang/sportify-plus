@@ -109,7 +109,7 @@ function handleLogout() {
                 >
               </li>
               <li>
-                <router-link to="/profile" class="dropdown-item"
+                <router-link to="/users/profile" class="dropdown-item"
                   >編輯個人資料</router-link
                 >
               </li>
