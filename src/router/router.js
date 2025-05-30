@@ -13,6 +13,11 @@ import LearningCourses from '@/pages/LearningCourses.vue'
 import SubscriptionRecord from '@/pages/SubscriptionRecord.vue'
 import CoachesPage from '@/pages/CoachesPage.vue'
 import CoachDetailPage from '@/pages/CoachDetailPage.vue'
+import CoachConsoleLayout from '@/pages/CoachConsoleLayout.vue'
+import CoachNewCourse from '@/pages/CoachNewCourse.vue'
+import CoachProfile from '@/pages/CoachProfile.vue'
+import CoachCourses from '@/pages/CoachCourses.vue'
+import CoachEarnings from '@/pages/CoachEarnings.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -51,6 +56,22 @@ const routes = [
     path: '/user/profile',
     component: ProfilePage,
     meta: { hideFooter: true }
+  },
+  {
+    path: '/coach',
+    component: CoachConsoleLayout,
+    meta: { hideFooter: true },
+    children: [
+      { path: '', redirect: { name: 'CoachCourses' } },
+      {
+        path: 'courses/new',
+        name: 'CoachNewCourse',
+        component: CoachNewCourse
+      },
+      { path: 'profile', name: 'CoachProfile', component: CoachProfile },
+      { path: 'courses', name: 'CoachCourses', component: CoachCourses },
+      { path: 'earnings', name: 'CoachEarnings', component: CoachEarnings }
+    ]
   }
 ]
 
