@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="card-section d-flex flex-wrap gap-8">
+    <div class="card-section d-flex flex-wrap justify-content-center gap-8">
       <div class="card position-relative">
         <span
           class="badge badge-pending fs-9 text-primary-000 position-absolute"
@@ -163,6 +163,7 @@
 
 <style scoped lang="scss">
 .card-section {
+  margin-top: 40px;
   margin-bottom: 80px;
 }
 

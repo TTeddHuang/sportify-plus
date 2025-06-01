@@ -40,7 +40,7 @@
         </ul>
       </div>
     </div>
-    <router-view class="router-view col-9"></router-view>
+    <router-view class="col-9"></router-view>
   </div>
 </template>
 
@@ -82,9 +82,5 @@ const route = useRoute()
     border-radius: 4px;
     color: $primary-100;
   }
-}
-
-.router-view {
-  padding: 40px;
 }
 </style>
