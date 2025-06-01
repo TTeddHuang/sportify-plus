@@ -141,6 +141,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { submitEcpay } from '@/api/submitEcpay'
 const router = useRouter()
 
 // 1. 用 import.meta.glob，並加上 eager: true
@@ -352,16 +353,25 @@ async function submit() {
   console.log('送出的 payload', payload)
   try {
     const token = localStorage.getItem('token')
-    await axios.post(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+    await axios
+      .post(
+        'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
-      }
-    )
-    alert('送出成功！')
+      )
+      .then(res => {
+        const data = res.data.data.subscription
+        const payment = {
+          price: data.price,
+          order_number: data.order_number,
+          plan_name: data.plan
+        }
+        submitEcpay(token, payment)
+      })
   } catch (err) {
     console.error(err)
     alert('請先登入')

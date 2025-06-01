@@ -7,14 +7,14 @@ const route = useRoute()
 const router = useRouter()
 
 const isLogin = computed(() => !!user.value)
-const userName = computed(() => user.value?.name || '使用者')
+const userName = computed(() => user.value?.displayName || '使用者')
 const avatar = computed(() => {
-  const url = user.value?.avatar
+  const url = user.value?.profile_image_url
   return url && url !== 'null' ? url : null
 })
 
-onMounted(() => {
-  initUser()
+onMounted(async () => {
+  await initUser()
 })
 
 function handleLogout() {
@@ -64,7 +64,7 @@ function handleLogout() {
             <router-link
               to="/users/courses"
               class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/users/courses') }"
+              :class="{ active: route.path.startsWith('/user/courses') }"
               >學習中心</router-link
             >
           </li>
@@ -99,17 +99,17 @@ function handleLogout() {
 
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
-                <router-link to="/users/subscriptions" class="dropdown-item"
+                <router-link to="/user/subscriptions" class="dropdown-item"
                   >訂閱紀錄</router-link
                 >
               </li>
               <li>
-                <router-link to="/users/courses" class="dropdown-item"
+                <router-link to="/user/courses" class="dropdown-item"
                   >我的課程</router-link
                 >
               </li>
               <li>
-                <router-link to="/profile" class="dropdown-item"
+                <router-link to="/user/profile" class="dropdown-item"
                   >編輯個人資料</router-link
                 >
               </li>
