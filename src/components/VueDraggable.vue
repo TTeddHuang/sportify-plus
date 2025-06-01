@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import draggable from 'vuedraggable'
+// import draggable from 'vuedraggable'
 import { nanoid } from 'nanoid'
 
 /* ---------- state ---------- */

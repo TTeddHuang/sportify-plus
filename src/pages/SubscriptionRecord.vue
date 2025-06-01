@@ -59,14 +59,33 @@
             <div class="mb-lg-0 mb-5 ms-lg-9">
               <p class="fs-4 fw-bold mb-lg-6">可觀看類別</p>
               <div class="d-flex">
-                <p class="btn btn-primary-600 me-2">瑜珈</p>
-                <p class="btn btn-primary-600 me-2">單車</p>
-                <p class="btn btn-primary-600">足球</p>
+                <!-- 只有一個「全類別」按鈕 -->
+                <template v-if="courseTypes.length > 3">
+                  <button class="btn btn-primary-600">全類別</button>
+                </template>
+
+                <!-- 否則才一個一個列出各別類別按鈕 -->
+                <template v-else>
+                  <button
+                    v-for="(type, idx) in courseTypes"
+                    :key="type.id"
+                    class="btn btn-primary-600"
+                    :class="{ 'me-2': idx < courseTypes.length - 1 }"
+                  >
+                    {{ type.name }}
+                  </button>
+                </template>
               </div>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-10">
               <p class="fs-4 fw-bold mb-lg-6">NT$ {{ records[0].price }}</p>
-              <button class="btn btn-secondary-700 fw-bold">取消訂閱</button>
+              <button
+                class="btn btn-secondary-700 fw-bold"
+                :disabled="isCancelling"
+                @click="onCancelClick"
+              >
+                {{ isCancelling ? '取消中...' : '取消訂閱' }}
+              </button>
             </div>
           </div>
         </div>
@@ -208,10 +227,104 @@ function changePage(page) {
   fetchSubscriptions(page)
 }
 
+// 用來存放後端回傳的「可觀看課程類別」陣列
+const courseTypes = ref([])
+
+async function fetchCourseTypes() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    // 如果你需要強制登入才能拿，就自己跳到 login
+    return
+  }
+
+  try {
+    const res = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/users/course-type',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+    if (res.data.status) {
+      courseTypes.value = res.data.data
+      // 範例回傳 data 形如：[ { id: "...", name: "瑜珈" }, ... ]
+    }
+  } catch (err) {
+    console.error('取得課程類別失敗：', err)
+  }
+}
+
+// 取消訂閱
+const isCancelling = ref(false)
+
+async function onCancelClick() {
+  if (isCancelling.value) return
+  isCancelling.value = true
+
+  try {
+    // 1. 向你自己的後端拿「送給綠界取消訂閱的參數」
+    const token = localStorage.getItem('token')
+    const res = await axios.post(
+      '/api/v1/users/cancel-payment',
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    if (!res.data.status || !res.data.data) {
+      throw new Error(res.data.message || '後端參數取得失敗')
+    }
+
+    const { MerchantID, MerchantTradeNo, Action, TimeStamp, CheckMacValue } =
+      res.data.data
+
+    // 2. 用這五個欄位動態建立一個隱藏 form，並自動送到綠界的取消訂閱網址
+    const ecpayUrl =
+      'https://payment-stage.ecpay.com.tw/Cashier/CreditCardPeriodAction'
+
+    // 建一個 <form>，把必要的 <input> 都塞進去
+    const form = document.createElement('form')
+    form.setAttribute('method', 'post')
+    form.setAttribute('action', ecpayUrl)
+    form.style.display = 'none' // 隱藏在頁面上
+
+    // helper：封裝一個 createHiddenInput(name, value)
+    const createHiddenInput = (name, value) => {
+      const input = document.createElement('input')
+      input.setAttribute('type', 'hidden')
+      input.setAttribute('name', name)
+      input.setAttribute('value', value)
+      return input
+    }
+
+    form.appendChild(createHiddenInput('MerchantID', MerchantID))
+    form.appendChild(createHiddenInput('MerchantTradeNo', MerchantTradeNo))
+    form.appendChild(createHiddenInput('Action', Action))
+    form.appendChild(createHiddenInput('TimeStamp', TimeStamp))
+    form.appendChild(createHiddenInput('CheckMacValue', CheckMacValue))
+
+    // 把 form 暫時加入到 document.body
+    document.body.appendChild(form)
+
+    // 自動送出表單
+    form.submit()
+
+    // （選擇性）送出之後可以把 form 從 DOM 移除
+    document.body.removeChild(form)
+  } catch (err) {
+    console.error('取消訂閱流程失敗：', err)
+    alert(err.response?.data?.message || err.message || '取消訂閱失敗')
+  } finally {
+    isCancelling.value = false
+  }
+}
 // 7. 初始呼叫
 onMounted(async () => {
   await initUser()
   fetchSubscriptions(1)
+  fetchCourseTypes()
 })
 </script>
 
