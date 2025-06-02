@@ -110,7 +110,7 @@ const courses = ref([])
 const fetchRecommendedCourses = async () => {
   try {
     const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/recommend`
+      `https://sportify.zeabur.app/api/v1/courses/${courseId}/recommend`
     )
     courses.value = res.data.data.map(item => ({
       course_id: item.course_id,

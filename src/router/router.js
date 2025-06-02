@@ -19,6 +19,7 @@ import CoachProfile from '@/pages/CoachProfile.vue'
 import CoachCourses from '@/pages/CoachCourses.vue'
 import CoachEarnings from '@/pages/CoachEarnings.vue'
 import VideoCourses from '@/pages/VideoCourses.vue'
+import AdminCourses from '@/pages/AdminCourses.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -49,7 +50,7 @@ const routes = [
     meta: { requiresAuth: true, hideFooter: true }
   },
   {
-    path: '/user/courses/1234/details',
+    path: '/user/courses/:courseId/details',
     name: 'VideoCourses',
     component: VideoCourses,
     props: true,
@@ -80,6 +81,11 @@ const routes = [
       { path: 'courses', name: 'CoachCourses', component: CoachCourses },
       { path: 'earnings', name: 'CoachEarnings', component: CoachEarnings }
     ]
+  },
+  {
+    path: '/admin/courses',
+    component: AdminCourses,
+    meta: { hideFooter: true }
   }
 ]
 
