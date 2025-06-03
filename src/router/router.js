@@ -13,12 +13,17 @@ import LearningCourses from '@/pages/LearningCourses.vue'
 import SubscriptionRecord from '@/pages/SubscriptionRecord.vue'
 import CoachesPage from '@/pages/CoachesPage.vue'
 import CoachDetailPage from '@/pages/CoachDetailPage.vue'
+import CoachConsoleLayout from '@/pages/CoachConsoleLayout.vue'
+import CoachNewCourse from '@/pages/CoachNewCourse.vue'
+import CoachProfile from '@/pages/CoachProfile.vue'
+import CoachCourses from '@/pages/CoachCourses.vue'
+import CoachEarnings from '@/pages/CoachEarnings.vue'
 
 const routes = [
   { path: '/', component: HomePage },
   { path: '/login', component: LoginPage },
   { path: '/users/signup', component: RegisterPage },
-  { path: '/profile', component: ProfilePage },
+
   { path: '/forgot-password', component: ForgotPasswordPage },
   { path: '/coaches/signup', component: CoachRegisterPage },
   { path: '/users/subscription', component: UserSubscriptionPage },
@@ -30,23 +35,43 @@ const routes = [
     component: CourseDetailPage,
     props: true
   },
-  { path: '/courses', component: CoursesPage },
-  {
-    path: '/users/courses',
-    component: LearningCourses,
-    meta: { requiresAuth: true, hideFooter: true }
-  },
-  {
-    path: '/users/subscriptions',
-    component: SubscriptionRecord,
-    meta: { hideFooter: true }
-  },
   { path: '/coaches', component: CoachesPage },
   {
     path: '/coaches/:coachId',
     name: 'CoachDetails',
     component: CoachDetailPage,
     props: true
+  },
+  {
+    path: '/user/courses',
+    component: LearningCourses,
+    meta: { requiresAuth: true, hideFooter: true }
+  },
+  {
+    path: '/user/subscriptions',
+    component: SubscriptionRecord,
+    meta: { hideFooter: true }
+  },
+  {
+    path: '/user/profile',
+    component: ProfilePage,
+    meta: { hideFooter: true }
+  },
+  {
+    path: '/coach',
+    component: CoachConsoleLayout,
+    meta: { hideFooter: true },
+    children: [
+      { path: '', redirect: { name: 'CoachCourses' } },
+      {
+        path: 'courses/new',
+        name: 'CoachNewCourse',
+        component: CoachNewCourse
+      },
+      { path: 'profile', name: 'CoachProfile', component: CoachProfile },
+      { path: 'courses', name: 'CoachCourses', component: CoachCourses },
+      { path: 'earnings', name: 'CoachEarnings', component: CoachEarnings }
+    ]
   }
 ]
 

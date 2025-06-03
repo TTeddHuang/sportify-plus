@@ -9,26 +9,26 @@
           <ul class="list-group list-group-flush">
             <li
               class="list-group-item active"
-              :class="{ active: route.path === '/users/courses' }"
+              :class="{ active: route.path === '/user/courses' }"
             >
-              <router-link to="/users/courses" class="nav-link">
+              <router-link to="/user/courses" class="nav-link">
                 我的課程
               </router-link>
             </li>
             <li
               class="list-group-item"
-              :class="{ active: route.path === '/users/subscriptions' }"
+              :class="{ active: route.path === '/user/subscriptions' }"
             >
-              <router-link to="/users/subscriptions" class="nav-link">
+              <router-link to="/user/subscriptions" class="nav-link">
                 訂閱紀錄
               </router-link>
             </li>
 
             <li
               class="list-group-item"
-              :class="{ active: route.path === '/profile' }"
+              :class="{ active: route.path === '/user/profile' }"
             >
-              <router-link to="/profile" class="nav-link">
+              <router-link to="/user/profile" class="nav-link">
                 編輯個人資料
               </router-link>
             </li>

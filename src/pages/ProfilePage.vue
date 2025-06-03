@@ -5,9 +5,28 @@
         <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
         <hr class="divider my-5" />
         <ul class="list-group list-group-flush">
-          <li class="list-group-item">我的課程</li>
-          <li class="list-group-item">訂閱紀錄</li>
-          <li class="list-group-item active">編輯個人資料</li>
+          <li
+            class="list-group-item"
+            :class="{ active: route.path === '/user/courses' }"
+          >
+            <router-link to="/user/courses" class="nav-link">
+              我的課程
+            </router-link>
+          </li>
+          <li
+            class="list-group-item"
+            :class="{ active: route.path === '/user/subscriptions' }"
+          >
+            <router-link to="/user/subscriptions" class="nav-link">
+              訂閱紀錄
+            </router-link>
+          </li>
+          <li
+            class="list-group-item active"
+            :class="{ active: route.path === '/user/profiles' }"
+          >
+            編輯個人資料
+          </li>
         </ul>
       </div>
     </div>
@@ -98,9 +117,10 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const userToken = ref(null)
 const userId = ref(null)
 
@@ -288,7 +308,7 @@ const confirmEdit = async () => {
 <style scoped lang="scss">
 .container {
   max-width: 1296px;
-  height: 100%;
+  height: 100vh;
   margin: 0 auto;
 }
 
