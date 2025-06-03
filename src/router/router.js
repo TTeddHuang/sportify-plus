@@ -19,9 +19,12 @@ import CoachProfile from '@/pages/CoachProfile.vue'
 import CoachCourses from '@/pages/CoachCourses.vue'
 import CoachEarnings from '@/pages/CoachEarnings.vue'
 
+import { user, userRole } from '@/store/user'
+
 const routes = [
-  { path: '/', component: HomePage },
-  { path: '/login', component: LoginPage },
+  // 不需登入，所有身分均可觀看
+  { path: '/', name: 'Home', component: HomePage },
+  { path: '/login', name: 'Login', component: LoginPage },
   { path: '/users/signup', component: RegisterPage },
 
   { path: '/forgot-password', component: ForgotPasswordPage },
@@ -42,25 +45,27 @@ const routes = [
     component: CoachDetailPage,
     props: true
   },
+  // 學員後台，需登入，需學員身分
   {
     path: '/user/courses',
     component: LearningCourses,
-    meta: { requiresAuth: true, hideFooter: true }
+    meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
   },
   {
     path: '/user/subscriptions',
     component: SubscriptionRecord,
-    meta: { hideFooter: true }
+    meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
   },
   {
     path: '/user/profile',
     component: ProfilePage,
-    meta: { hideFooter: true }
+    meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
   },
+  // 教練後台，需登入，需教練身分
   {
     path: '/coach',
     component: CoachConsoleLayout,
-    meta: { hideFooter: true },
+    meta: { requiresAuth: true, requiredRole: 'coach', hideFooter: true },
     children: [
       { path: '', redirect: { name: 'CoachCourses' } },
       {
@@ -80,20 +85,34 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from) => {
   const token = localStorage.getItem('token')
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiredRoleRecord = to.matched.find(record => record.meta.requiredRole)
+  const requiredRole = requiredRoleRecord?.meta.requiredRole
 
+  // 需觀看權限但尚未登入
   if (requiresAuth && !token) {
-    return next('/login')
+    return { name: 'Login' }
   }
 
   // 已登入的使用者進入 login 頁，自動導向首頁
   if (to.path === '/login' && token) {
-    return next('/')
+    return { name: 'Home' }
   }
 
-  next()
+  if (requiresAuth && token && requiredRole) {
+    if (!user.value) {
+      const { initUser } = await import('@/store/user')
+      await initUser()
+    }
+
+    const currentRole = userRole.value
+
+    if (currentRole !== requiredRole) {
+      return { name: 'Home' }
+    }
+  }
 })
 
 export default router
