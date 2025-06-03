@@ -2,7 +2,7 @@
   <div class="container">
     <div class="d-flex">
       <!-- 左側選單 -->
-      <div class="side-nav d-lg-block d-none">
+      <div class="side-nav">
         <div class="px-3 py-5">
           <h3 class="fs-6 px-3 fw-bold">管理後臺</h3>
           <hr class="divider my-5" />
@@ -46,72 +46,77 @@
       </div>
       <!-- 外框顏色 -->
       <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
-        <div class="d-flex gap-6">
+        <div class="d-lg-flex gap-6">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">課程管理</h2>
-          <!--  下拉選單：所有課程 -->
-          <div class="dropdown">
-            <button
-              id="dropdownCategory"
-              class="btn btn-primary-600 dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              {{ selectedCategory }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownCategory">
-              <li
-                v-for="cat in categoryOptions"
-                :key="cat"
-                @click="selectedCategory = cat"
-              >
-                <a class="dropdown-item" href="#">{{ cat }}</a>
-              </li>
-            </ul>
-          </div>
+          <div class="d-flex mb-5">
+            <!-- ★ 讓這個 .scrollable-group 自行橫向捲動 -->
+            <div class="d-flex flex-nowrap gap-lg-6 gap-1">
+              <!--  下拉選單：所有課程 -->
+              <div class="dropdown">
+                <button
+                  id="dropdownCategory"
+                  class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {{ selectedCategory }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownCategory">
+                  <li
+                    v-for="cat in categoryOptions"
+                    :key="cat"
+                    @click="selectedCategory = cat"
+                  >
+                    <a class="dropdown-item" href="#">{{ cat }}</a>
+                  </li>
+                </ul>
+              </div>
 
-          <!--  下拉選單：選擇講師 -->
-          <div class="dropdown">
-            <button
-              id="dropdownInstructor"
-              class="btn btn-primary-600 dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              {{ selectedInstructor }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownInstructors">
-              <li
-                v-for="instr in instructorOptions"
-                :key="instr"
-                @click="selectedInstructor = instr"
-              >
-                <a class="dropdown-item" href="#">{{ instr }}</a>
-              </li>
-            </ul>
-          </div>
+              <!--  下拉選單：選擇講師 -->
+              <div class="dropdown">
+                <button
+                  id="dropdownInstructor"
+                  class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {{ selectedInstructor }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownInstructors">
+                  <li
+                    v-for="instr in instructorOptions"
+                    :key="instr"
+                    @click="selectedInstructor = instr"
+                  >
+                    <a class="dropdown-item" href="#">{{ instr }}</a>
+                  </li>
+                </ul>
+              </div>
 
-          <!--  下拉選單：選擇狀態 -->
-          <div class="dropdown">
-            <button
-              id="dropdownStatus"
-              class="btn btn-primary-600 dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              {{ selectedStatus }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownStatus">
-              <li
-                v-for="st in statusOptions"
-                :key="st"
-                @click="selectedStatus = st"
-              >
-                <a class="dropdown-item" href="#">{{ st }}</a>
-              </li>
-            </ul>
+              <!--  下拉選單：選擇狀態 -->
+              <div class="dropdown">
+                <button
+                  id="dropdownStatus"
+                  class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {{ selectedStatus }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownStatus">
+                  <li
+                    v-for="st in statusOptions"
+                    :key="st"
+                    @click="selectedStatus = st"
+                  >
+                    <a class="dropdown-item" href="#">{{ st }}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -119,7 +124,7 @@
           <div class="card-wrapper"></div>
           <div class="card-content p-5 mb-5">
             <div class="table-responsive">
-              <table class="table table-striped mb-0 align-middle">
+              <table class="table table-striped mb-0 align-middle wide-table">
                 <thead class="">
                   <tr class="text-start">
                     <th class="th-custom">類別</th>
@@ -260,6 +265,13 @@
 
                     <div class="text-grey-600 fs-lg-8 small">
                       {{ rating.createdAt }}
+                      <button
+                        class="btn btn-link text-danger ms-1 p-1"
+                        title="刪除此評價"
+                        @click="askDeleteRating(rating.id)"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </div>
                   </div>
 
@@ -315,10 +327,12 @@
           aria-hidden="true"
         >
           <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-500">
+            <div class="modal-content bg-grey-000 text-grey-700 p-5">
               <!-- --- Modal 標頭 --- -->
-              <div class="modal-header">
-                <h5 id="detailModalLabel" class="modal-title">課程詳細資訊</h5>
+              <div class="modal-header border-grey-200">
+                <h5 id="detailModalLabel" class="modal-title text-primary-900">
+                  課程詳細資訊
+                </h5>
                 <button
                   type="button"
                   class="btn-close"
@@ -329,32 +343,48 @@
               <!-- --- Modal 主體 --- -->
               <div class="modal-body">
                 <div class="row">
-                  <!-- 左半部：文字描述 (代號、狀態、上架時間、類別、教練名字、介紹) -->
-                  <div class="col-md-8">
-                    <div class="mb-3 d-flex flex-wrap">
-                      <div class="me-4">
-                        <strong>課程代號：</strong
-                        ><span>{{ selectedDetail.code }}</span>
+                  <!-- 左半：文字與課程資訊 (占 8/12) -->
+                  <div class="col-lg-8 d-flex flex-column">
+                    <div class="d-flex">
+                      <div
+                        class="mb-3 d-flex flex-column gap-3"
+                        style="width: 60%"
+                      >
+                        <div class="me-4">
+                          <strong>課程代號：</strong
+                          ><span>{{ selectedDetail.id }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>教練名稱：</strong
+                          ><span>{{ selectedDetail.coach.name }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>課程名稱：</strong
+                          ><span>{{ selectedDetail.name }}</span>
+                        </div>
                       </div>
-                      <div class="me-4">
-                        <strong>課程狀態：</strong
-                        ><span>{{ selectedDetail.status }}</span>
-                      </div>
-                      <div class="me-4">
-                        <strong>上架時間：</strong
-                        ><span>{{ selectedDetail.publishedAt }}</span>
-                      </div>
-                      <div class="me-4">
-                        <strong>課程類別：</strong
-                        ><span>{{ selectedDetail.category }}</span>
-                      </div>
-                      <div class="me-4">
-                        <strong>教練名稱：</strong
-                        ><span>{{ selectedDetail.instructor }}</span>
+                      <div
+                        class="mb-3 d-flex flex-column gap-3"
+                        style="width: 40%"
+                      >
+                        <div class="me-4">
+                          <strong>課程狀態：</strong
+                          ><span>{{ selectedDetail.status }}</span>
+                        </div>
+
+                        <div class="me-4">
+                          <strong>上架時間：</strong
+                          ><span>{{ selectedDetail.publishedAt }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>課程類別：</strong
+                          ><span>{{ selectedDetail.category }}</span>
+                        </div>
                       </div>
                     </div>
+
                     <div class="mb-3">
-                      <strong>課程介紹：</strong>
+                      <p class="fw-bold mb-3">課程介紹：</p>
                       <div
                         class="border rounded p-3"
                         style="background-color: #f8f9fa"
@@ -362,98 +392,123 @@
                         {{ selectedDetail.description }}
                       </div>
                     </div>
-                    <!-- 課程圖片 -->
                     <div class="mb-3">
-                      <strong>課程照片：</strong><br />
+                      <p class="fw-bold">課程照片：</p>
                       <img
-                        :src="selectedDetail.thumbnailUrl"
+                        :src="selectedDetail.image_url"
                         alt="課程照片"
-                        class="img-fluid rounded"
+                        class="img-fluid rounded w-100"
                       />
                     </div>
-                    <!-- 課程影片 (accordion) -->
-                    <div class="mb-3">
-                      <strong>課程影片：</strong>
-                      <div id="courseVideoAccordion" class="accordion">
-                        <div
-                          v-for="(video, index) in selectedDetail.videos"
-                          :key="video.id"
-                          class="accordion-item"
+                  </div>
+
+                  <!-- 右半：教練頭像 (占 4/12) -->
+                  <div class="col-lg-4 text-center mt-5">
+                    <img
+                      :src="selectedDetail.coach.profile_image_url"
+                      alt="教練頭像"
+                      class="rounded-circle mb-2"
+                      style="width: 240px; height: 240px; object-fit: cover"
+                    />
+                  </div>
+                </div>
+
+                <!-- 下面可以再加「審核建議」之類的表單欄位 -->
+
+                <div class="mb-3">
+                  <p class="fw-bold">課程影片：</p>
+                  <div id="courseVideoAccordion" class="accordion">
+                    <div
+                      v-for="(chap, idx) in selectedDetail.chapters"
+                      :key="idx"
+                      class="accordion-item bg-grey-100 text-grey-700"
+                    >
+                      <h2
+                        :id="`headingChap${idx}`"
+                        class="accordion-header text-grey-700"
+                      >
+                        <button
+                          class="accordion-button collapsed bg-grey-100 text-grey-700"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          :data-bs-target="`#collapseChap${idx}`"
+                          aria-expanded="false"
+                          :aria-controls="`collapseChap${idx}`"
                         >
-                          <h2
-                            :id="`headingVideo${index}`"
-                            class="accordion-header"
-                          >
-                            <button
-                              class="accordion-button collapsed"
-                              type="button"
-                              data-bs-toggle="collapse"
-                              :data-bs-target="`#collapseVideo${index}`"
-                              aria-expanded="false"
-                              :aria-controls="`collapseVideo${index}`"
-                            >
-                              {{ `${index + 1}. ${video.title}` }}
-                            </button>
-                          </h2>
-                          <div
-                            :id="`collapseVideo${index}`"
-                            class="accordion-collapse collapse"
-                            :aria-labelledby="`headingVideo${index}`"
-                            data-bs-parent="#courseVideoAccordion"
-                          >
-                            <div class="accordion-body">
-                              <div class="ratio ratio-16x9">
-                                <iframe
-                                  :src="video.url"
-                                  title="Video"
-                                  allowfullscreen
-                                ></iframe>
-                              </div>
-                            </div>
-                          </div>
+                          {{ chap.title }}
+                        </button>
+                      </h2>
+                      <div
+                        :id="`collapseChap${idx}`"
+                        class="accordion-collapse collapse"
+                        :aria-labelledby="`headingChap${idx}`"
+                        data-bs-parent="#courseVideoAccordion"
+                      >
+                        <div class="accordion-body">
+                          <ul class="mb-0 list-unstyled">
+                            <li v-for="(sub, i) in chap.subtitles" :key="i">
+                              {{ sub }}
+                            </li>
+                          </ul>
                         </div>
                       </div>
                     </div>
                   </div>
-
-                  <!-- 右半部：教練頭像（可自訂排版） -->
-                  <div class="col-md-4 text-center">
-                    <img
-                      :src="selectedDetail.instructorAvatar"
-                      alt="教練頭像"
-                      class="rounded-circle"
-                      style="width: 150px; height: 150px; object-fit: cover"
-                    />
-                  </div>
                 </div>
-                <!-- 下面可以再加「審核建議」之類的表單欄位 -->
-                <div class="mt-4">
-                  <strong>審核建議：</strong>
-                  <textarea
-                    v-model="selectedDetail.reviewComment"
-                    class="form-control bg-grey-000"
-                    rows="3"
-                    placeholder="輸入審核建議..."
-                  ></textarea>
+                <div class="w-50 mx-auto">
+                  <!-- 如果此課程已經是「上架中」而且尚未按下編輯，就只顯示「編輯」＋「確定」兩個按鈕 -->
+                  <template
+                    v-if="selectedDetail.status === '上架中' && !isEditing"
+                  >
+                    <div class="modal-footer border-0 justify-content-center">
+                      <!-- 按下後切換到編輯模式 -->
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        @click="enableEdit"
+                      >
+                        編輯
+                      </button>
+                      <!-- 直接關閉 Modal -->
+                      <button
+                        type="button"
+                        class="btn btn-secondary ms-3"
+                        @click="closeDetailModal"
+                      >
+                        確定
+                      </button>
+                    </div>
+                  </template>
+                  <!-- 其餘狀況（剛打開、或點了「編輯」後）都顯示「審核建議 + 通過/未通過」 -->
+                  <template v-else>
+                    <div class="mt-4">
+                      <p class="fw-bold">審核建議：</p>
+                      <textarea
+                        v-model="selectedDetail.reviewComment"
+                        class="form-control bg-grey-000 text-grey-700"
+                        rows="3"
+                        placeholder="輸入審核建議..."
+                      ></textarea>
+                    </div>
+                    <!-- --- Modal 底部：按鈕 --- -->
+                    <div class="modal-footer border-0 justify-content-center">
+                      <button
+                        type="button"
+                        class="btn btn-danger text-grey-700"
+                        @click="rejectReview"
+                      >
+                        未通過
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-success text-grey-700 ms-5"
+                        @click="approveReview"
+                      >
+                        通過
+                      </button>
+                    </div>
+                  </template>
                 </div>
-              </div>
-
-              <!-- --- Modal 底部：按鈕 --- -->
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  取消
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click="submitReview"
-                >
-                  送出
-                </button>
               </div>
             </div>
           </div>
@@ -469,7 +524,7 @@
                 :class="{ disabled: currentCoursePage === 1 }"
                 @click="changeCoursePage(currentCoursePage - 1)"
               >
-                <a class="page-link me-lg-11">上一頁</a>
+                <a class="page-link me-lg-11 me-5">上一頁</a>
               </li>
               <li
                 v-for="page in totalCoursePages"
@@ -485,10 +540,51 @@
                 :class="{ disabled: currentCoursePage === totalCoursePages }"
                 @click="changeCoursePage(currentCoursePage + 1)"
               >
-                <a class="page-link ms-lg-11">下一頁</a>
+                <a class="page-link ms-lg-11 ms-5">下一頁</a>
               </li>
             </ul>
           </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 刪除評價modal -->
+  <div
+    id="confirmDeleteModal"
+    class="modal fade"
+    tabindex="-1"
+    aria-labelledby="confirmDeleteModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content bg-grey-000 text-grey-700">
+        <div class="modal-header border-0">
+          <h5 id="confirmDeleteModalLabel" class="modal-title">確認刪除</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>確定要刪除此則評價嗎？</p>
+        </div>
+        <div class="modal-footer justify-content-center border-0">
+          <button
+            type="button"
+            class="btn btn-grey-400 text-grey-700"
+            data-bs-dismiss="modal"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger text-grey-700"
+            @click="confirmDelete"
+          >
+            刪除
+          </button>
         </div>
       </div>
     </div>
@@ -497,10 +593,44 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
+const router = useRouter()
 const route = useRoute()
+
+// 目前是否處於「編輯模式」的旗標
+const isEditing = ref(false)
+
+//
+// === 身分驗證：只有 role === 'ADMIN' 才能繼續進入此頁面 ===
+//
+async function checkAdmin() {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      // 沒有 token，直接跳回首頁或登入頁
+      router.replace({ path: '/' })
+      return false
+    }
+    const res = await axios.get('https://sportify.zeabur.app/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (res.data?.status && res.data.data?.role === 'ADMIN') {
+      // 確認是 admin，才允許繼續
+      return true
+    } else {
+      // 如果不是 admin，就導回首頁
+      router.replace({ path: '/' })
+      return false
+    }
+  } catch (err) {
+    // 驗證失敗或 401，就導回首頁
+    console.error('身分驗證失敗：', err)
+    router.replace({ path: '/' })
+    return false
+  }
+}
 
 //
 // === 課程列表相關狀態 ===
@@ -517,6 +647,9 @@ const selectedDetail = ref({
   hours: 0,
   image_url: '',
   description: '',
+  status: '', // ← 新增
+  publishedAt: '', // ← 新增
+  category: '', // ← 新增
   // 教練欄位
   coach: {
     id: '',
@@ -617,10 +750,70 @@ function changeCoursePage(page) {
   fetchCourses()
 }
 
-function onEdit(courseId) {
-  console.log('編輯課程：', courseId)
+// 審核成功／失敗後都要關掉 Modal
+function closeDetailModal() {
+  const modalEl = document.getElementById('detailModal')
+  // eslint-disable-next-line no-undef
+  const bs = bootstrap.Modal.getInstance(modalEl)
+  if (bs) bs.hide()
 }
 
+/**
+ * 按下「通過」時呼叫
+ * PATCH /api/v1/admin/courses/:courseId/review
+ * body 裡帶 approved: true
+ */
+async function approveReview() {
+  try {
+    const courseId = selectedDetail.value.id
+    const token = localStorage.getItem('token')
+    await axios.patch(
+      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
+      {
+        status: 'approved',
+        reviewComment: selectedDetail.value.reviewComment || ''
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    // 關閉 Modal，並顯示成功訊息
+    closeDetailModal()
+    alert('課程已標記為「上架中」')
+    // 如果需要重新載入列表，可呼叫 fetchCourses() 或 refresh 資料
+    await fetchCourses()
+    // 不一定要立刻還原 edit flag（通常關 Modal 就沒差），
+    // 但若 modal 留著，也可再把 isEditing 變 false
+    isEditing.value = false
+  } catch (err) {
+    console.error('通過審核失敗：', err.response?.data || err)
+    alert(err.response?.data?.message || '審核通過失敗，請稍後再試')
+  }
+}
+
+/**
+ * 按下「未通過」時呼叫
+ * 同樣呼叫 PATCH，把 approved: false
+ */
+async function rejectReview() {
+  try {
+    const courseId = selectedDetail.value.id
+    const token = localStorage.getItem('token')
+    await axios.patch(
+      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
+      {
+        status: 'rejected',
+        reviewComment: selectedDetail.value.reviewComment || ''
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    closeDetailModal()
+    alert('課程未通過，已退回給教練更新')
+    fetchCourses()
+    isEditing.value = false
+  } catch (err) {
+    console.error('拒絕審核失敗：', err.response?.data || err)
+    alert(err.response?.data?.message || '審核拒絕失敗，請稍後再試')
+  }
+}
 onMounted(() => {
   fetchCourses()
 })
@@ -744,74 +937,135 @@ const paginatedRatings = computed(() => userRatings.value.paginatedData)
 async function openDetailModal(courseId) {
   try {
     const token = localStorage.getItem('token')
+    // 1) 先呼叫 /details 拿 description、chapters、coach 等
     const res = await axios.get(
       `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    if (res.data.status) {
-      const payload = res.data.data
-
-      // 直接把 API 回來的 data.course 與 data.coach、data.chapters 塞進去：
-      selectedDetail.value.id = payload.course.id || ''
-      selectedDetail.value.name = payload.course.name || ''
-      selectedDetail.value.score = payload.course.score || 0
-      selectedDetail.value.student_amount = payload.course.student_amount || 0
-      selectedDetail.value.hours = payload.course.hours || 0
-      selectedDetail.value.image_url = payload.course.image_url || ''
-      selectedDetail.value.description = payload.course.description || ''
-
-      // 教練資料
-      selectedDetail.value.coach.id = payload.coach.id || ''
-      selectedDetail.value.coach.name = payload.coach.name || ''
-      selectedDetail.value.coach.title = payload.coach.title || ''
-      selectedDetail.value.coach.intro = payload.coach.intro || ''
-      selectedDetail.value.coach.profile_image_url =
-        payload.coach.profile_image_url || ''
-      selectedDetail.value.coach.coachPage_Url =
-        payload.coach.coachPage_Url || ''
-
-      // 章節清單
-      selectedDetail.value.chapters = Array.isArray(payload.chapters)
-        ? payload.chapters.map(ch => ({
-            title: ch.title,
-            subtitles: Array.isArray(ch.subtitles) ? ch.subtitles : []
-          }))
-        : []
-
-      // 打開 Bootstrap Modal
-      const modalEl = document.getElementById('detailModal')
-      const bsModal = new bootstrap.Modal(modalEl)
-      bsModal.show()
+    if (!res.data.status) {
+      throw new Error(res.data.message || '取得 Detail 失敗')
     }
+
+    const payload = res.data.data
+
+    // 2) 把 /details 裡的課程名稱、說明、章節與 coach 資料塞進去
+    selectedDetail.value.id = payload.course.id || ''
+    selectedDetail.value.name = payload.course.name || ''
+    selectedDetail.value.score = payload.course.score || 0
+    selectedDetail.value.student_amount = payload.course.student_amount || 0
+    selectedDetail.value.hours = payload.course.hours || 0
+    selectedDetail.value.image_url = payload.course.image_url || ''
+    selectedDetail.value.description = payload.course.description || ''
+
+    // 塞 coach 相關
+    selectedDetail.value.coach.id = payload.coach.id || ''
+    selectedDetail.value.coach.name = payload.coach.name || ''
+    selectedDetail.value.coach.title = payload.coach.title || ''
+    selectedDetail.value.coach.intro = payload.coach.intro || ''
+    selectedDetail.value.coach.profile_image_url =
+      payload.coach.profile_image_url || ''
+    selectedDetail.value.coach.coachPage_Url = payload.coach.coachPage_Url || ''
+
+    // 塞 chapters
+    selectedDetail.value.chapters = Array.isArray(payload.chapters)
+      ? payload.chapters.map(ch => ({
+          title: ch.title,
+          subtitles: Array.isArray(ch.subtitles) ? ch.subtitles : []
+        }))
+      : []
+
+    // 3) 接著從先前 fetchCourses() 拿到的 courses.value 找同一筆 course，
+    //    拿 is_active 與 created_at。 detail endpoint 裡並沒有回傳這兩個欄位，
+    //    所以必須從列表裡「找一筆匹配的」才能取得。
+    const base = courses.value.find(c => c.id === courseId)
+    if (base) {
+      // 課程狀態
+      selectedDetail.value.status = base.is_active ? '上架中' : '待審核'
+      // 上架時間 (把 "2025-05-28T22:00:18.895Z" 轉成 "25/05/28 22:00")
+      if (base.created_at) {
+        // 取 "2025-05-28" → "25/05/28"，再加上 "22:00"
+        const datePart = base.created_at.slice(2, 10).replace(/-/g, '/')
+        const timePart = base.created_at.slice(11, 16)
+        selectedDetail.value.publishedAt = `${datePart} ${timePart}`
+      } else {
+        selectedDetail.value.publishedAt = ''
+      }
+      // 類別也可以直接從 base.category 塞
+      selectedDetail.value.category = base.category
+    } else {
+      // 如果 courses.value 裡找不到，就留空或給預設
+      selectedDetail.value.status = ''
+      selectedDetail.value.publishedAt = ''
+      selectedDetail.value.category = ''
+    }
+
+    // 確保一開始非編輯狀態
+    isEditing.value = false
+
+    // 4) 再打開 Bootstrap Modal
+    const modalEl = document.getElementById('detailModal')
+    // eslint-disable-next-line no-undef
+    const bsModal = new bootstrap.Modal(modalEl)
+    bsModal.show()
   } catch (err) {
     console.error('載入課程詳細失敗：', err)
     alert('無法載入課程詳細，請稍後再試')
   }
 }
 
-// 4) 當使用者按下「送出審核建議」時，POST 範例（可依後端實際規定調整）
-//
-async function submitReview() {
+function enableEdit() {
+  isEditing.value = true
+}
+
+// === 用來記錄「要刪除的 ratingId」 ===
+const pendingDeleteRatingId = ref(null)
+
+// 當按下垃圾桶按鈕時，先將 ratingId 存起來，並叫 Modal 彈出
+function askDeleteRating(ratingId) {
+  pendingDeleteRatingId.value = ratingId
+  // 用 Bootstrap 的 JS API 來開啟「confirmDeleteModal」
+  const modalEl = document.getElementById('confirmDeleteModal')
+  // eslint-disable-next-line no-undef
+  const bs = new bootstrap.Modal(modalEl)
+  bs.show()
+}
+
+// 真正按下「刪除」之後呼叫的函式
+async function confirmDelete() {
+  // 先把 Modal 隱藏
+  const modalEl = document.getElementById('confirmDeleteModal')
+  // eslint-disable-next-line no-undef
+  const bs = bootstrap.Modal.getInstance(modalEl)
+  bs.hide()
+
+  // 如果沒有 pendingDeleteRatingId，就不用送 API
+  if (!pendingDeleteRatingId.value) return
+
   try {
     const token = localStorage.getItem('token')
-    // 假設後端要的 payload 只需要 reviewComment
-    await axios.post(
-      `https://sportify.zeabur.app/api/v1/admin/courses/${selectedDetail.value.id}/review`,
-      { comment: selectedDetail.value.reviewComment || '' },
+    // 這裡的 selectedCourseId 必須已經在「開啟評價 Modal」時設定過
+    await axios.delete(
+      `https://sportify.zeabur.app/api/v1/admin/courses/${selectedCourseId.value}/ratings/${pendingDeleteRatingId.value}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    // 關掉 Modal
-    const modalEl = document.getElementById('detailModal')
-    const bsModal = bootstrap.Modal.getInstance(modalEl)
-    bsModal.hide()
-    alert('審核建議已送出')
+    // 刪除成功後，重新撈當前頁的評價
+    fetchRatings(selectedCourseId.value, currentRatingPage.value)
   } catch (err) {
-    console.error('送出審核建議失敗：', err)
-    alert('送出審核建議失敗，請稍後再試')
+    console.error('刪除評價失敗：', err.response?.data || err)
+    alert(err.response?.data?.message || '刪除評價失敗，請稍後再試')
+  } finally {
+    // 清除暫存的 ratingId
+    pendingDeleteRatingId.value = null
   }
 }
 
-onMounted(fetchCourses)
+// onMounted 先檢查身份，通過才繼續 fetchCourses
+onMounted(async () => {
+  const isAdmin = await checkAdmin()
+  if (isAdmin) {
+    fetchCourses()
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -887,6 +1141,9 @@ onMounted(fetchCourses)
   background: $primary-000;
   font-size: 20px;
   text-align: center;
+  @media (max-width: 992px) {
+    font-size: 16px;
+  }
 }
 .td-custom {
   color: $primary-900;
@@ -896,5 +1153,27 @@ onMounted(fetchCourses)
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
+}
+textarea {
+  resize: none;
+}
+/* AdminCourses.vue 或同級的 .scss 文件 */
+textarea::placeholder {
+  /* 如果你有 SCSS 變數 $grey-200，就這樣用 */
+  color: $grey-200;
+  opacity: 1; /* 確保在部分瀏覽器上不會因為 opacity 被壓低而看不見 */
+}
+.table-responsive {
+  overflow-x: auto;
+}
+@media (max-width: 900px) {
+  .wide-table {
+    min-width: 900px;
+  }
+}
+@media (max-width: 1024px) {
+  .side-nav {
+    display: none;
+  }
 }
 </style>
