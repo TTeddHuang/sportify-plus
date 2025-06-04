@@ -1,7 +1,7 @@
 <template>
   <div class="form-panel p-8">
     <form class="container">
-      <div class="mb-3">
+      <div class="mb-5">
         <label for="name" class="form-label">課程名稱</label>
         <input
           id="name"
@@ -12,7 +12,7 @@
           required
         />
       </div>
-      <div class="mb-3">
+      <div class="mb-5">
         <label for="intro" class="form-label">課程介紹</label>
         <textarea
           id="intro"
@@ -23,7 +23,7 @@
           required
         ></textarea>
       </div>
-      <div class="mb-3">
+      <div class="mb-5">
         <label for="category" class="form-label">課程類別</label>
         <select
           id="category"
@@ -41,7 +41,7 @@
           </option>
         </select>
       </div>
-      <div class="mb-3">
+      <div class="mb-5">
         <label for="photo" class="form-label">上傳封面照片</label>
         <input
           id="photo"
@@ -57,13 +57,19 @@
           class="mt-3 img-preview"
         />
       </div>
-      <div class="mb-3">
+      <div class="mb-5">
         <label class="form-label">課程影片上傳</label>
         <draggable></draggable>
       </div>
-      <button type="submit" class="btn btn-primary" @click.prevent="formSubmit">
-        建立新課程
-      </button>
+      <div class="text-center mt-8">
+        <button
+          type="submit"
+          class="btn btn-primary submit-btn"
+          @click.prevent="formSubmit"
+        >
+          建立新課程
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -100,7 +106,6 @@ function formSubmit() {
 </script>
 
 <style scoped lang="scss">
-
 .img-preview {
   max-width: 200px;
 }

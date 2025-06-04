@@ -15,19 +15,57 @@ const totalSections = computed(() =>
 
 /* ---------- helpers ---------- */
 const addChapter = () =>
-  chapters.value.push({ id: nanoid(), title: '新章節', sections: [] })
+  chapters.value.push({
+    id: nanoid(),
+    title: '新章節',
+    collapsed: false,
+    sections: []
+  })
 
-const addSection = chapter =>
-  chapter.sections.push({ id: nanoid(), title: '新小節', file: null })
+const addSection = chapter => {
+  if (chapter.collapsed) {
+    chapter.collapsed = false
+  }
+  chapter.sections.push({
+    id: nanoid(),
+    title: '新小節',
+    file: null,
+    fileName: '',
+    fileSize: 0
+  })
+}
 
 const onFileChange = (section, file) => {
-  section.file = file
+  if (file) {
+    section.file = file
+    section.fileName = file.name
+    section.fileSize = file.size
+    console.log('檔案已選取:', file.name)
+  } else {
+    section.file = null
+    section.fileName = ''
+    section.fileSize = 0
+  }
+  saveOrder()
+}
+
+// ✅ 檢查檔案是否存在
+const hasFile = section => {
+  return section.file && section.fileName
 }
 
 const saveOrder = () => {
   console.log('新排序', JSON.parse(JSON.stringify(chapters.value)))
   // 可以在這裡呼叫 API 保存
   // await saveChaptersOrder(chapters.value)
+}
+
+// ✅ 新增：處理 Enter 鍵事件
+const handleKeydown = event => {
+  if (event.key === 'Enter') {
+    event.preventDefault() // 阻止預設行為
+    event.target.blur() // 讓輸入框失去焦點，觸發 @blur 保存
+  }
 }
 
 // 刪除功能
@@ -56,40 +94,26 @@ const onDragEnd = () => {
   draggedItem.value = null
 }
 
-// 複製功能
-const duplicateChapter = chapter => {
-  const newChapter = {
-    ...JSON.parse(JSON.stringify(chapter)),
-    id: nanoid(),
-    title: `${chapter.title} (副本)`
-  }
-  newChapter.sections.forEach(section => {
-    section.id = nanoid()
-  })
-  chapters.value.push(newChapter)
-}
-
 // 章節折疊功能
 const toggleChapter = chapter => {
   chapter.collapsed = !chapter.collapsed
 }
 
-// 批量操作
-const selectAll = ref(false)
-const selectedItems = ref(new Set())
+// ✅ 移除檔案
+const removeFile = section => {
+  section.file = null
+  section.fileName = ''
+  section.fileSize = 0
+  saveOrder()
+}
 
-const toggleSelectAll = () => {
-  if (selectAll.value) {
-    selectedItems.value.clear()
-  } else {
-    chapters.value.forEach(chapter => {
-      selectedItems.value.add(chapter.id)
-      chapter.sections.forEach(section => {
-        selectedItems.value.add(section.id)
-      })
-    })
-  }
-  selectAll.value = !selectAll.value
+// ✅ 格式化檔案大小
+const formatFileSize = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 </script>
 
@@ -101,10 +125,7 @@ const toggleSelectAll = () => {
         總計: {{ chapters.length }} 章節 / {{ totalSections }} 小節
       </div>
       <div class="actions">
-        <button @click="toggleSelectAll">
-          {{ selectAll ? '取消全選' : '全選' }}
-        </button>
-        <button class="primary" @click="addChapter">＋ 新增章節</button>
+        <button class="primary" @click.prevent="addChapter">＋ 新增章節</button>
       </div>
     </div>
 
@@ -123,61 +144,46 @@ const toggleSelectAll = () => {
         <div
           class="chapter-card"
           :class="{
-            collapsed: chapter.collapsed,
-            selected: selectedItems.has(chapter.id)
+            collapsed: chapter.collapsed
           }"
         >
           <div class="chapter-header">
-            <span class="chapter-handle handle">⋮⋮</span>
-
-            <input
-              type="checkbox"
-              :checked="selectedItems.has(chapter.id)"
-              @change="toggleSelection(chapter.id)"
-            />
-
+            <span class="chapter-handle handle material-symbols-outlined">
+              drag_indicator
+            </span>
             <input
               v-model="chapter.title"
               class="chapter-title"
               placeholder="大章節名稱"
               @blur="saveOrder"
+              @keydown="handleKeydown"
             />
-
             <div class="chapter-actions">
               <button
                 class="icon-btn"
-                :title="chapter.collapsed ? '展開' : '折疊'"
-                @click="toggleChapter(chapter)"
-              >
-                {{ chapter.collapsed ? '▶' : '▼' }}
-              </button>
-
-              <button
-                class="icon-btn"
-                title="複製章節"
-                @click="duplicateChapter(chapter)"
-              >
-                📋
-              </button>
-
-              <button
-                class="icon-btn"
                 title="新增小節"
-                @click="addSection(chapter)"
+                @click.prevent="addSection(chapter)"
               >
-                ＋
+                <span class="material-symbols-outlined"> add </span>
               </button>
-
               <button
                 class="icon-btn danger"
                 title="刪除章節"
-                @click="removeChapter(chapterIndex)"
+                @click.prevent="removeChapter(chapterIndex)"
               >
-                🗑️
+                <span class="material-symbols-outlined"> delete </span>
+              </button>
+              <button
+                class="icon-btn"
+                :title="chapter.collapsed ? '展開' : '折疊'"
+                @click.prevent="toggleChapter(chapter)"
+              >
+                <span class="material-symbols-outlined">
+                  {{ chapter.collapsed ? 'stat_1' : 'stat_minus_1' }}
+                </span>
               </button>
             </div>
           </div>
-
           <!-- 小節區域 -->
           <div v-show="!chapter.collapsed" class="sections-container">
             <draggable
@@ -191,41 +197,57 @@ const toggleSelectAll = () => {
               @change="saveOrder"
             >
               <template #item="{ element: section, index: sectionIndex }">
-                <div
-                  class="section-item"
-                  :class="{ selected: selectedItems.has(section.id) }"
-                >
-                  <span class="section-handle handle">⋮⋮</span>
-
-                  <input
-                    type="checkbox"
-                    :checked="selectedItems.has(section.id)"
-                    @change="toggleSelection(section.id)"
-                  />
-
+                <div class="section-item">
+                  <span class="section-handle handle material-symbols-outlined">
+                    drag_indicator
+                  </span>
                   <input
                     v-model="section.title"
                     class="section-title"
                     placeholder="小章節名稱"
                     @blur="saveOrder"
+                    @keydown="handleKeydown"
                   />
+                  <!-- ✅ 檔案處理區域 -->
+                  <div class="file-section">
+                    <!-- 如果沒有檔案，顯示上傳按鈕 -->
+                    <div v-if="!hasFile(section)" class="file-upload">
+                      <input
+                        :id="`file-${section.id}`"
+                        type="file"
+                        accept="video/*"
+                        class="file-input"
+                        @change="onFileChange(section, $event.target.files[0])"
+                      />
+                      <label :for="`file-${section.id}`" class="file-label">
+                        <span class="material-symbols-outlined">upload</span>
+                        選擇影片
+                      </label>
+                    </div>
 
-                  <input
-                    type="file"
-                    accept="video/*"
-                    @change="onFileChange(section, $event.target.files[0])"
-                  />
-
-                  <span v-if="section.file" class="file-info">
-                    📎 {{ section.file.name }}
-                  </span>
-
+                    <!-- 如果有檔案，顯示檔案資訊 -->
+                    <div v-else class="file-info">
+                      <div class="file-details">
+                        <span class="file-name">{{ section.fileName }}</span>
+                        <span class="file-size">{{
+                          formatFileSize(section.fileSize)
+                        }}</span>
+                      </div>
+                      <button
+                        class="icon-btn danger small"
+                        title="移除檔案"
+                        @click.prevent="removeFile(section)"
+                      >
+                        <span class="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
+                  </div>
                   <button
                     class="icon-btn danger"
                     title="刪除小節"
-                    @click="removeSection(chapter, sectionIndex)"
+                    @click.prevent="removeSection(chapter, sectionIndex)"
                   >
-                    ✕
+                    <span class="material-symbols-outlined"> delete </span>
                   </button>
                 </div>
               </template>
@@ -243,19 +265,12 @@ const toggleSelectAll = () => {
     <!-- 空狀態 -->
     <div v-if="chapters.length === 0" class="empty-state">
       <h3>尚未建立章節</h3>
-      <p>點擊「新增章節」開始建立您的課程結構</p>
-      <button class="primary" @click="addChapter">＋ 新增第一個章節</button>
+      <p>點擊「新增章節」開始建立您的課程</p>
     </div>
   </div>
 </template>
 
-<style scoped>
-.draggable-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
+<style scoped lang="scss">
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -429,5 +444,79 @@ button.primary {
 
 button.primary:hover {
   background: #005a9e;
+}
+
+/* ✅ 檔案處理樣式 */
+.file-section {
+  min-width: 200px;
+}
+
+.file-upload {
+  position: relative;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.file-label:hover {
+  background: #e9ecef;
+  border-color: #007acc;
+  color: #007acc;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  min-width: 180px;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2e7d32;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  display: block;
+  font-size: 10px;
+  color: #4caf50;
+}
+
+.icon-btn.small {
+  padding: 2px 4px;
+  font-size: 12px;
+}
+
+.icon-btn.small .material-symbols-outlined {
+  font-size: 14px;
 }
 </style>
