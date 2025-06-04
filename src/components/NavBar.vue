@@ -80,13 +80,6 @@ function handleLogout() {
   router.push('/')
 }
 
-function closeOffcanvas() {
-  const offcanvasElement = document.getElementById('offcanvasMenu')
-  if (offcanvasElement) {
-    // 觸發 Bootstrap 的關閉事件
-    offcanvasElement.dispatchEvent(new Event('hide.bs.offcanvas'))
-  }
-}
 </script>
 
 <template>
