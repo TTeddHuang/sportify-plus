@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { user, initUser, clearUser } from '@/store/user'
+import { user, userRole, initUser, clearUser } from '@/store/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +13,64 @@ const avatar = computed(() => {
   return url && url !== 'null' ? url : null
 })
 
+// 角色判斷
+const isUser = computed(() => userRole.value === 'user')
+const isCoach = computed(() => userRole.value === 'coach')
+const isAdmin = computed(() => userRole.value === 'admin')
+
+// 根據角色權限顯示不同類別
+const navItems = computed(() => {
+  const baseItems = [
+    { to: '/courses', label: '課程分類', show: true },
+    { to: '/coaches', label: '教練列表', show: true }
+  ]
+
+  if (!isLogin.value) {
+    baseItems.push({ to: '/become-coach', label: '我要開課', show: true })
+  }
+
+  return baseItems.filter(item => item.show)
+})
+
+const centerLink = computed(() => {
+  if (isCoach.value) return '/coach/courses'
+  if (isUser.value) return '/user/courses'
+  if (isAdmin.value) return '/admin'
+  return ''
+})
+
+const centerLabel = computed(() => {
+  if (isCoach.value) return '教練後台'
+  if (isUser.value) return '學習中心'
+  if (isAdmin.value) return '管理後台'
+  return ''
+})
+
+const menuItems = computed(() => {
+  if (isCoach.value) {
+    return [
+      { to: '/coach/courses/new', label: '建立新課程', icon: 'bi-plus-circle' },
+      { to: '/coach/courses', label: '我的課程資料', icon: 'bi-collection' },
+      { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' },
+      { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
+    ]
+  } else if (isUser.value) {
+    return [
+      { to: '/user/courses', label: '我的課程' },
+      { to: '/user/subscriptions', label: '訂閱紀錄' },
+      { to: '/user/profile', label: '編輯個人資料' }
+    ]
+  } else if (isAdmin.value) {
+    return [
+      { to: '/admin/courses', label: '課程管理' },
+      { to: '/admin/users', label: '會員管理' },
+      { to: '/admin/coaches', label: '教練管理' },
+      { to: '/admin/reports', label: '報表管理' }
+    ]
+  }
+  return []
+})
+
 onMounted(async () => {
   await initUser()
 })
@@ -20,6 +78,14 @@ onMounted(async () => {
 function handleLogout() {
   clearUser()
   router.push('/')
+}
+
+function closeOffcanvas() {
+  const offcanvasElement = document.getElementById('offcanvasMenu')
+  if (offcanvasElement) {
+    // 觸發 Bootstrap 的關閉事件
+    offcanvasElement.dispatchEvent(new Event('hide.bs.offcanvas'))
+  }
 }
 </script>
 
@@ -36,37 +102,27 @@ function handleLogout() {
 
       <nav class="d-none d-lg-block ms-auto">
         <ul class="navbar-nav d-flex flex-row mb-0 align-items-center">
-          <li class="nav-item me-3">
+          <li v-for="item in navItems" :key="item.to" class="nav-item me-3">
             <router-link
-              to="/courses"
+              :to="item.to"
               class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/courses') }"
-              >課程分類</router-link
+              :class="{ active: route.path.startsWith(item.to) }"
+              >{{ item.label }}</router-link
             >
           </li>
-          <li class="nav-item me-3">
+          <li v-if="isLogin" class="nav-item me-3">
             <router-link
-              to="/coaches"
+              :to="centerLink"
               class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/coaches') }"
-              >教練列表</router-link
+              :class="{
+                active:
+                  route.path.startsWith('/user') ||
+                  route.path.startsWith('/coach') ||
+                  route.path.startsWith('/admin')
+              }"
             >
-          </li>
-          <li v-if="!isLogin" class="nav-item me-3">
-            <router-link
-              to="/become-coach"
-              class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/create-course') }"
-              >我要開課</router-link
-            >
-          </li>
-          <li class="nav-item me-3">
-            <router-link
-              to="/users/courses"
-              class="nav-link text-primary-000"
-              :class="{ active: route.path.startsWith('/user/courses') }"
-              >學習中心</router-link
-            >
+              {{ centerLabel }}
+            </router-link>
           </li>
 
           <li v-if="isLogin" class="nav-item dropdown">
@@ -98,33 +154,22 @@ function handleLogout() {
             </a>
 
             <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <router-link to="/user/subscriptions" class="dropdown-item"
-                  >訂閱紀錄</router-link
-                >
+              <li v-for="item in menuItems" :key="item.to">
+                <router-link :to="item.to" class="dropdown-item">
+                  {{ item.label }}
+                </router-link>
               </li>
               <li>
-                <router-link to="/user/courses" class="dropdown-item"
-                  >我的課程</router-link
-                >
-              </li>
-              <li>
-                <router-link to="/user/profile" class="dropdown-item"
-                  >編輯個人資料</router-link
-                >
-              </li>
-              <li>
-                <a class="dropdown-item" href="#" @click.prevent="handleLogout"
-                  >登出</a
-                >
+                <a class="dropdown-item" href="#" @click.prevent="handleLogout">
+                  登出
+                </a>
               </li>
             </ul>
           </li>
-
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-000"
-              >登入/註冊</router-link
-            >
+            <router-link to="/login" class="nav-link text-primary-000">
+              登入/註冊
+            </router-link>
           </li>
         </ul>
       </nav>
@@ -167,21 +212,15 @@ function handleLogout() {
           </a>
 
           <ul class="dropdown-menu dropdown-menu-end mt-2">
-            <li>
-              <router-link to="/" class="dropdown-item">訂閱紀錄</router-link>
+            <li v-for="item in menuItems" :key="item.to">
+              <router-link :to="item.to" class="dropdown-item">
+                {{ item.label }}
+              </router-link>
             </li>
             <li>
-              <router-link to="/" class="dropdown-item">我的課程</router-link>
-            </li>
-            <li>
-              <router-link to="/profile" class="dropdown-item"
-                >編輯個人資料</router-link
-              >
-            </li>
-            <li>
-              <a class="dropdown-item" href="#" @click.prevent="handleLogout"
-                >登出</a
-              >
+              <a class="dropdown-item" href="#" @click.prevent="handleLogout">
+                登出
+              </a>
             </li>
           </ul>
         </div>
@@ -193,34 +232,25 @@ function handleLogout() {
       class="offcanvas offcanvas-end d-lg-none"
       tabindex="-1"
       aria-labelledby="offcanvasMenuLabel"
+      data-bs-dismiss="offcanvas"
     >
       <div class="offcanvas-header"></div>
       <div class="offcanvas-body">
         <ul class="navbar-nav">
-          <li class="nav-item">
-            <router-link to="/courses" class="nav-link text-primary-000"
-              >課程分類</router-link
-            >
+          <li v-for="item in navItems" :key="item.to" class="nav-item">
+            <router-link :to="item.to" class="nav-link text-primary-000">
+              {{ item.label }}
+            </router-link>
           </li>
-          <li class="nav-item">
-            <router-link to="/coaches" class="nav-link text-primary-000"
-              >教練列表</router-link
-            >
+          <li v-if="isLogin" class="nav-item">
+            <router-link :to="centerLink" class="nav-link text-primary-000">
+              {{ centerLabel }}
+            </router-link>
           </li>
-          <li class="nav-item">
-            <router-link to="/create-course" class="nav-link text-primary-000"
-              >我要開課</router-link
-            >
-          </li>
-          <li class="nav-item">
-            <router-link to="/learning-center" class="nav-link text-primary-000"
-              >學習中心</router-link
-            >
-          </li>
-          <li class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-000"
-              >登入/註冊</router-link
-            >
+          <li v-else class="nav-item">
+            <router-link to="/login" class="nav-link text-primary-000">
+              登入/註冊
+            </router-link>
           </li>
         </ul>
       </div>
