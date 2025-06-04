@@ -464,7 +464,7 @@
                       <!-- 按下後切換到編輯模式 -->
                       <button
                         type="button"
-                        class="btn btn-primary"
+                        class="btn btn-primary text-grey-700"
                         @click="enableEdit"
                       >
                         編輯
@@ -472,7 +472,7 @@
                       <!-- 直接關閉 Modal -->
                       <button
                         type="button"
-                        class="btn btn-secondary ms-3"
+                        class="btn btn-grey-400 ms-3 text-grey-700"
                         @click="closeDetailModal"
                       >
                         確定
@@ -613,9 +613,12 @@ async function checkAdmin() {
       router.replace({ path: '/' })
       return false
     }
-    const res = await axios.get('https://sportify.zeabur.app/api/v1/auth/me', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    const res = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
     if (res.data?.status && res.data.data?.role === 'ADMIN') {
       // 確認是 admin，才允許繼續
       return true
@@ -716,7 +719,7 @@ async function fetchCourses() {
     const token = localStorage.getItem('token')
     // 不帶任何參數，因為後端不接受 page/limit
     const res = await axios.get(
-      'https://sportify.zeabur.app/api/v1/admin/courses',
+      'https://sportify-backend-1wt9.onrender.com/api/v1/admin/courses',
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -768,7 +771,7 @@ async function approveReview() {
     const courseId = selectedDetail.value.id
     const token = localStorage.getItem('token')
     await axios.patch(
-      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/admin/courses/${courseId}/review`,
       {
         status: 'approved',
         reviewComment: selectedDetail.value.reviewComment || ''
@@ -798,7 +801,7 @@ async function rejectReview() {
     const courseId = selectedDetail.value.id
     const token = localStorage.getItem('token')
     await axios.patch(
-      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/admin/courses/${courseId}/review`,
       {
         status: 'rejected',
         reviewComment: selectedDetail.value.reviewComment || ''
@@ -887,7 +890,7 @@ async function fetchRatings(courseId, page = 1) {
   try {
     const token = localStorage.getItem('token')
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/ratings`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/admin/courses/${courseId}/ratings`,
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page, limit: userRatings.value.pagination.limit }
@@ -939,7 +942,7 @@ async function openDetailModal(courseId) {
     const token = localStorage.getItem('token')
     // 1) 先呼叫 /details 拿 description、chapters、coach 等
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/details`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.data.status) {
@@ -1045,7 +1048,7 @@ async function confirmDelete() {
     const token = localStorage.getItem('token')
     // 這裡的 selectedCourseId 必須已經在「開啟評價 Modal」時設定過
     await axios.delete(
-      `https://sportify.zeabur.app/api/v1/admin/courses/${selectedCourseId.value}/ratings/${pendingDeleteRatingId.value}`,
+      `https://sportify-backend-1wt9.onrender.com/api/v1/admin/courses/${selectedCourseId.value}/ratings/${pendingDeleteRatingId.value}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     // 刪除成功後，重新撈當前頁的評價

@@ -220,9 +220,12 @@ async function verifyLogin(token) {
       data: {
         data: { id }
       }
-    } = await axios.get('https://sportify.zeabur.app/api/v1/auth/me', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    } = await axios.get(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
     return id
   } catch (error) {
     console.error(error)
@@ -233,9 +236,12 @@ async function getUserData(token, userId) {
   try {
     const {
       data: { data }
-    } = await axios.get(`https://sportify.zeabur.app/api/v1/users/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    } = await axios.get(
+      `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
     return data
   } catch (error) {
     console.error(error)
@@ -244,7 +250,7 @@ async function getUserData(token, userId) {
 // 修改使用者資料API
 async function editUserData(token, userId) {
   return await axios.patch(
-    `https://sportify.zeabur.app/api/v1/users/${userId}`,
+    `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
     editData.value,
     {
       headers: { Authorization: `Bearer ${token}` }

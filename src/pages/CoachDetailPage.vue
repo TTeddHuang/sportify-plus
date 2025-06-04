@@ -46,7 +46,7 @@ onMounted(async () => {
   const {
     data: { data }
   } = await axios.get(
-    'https://sportify.zeabur.app/api/v1/courses/coaches/2bca7644-3899-4e06-89a4-c35f737284d0'
+    'https://sportify-backend-1wt9.onrender.com/api/v1/courses/coaches/2bca7644-3899-4e06-89a4-c35f737284d0'
   )
   coachInfo.value = data
 })

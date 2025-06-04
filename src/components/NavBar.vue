@@ -6,12 +6,18 @@ import { user, initUser, clearUser } from '@/store/user'
 const route = useRoute()
 const router = useRouter()
 
+// 判斷是否已經登入
 const isLogin = computed(() => !!user.value)
+
+// 顯示使用者名稱、頭像
 const userName = computed(() => user.value?.displayName || '使用者')
 const avatar = computed(() => {
   const url = user.value?.profile_image_url
   return url && url !== 'null' ? url : null
 })
+
+// 這個屬性用來判斷是不是管理員
+const isAdmin = computed(() => user.value?.role === 'ADMIN')
 
 onMounted(async () => {
   await initUser()
@@ -60,12 +66,23 @@ function handleLogout() {
               >我要開課</router-link
             >
           </li>
-          <li class="nav-item me-3">
+
+          <!-- 如果不是 Admin，就顯示「學習中心」 -->
+          <li v-if="!isAdmin" class="nav-item me-3">
             <router-link
               to="/user/courses"
               class="nav-link text-primary-000"
               :class="{ active: route.path.startsWith('/user/courses') }"
               >學習中心</router-link
+            >
+          </li>
+          <!-- 如果是 Admin，就顯示「管理後台」連到 /admin/courses -->
+          <li v-else class="nav-item me-3">
+            <router-link
+              to="/admin/courses"
+              class="nav-link text-primary-000"
+              :class="{ active: route.path.startsWith('/admin') }"
+              >管理後台</router-link
             >
           </li>
 
@@ -207,14 +224,23 @@ function handleLogout() {
               >教練列表</router-link
             >
           </li>
-          <li class="nav-item">
-            <router-link to="/create-course" class="nav-link text-primary-000"
+          <li v-if="!isLogin" class="nav-item">
+            <router-link
+              to="/become-coach"
+              class="nav-link text-primary-000"
+              :class="{ active: route.path.startsWith('/create-course') }"
               >我要開課</router-link
             >
           </li>
-          <li class="nav-item">
-            <router-link to="/learning-center" class="nav-link text-primary-000"
+          <!-- 手機版也要判斷是否 Admin -->
+          <li v-if="!isAdmin" class="nav-item">
+            <router-link to="/user/courses" class="nav-link text-primary-000"
               >學習中心</router-link
+            >
+          </li>
+          <li v-else class="nav-item">
+            <router-link to="/admin/courses" class="nav-link text-primary-000"
+              >管理後台</router-link
             >
           </li>
           <li class="nav-item">

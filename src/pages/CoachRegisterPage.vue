@@ -127,12 +127,15 @@ async function handleRegister() {
     return
 
   try {
-    await axios.post('https://sportify.zeabur.app/api/v1/auth/coaches/signup', {
-      nickname: nickname.value,
-      email: email.value,
-      password: password.value,
-      password_check: checkPassword.value
-    })
+    await axios.post(
+      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/coaches/signup',
+      {
+        nickname: nickname.value,
+        email: email.value,
+        password: password.value,
+        password_check: checkPassword.value
+      }
+    )
 
     alert('註冊成功')
     router.push('/login')

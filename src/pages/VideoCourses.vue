@@ -524,7 +524,7 @@ onMounted(async () => {
   try {
     const courseId = route.params.courseId
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`
+      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/details`
     )
     courseDetail.value = res.data.data
 
@@ -533,7 +533,7 @@ onMounted(async () => {
 
     // 取得評價資料
     const ratingsRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
+      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/ratings`
     )
     userRatings.value = ratingsRes.data.data
   } catch (err) {
@@ -580,7 +580,7 @@ function changePage(page) {
 async function fetchRatings(courseId) {
   try {
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
+      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/ratings`
     )
     userRatings.value = res.data.data
   } catch (error) {

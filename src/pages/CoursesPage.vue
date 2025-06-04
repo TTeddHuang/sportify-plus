@@ -168,7 +168,7 @@ const currentSort = ref(route.query.sort_by || 'popular')
 
 async function fetchCourses() {
   const { data } = await axios.get(
-    `https://sportify.zeabur.app/api/v1/courses`,
+    `https://sportify-backend-1wt9.onrender.com/api/v1/courses`,
     {
       params: {
         page: currentPage.value,
@@ -184,7 +184,7 @@ async function fetchCourses() {
 
 async function fetchSkill() {
   const { data } = await axios.get(
-    `https://sportify.zeabur.app/api/v1/courses/course-type`
+    `https://sportify-backend-1wt9.onrender.com/api/v1/courses/course-type`
   )
   skills.value = data.data
 }
