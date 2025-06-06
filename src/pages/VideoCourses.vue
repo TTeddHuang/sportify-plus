@@ -6,67 +6,66 @@
         <div class="side-nav d-lg-block d-none">
           <div class="px-3 py-5">
             <h3 class="fs-6 px-3 fw-bold text-center">
-              皮拉提斯-30天<br />
-              炸裂核心肌群
+              {{ courseName }}
             </h3>
             <hr class="divider my-5" />
             <ul class="list-group list-group-flush">
               <!-- 每個 li 代表一天的 Lesson -->
               <li
                 v-for="(lesson, idx) in lessons"
-                :key="lesson.id"
+                :key="idx"
+                :class="{
+                  finished: lesson.isFinished,
+                  watching: lesson.isCurrentWatching
+                }"
                 class="list-group-item d-flex justify-content-between align-items-center rounded-1"
                 style="padding: 0.75rem 1rem"
+                @click="selectLesson(lesson)"
               >
                 <div class="d-flex flex-column text-center">
                   <p class="fs-9 mb-1">
-                    Day {{ lesson.day }}：{{ lesson.title }}
+                    {{ lesson.name }}
                   </p>
                   <div class="d-flex align-items-center justify-content-center">
-                    <p class="text-secondary mb-0 fs-9">
-                      {{ lesson.duration }} 分鐘
-                    </p>
                     <i
-                      v-if="lesson.completed"
+                      v-if="lesson.isFinished"
                       class="bi bi-check-circle-fill text-success fs-5 ms-2"
                     ></i>
                     <i v-else class="bi bi-circle text-secondary fs-5 ms-2"></i>
+                    <p class="text-secondary mb-0 fs-9 ms-1">
+                      {{
+                        lesson.length !== '未提供'
+                          ? lesson.length + ' 分鐘'
+                          : '未提供'
+                      }}
+                      分鐘
+                    </p>
                   </div>
                 </div>
                 <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
               </li>
             </ul>
-
-            <!-- <ul class="list-group list-group-flush">
-            <li class="list-group-item active">
-              <router-link to="/user/courses" class="nav-link">
-                我的課程
-              </router-link>
-            </li>
-            <li class="list-group-item">
-              <router-link to="/user/subscriptions" class="nav-link">
-                訂閱紀錄
-              </router-link>
-            </li>
-
-            <li class="list-group-item">
-              <router-link to="/user/profile" class="nav-link">
-                編輯個人資料
-              </router-link>
-            </li>
-          </ul> -->
           </div>
         </div>
         <!-- 右側主區塊：你的專屬教練群 -->
         <div class="p-lg-8 w-100" style="max-width: 1056px">
-          <h3 class="mb-lg-8">Day 4：死蟲式入門：找回深層穩定力</h3>
+          <h3 class="mb-lg-8">{{ currentLesson.name }}</h3>
           <!-- 播放影片 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
+              <!-- 假設後端有提供一個 video_url，這裡就用 currentLesson.video_url -->
+              <!-- 下面只是示意，實際要看你的資料有哪些欄位 -->
               <img
+                v-if="!currentLesson.video_url"
                 src="@/assets/images/video1.png"
                 class="rounded-2 video-cover"
               />
+              <video
+                v-else
+                :src="currentLesson.video_url"
+                class="rounded-2"
+                controls
+              ></video>
               <div class="play-icon position-absolute">
                 <i class="bi bi-play-circle-fill"></i>
               </div>
@@ -463,43 +462,18 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
-const lessons = ref([
-  {
-    id: 1,
-    day: 1,
-    title: '核心初體驗：學會腹式呼吸',
-    duration: 15,
-    completed: true
-  },
-  {
-    id: 2,
-    day: 2,
-    title: '骨盆中立初探：建立正確對齊',
-    duration: 13,
-    completed: true
-  },
-  {
-    id: 3,
-    day: 3,
-    title: '死蟲式入門：找回深層穩定力',
-    duration: 21,
-    completed: true
-  },
-  {
-    id: 4,
-    day: 4,
-    title: '死蟲式入門：找回深層穩定力',
-    duration: 21,
-    completed: false
-  },
-  {
-    id: 5,
-    day: 5,
-    title: '死蟲式入門：找回深層穩定力',
-    duration: 21,
-    completed: false
-  }
-])
+// 1. 先準備要放 sidebar 資料的 ref
+const courseName = ref('') // ← 這裡用來存 sidebar 回傳的 courseName
+const lessons = ref([]) // ← 這裡用來存 sidebar 回傳的 chapter 陣列
+
+// currentLesson 存「當下被選到的章節物件」
+const currentLesson = ref({
+  // 先放個預設值，避免 template 一開始就錯
+  name: '',
+  length: '',
+  isFinished: false,
+  isCurrentWatching: false
+})
 
 const route = useRoute()
 const courseId = route.params.courseId
@@ -520,26 +494,50 @@ const userRatings = ref({
 })
 
 // API 資料載入後再初始化 openIndexes
+
 onMounted(async () => {
   try {
-    const courseId = route.params.courseId
-    const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/details`
+    const token = localStorage.getItem('token') // ← 確保你已經登入並且 token 在 localStorage
+    const sidebarRes = await axios.get(
+      `https://sportify.zeabur.app/api/v1/users/courses/${courseId}/sidebar`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}` // ← 把 token 加到 Authorization header
+        }
+      }
     )
-    courseDetail.value = res.data.data
+    lessons.value = sidebarRes.data.data.chapter
+    // 初始化 currentLesson：優先找出 isCurrentWatching 為 true 的
+    const watching = lessons.value.find(item => item.isCurrentWatching)
+    if (watching) {
+      currentLesson.value = watching
+    } else if (lessons.value.length > 0) {
+      // 如果沒有人標註 isCurrentWatching，就用第一筆當預設
+      currentLesson.value = lessons.value[0]
+    }
 
-    // 初始化章節展開狀態
+    courseName.value = sidebarRes.data.data.courseName // ← 塞回傳的 courseName
+    lessons.value = sidebarRes.data.data.chapter // ← 塞回傳的章節陣列
+
+    const detailRes = await axios.get(
+      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`
+    )
+    courseDetail.value = detailRes.data.data
+
     openIndexes.value = courseDetail.value.chapters.map(() => false)
 
-    // 取得評價資料
     const ratingsRes = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/ratings`
+      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
     )
     userRatings.value = ratingsRes.data.data
   } catch (err) {
-    console.error('載入課程詳細或評價資料失敗', err)
+    console.error('載入資料失敗', err)
   }
 })
+
+function selectLesson(lesson) {
+  currentLesson.value = lesson
+}
 
 function toggle(idx) {
   openIndexes.value[idx] = !openIndexes.value[idx]
@@ -580,7 +578,7 @@ function changePage(page) {
 async function fetchRatings(courseId) {
   try {
     const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/courses/${courseId}/ratings`
+      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
     )
     userRatings.value = res.data.data
   } catch (error) {

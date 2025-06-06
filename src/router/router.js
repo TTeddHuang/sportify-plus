@@ -21,6 +21,7 @@ import CoachEarnings from '@/pages/CoachEarnings.vue'
 import VideoCourses from '@/pages/VideoCourses.vue'
 import AdminCourses from '@/pages/AdminCourses.vue'
 import AdminCoaches from '@/pages/AdminCoaches.vue'
+import AdminUsers from '@/pages/AdminUsers.vue'
 
 const routes = [
   { path: '/', component: HomePage },
@@ -91,6 +92,11 @@ const routes = [
   {
     path: '/admin/coaches',
     component: AdminCoaches,
+    meta: { hideFooter: true }
+  },
+  {
+    path: '/admin/users',
+    component: AdminUsers,
     meta: { hideFooter: true }
   }
 ]

@@ -130,7 +130,7 @@ const currentType = ref(route.query.skillId || '')
 
 async function fetchCoaches() {
   const { data } = await axios.get(
-    `https://sportify-backend-1wt9.onrender.com/api/v1/courses/coaches`,
+    `https://sportify.zeabur.app/api/v1/courses/coaches`,
     {
       params: {
         page: currentPage.value,
@@ -144,7 +144,7 @@ async function fetchCoaches() {
 
 async function fetchSkill() {
   const { data } = await axios.get(
-    `https://sportify-backend-1wt9.onrender.com/api/v1/courses/course-type`
+    `https://sportify.zeabur.app/api/v1/courses/course-type`
   )
   skills.value = data.data
 }

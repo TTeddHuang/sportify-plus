@@ -173,7 +173,7 @@ onMounted(async () => {
     if (!token) return
 
     const userRes = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
+      'https://sportify.zeabur.app/api/v1/auth/me',
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -192,7 +192,7 @@ onMounted(async () => {
   try {
     // 取得運動種類
     const sportsRes = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/show-sports-type'
+      'https://sportify.zeabur.app/api/v1/users/show-sports-type'
     )
     const { indoor, outdoor } = sportsRes.data.data
 
@@ -215,7 +215,7 @@ onMounted(async () => {
 
     //  取得方案資料
     const planRes = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/plan-info'
+      'https://sportify.zeabur.app/api/v1/users/plan-info'
     )
     const planData = planRes.data.data
 
@@ -327,7 +327,7 @@ async function submitTrial() {
     }
 
     await axios.post(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
+      'https://sportify.zeabur.app/api/v1/users/subscription',
       {
         subscription_name: 'Eagerness方案-7天試用',
         course_type: []
@@ -356,15 +356,11 @@ async function submit() {
   try {
     const token = localStorage.getItem('token')
     await axios
-      .post(
-        'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscription',
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+      .post('https://sportify.zeabur.app/api/v1/users/subscription', payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      )
+      })
       .then(res => {
         const data = res.data.data.subscription
         const payment = {

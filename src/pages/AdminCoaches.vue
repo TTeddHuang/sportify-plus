@@ -20,7 +20,7 @@
               class="list-group-item"
               :class="{ active: route.path === '/admin/subscriptions' }"
             >
-              <router-link to="/admin/subscriptions" class="nav-link">
+              <router-link to="/admin/users" class="nav-link">
                 會員管理
               </router-link>
             </li>
@@ -240,7 +240,7 @@
               <div class="modal-footer justify-content-center border-0">
                 <button
                   type="button"
-                  class="btn btn-secondary"
+                  class="btn btn-primary"
                   data-bs-dismiss="modal"
                 >
                   關閉
@@ -273,12 +273,9 @@ async function checkAdmin() {
       router.replace({ path: '/' })
       return false
     }
-    const res = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    )
+    const res = await axios.get('https://sportify.zeabur.app/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     if (res.data?.status && res.data.data?.role === 'ADMIN') {
       return true
     } else {
@@ -333,7 +330,7 @@ async function fetchCoachesPage(page = 1) {
   try {
     const token = localStorage.getItem('token')
     const res = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/admin/coaches',
+      'https://sportify.zeabur.app/api/v1/admin/coaches',
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page } // 如果後端不接受 limit，就只傳 page
