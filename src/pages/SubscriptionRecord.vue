@@ -173,7 +173,7 @@ async function fetchSubscriptions(page = 1) {
 
   try {
     const res = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscriptions',
+      'https://sportify.zeabur.app/api/v1/users/subscriptions',
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page }

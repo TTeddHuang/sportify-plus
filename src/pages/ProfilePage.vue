@@ -33,11 +33,27 @@
     <div class="user-profile col-9">
       <h2 class="fs-4">個人資料</h2>
       <div class="profile-group row">
-        <div class="col-6">
+        <div class="col-6 text-center">
           <div
             class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
           >
             <img :src="userAvatar" alt="個人照片" class="object-fit-cover" />
+          </div>
+          <div v-if="inputState === 'inEdit'" class="mt-3">
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="handleFileSelect"
+            />
+            <button
+              class="btn btn-primary-600"
+              :disabled="isUploading"
+              @click="triggerFileSelect"
+            >
+              {{ isUploading ? '上傳中...' : '選擇照片' }}
+            </button>
           </div>
         </div>
         <div class="col-6">
@@ -117,18 +133,19 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { user } from '@/store/user'
 
-const router = useRouter()
 const route = useRoute()
-const userToken = ref(null)
+const userToken = computed(() => user.value?.token)
 const userId = ref(null)
+const fileInput = ref(null)
+const isUploading = ref(false)
 
 const userName = ref('使用者名稱')
 const userEmail = ref('使用者信箱')
-const userAvatar = ref(
-  'https://ankemedia.com/wp-content/uploads/2021/12/%E6%88%91%E6%98%AF%E9%81%BA%E7%85%A7%E6%94%9D%E5%BD%B1%E5%B8%AB1-1.jpg'
-)
+const userAvatar = ref('')
+const avatarPublicId = ref('')
 const userOldPwd = ref('')
 const userNewPwd = ref('')
 const userCheckPwd = ref('')
@@ -177,6 +194,10 @@ watch([userOldPwd, userNewPwd, userCheckPwd], () => {
 
 // 送 API 的欄位驗證，通過才放入
 const validInput = () => {
+  if (avatarPublicId.value) {
+    editData.value.profile_image_url = userAvatar.value
+    editData.value.profile_image_public_id = avatarPublicId.value
+  }
   // 名稱沒輸入跳出
   // 名稱有更改 → 加入 editData
   // 名稱重複 → 不會被加入 editData
@@ -203,14 +224,11 @@ const validInput = () => {
 }
 
 onMounted(async () => {
-  userToken.value = localStorage.getItem('token')
-  if (!userToken.value) {
-    router.push('/login')
-  }
   userId.value = await verifyLogin(userToken.value)
   const userData = await getUserData(userToken.value, userId.value)
   userName.value = userData.name
   userEmail.value = userData.email
+  userAvatar.value = userData.profile_image_url
 })
 
 // 驗證登入API
@@ -220,12 +238,9 @@ async function verifyLogin(token) {
       data: {
         data: { id }
       }
-    } = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/auth/me',
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    )
+    } = await axios.get('https://sportify.zeabur.app/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     return id
   } catch (error) {
     console.error(error)
@@ -236,21 +251,86 @@ async function getUserData(token, userId) {
   try {
     const {
       data: { data }
-    } = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    )
+    } = await axios.get(`https://sportify.zeabur.app/api/v1/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     return data
   } catch (error) {
     console.error(error)
   }
 }
+
+// 觸發檔案選擇
+const triggerFileSelect = () => {
+  fileInput.value?.click()
+}
+
+// 處理檔案選擇
+const handleFileSelect = async event => {
+  const file = event.target.files[0]
+  if (!file) return
+  // 檔案類型驗證
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
+  if (!allowedTypes.includes(file.type)) {
+    alert('僅支援圖片格式(JPG, JPEG, PNG)')
+    return
+  }
+
+  // 檔案大小驗證 (2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    alert('檔案大小不能超過 2MB')
+    return
+  }
+
+  try {
+    await uploadAvatarFile(file)
+  } catch (error) {
+    console.error('上傳失敗:', error)
+    alert('照片上傳失敗，請稍後再試')
+  }
+}
+
+// 上傳頭像檔案
+const uploadAvatarFile = async file => {
+  isUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await axios.post(
+      'https://sportify.zeabur.app/api/v1/users/upload-avatar',
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${userToken.value}`
+        }
+      }
+    )
+    // 更新頭像 URL
+    if (response.data.data.url) {
+      userAvatar.value = response.data.data.url
+      avatarPublicId.value = response.data.data.publicId
+      alert('照片上傳成功！')
+    } else {
+      throw new Error('上傳回應格式錯誤')
+    }
+  } catch (error) {
+    console.error('上傳照片失敗:', error)
+    throw error
+  } finally {
+    isUploading.value = false
+    // 清空檔案輸入框
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
+}
+
 // 修改使用者資料API
 async function editUserData(token, userId) {
   return await axios.patch(
-    `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}`,
+    `https://sportify.zeabur.app/api/v1/users/${userId}`,
     editData.value,
     {
       headers: { Authorization: `Bearer ${token}` }
@@ -260,7 +340,11 @@ async function editUserData(token, userId) {
 
 // 複製資料, 切換畫面
 const goEdit = () => {
-  backupData.value = { name: userName.value, email: userEmail.value }
+  backupData.value = {
+    name: userName.value,
+    email: userEmail.value,
+    imageURL: userAvatar.value
+  }
   inputState.value = 'inEdit'
 }
 
@@ -269,6 +353,8 @@ const goEdit = () => {
 const cancelEdit = () => {
   userName.value = backupData.value.name
   userEmail.value = backupData.value.email
+  userAvatar.value = backupData.value.imageURL
+  avatarPublicId.value = ''
   userOldPwd.value = ''
   userNewPwd.value = ''
   userCheckPwd.value = ''
@@ -287,6 +373,9 @@ const confirmEdit = async () => {
     if (status === 200) {
       alert('更新成功')
       userName.value = data.data.name || backupData.value.name
+      userAvatar.value =
+        data.data.profile_image_url || backupData.value.imageURL
+      avatarPublicId.value = ''
       backupData.value = {}
       userOldPwd.value = ''
       userNewPwd.value = ''
@@ -297,7 +386,10 @@ const confirmEdit = async () => {
     // 修改失敗
     // 保持現狀，使用提示視窗(先用原生的，後續再改為Bootstrap Modal或Sweet Alert套件)
     alert('請重新確認欄位')
+    console.log(err)
     userName.value = backupData.value.name
+    userAvatar.value = backupData.value.imageURL
+    avatarPublicId.value = ''
     userOldPwd.value = ''
     userNewPwd.value = ''
     userCheckPwd.value = ''

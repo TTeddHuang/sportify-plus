@@ -326,7 +326,7 @@ const toggleFavorite = async course => {
     if (course.isFavorited) {
       // 取消收藏
       await axios.delete(
-        `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/favorites/${courseId}`,
+        `https://sportify.zeabur.app/api/v1/users/${userId}/favorites/${courseId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -337,7 +337,7 @@ const toggleFavorite = async course => {
     } else {
       // 加入收藏
       await axios.post(
-        `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/favorites/${courseId}`,
+        `https://sportify.zeabur.app/api/v1/users/${userId}/favorites/${courseId}`,
         {},
         {
           headers: {
@@ -369,7 +369,7 @@ const checkOverflow = () => {
 const fetchUserCourses = async token => {
   try {
     const res = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/courses',
+      'https://sportify.zeabur.app/api/v1/users/courses',
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -423,8 +423,8 @@ const submitRating = async () => {
   const userId = userData.id
   const courseId = selectedCourse.value.course_id || selectedCourse.value.id
 
-  const postUrl = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/ratings/${courseId}`
-  const patchUrl = `https://sportify-backend-1wt9.onrender.com/api/v1/users/${userId}/rating/${courseId}`
+  const postUrl = `https://sportify.zeabur.app/api/v1/users/${userId}/ratings/${courseId}`
+  const patchUrl = `https://sportify.zeabur.app/api/v1/users/${userId}/rating/${courseId}`
 
   const payload = {
     score: rating.value,
@@ -514,7 +514,7 @@ const openRatingModal = async course => {
 
   try {
     const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/users/courses/${courseId}/ratings`,
+      `https://sportify.zeabur.app/api/v1/users/courses/${courseId}/ratings`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -564,7 +564,7 @@ const fetchUserRatingByCourseId = async course => {
 
   try {
     const res = await axios.get(
-      `https://sportify-backend-1wt9.onrender.com/api/v1/users/courses/${courseId}/ratings`,
+      `https://sportify.zeabur.app/api/v1/users/courses/${courseId}/ratings`,
       {
         headers: {
           Authorization: `Bearer ${token}`

@@ -84,10 +84,10 @@ const previewURL = ref('')
 
 function selectImg(e) {
   const file = e.target.files[0]
-  const allowed = ['png', 'jpeg', 'webp']
+  const allowed = ['png', 'jpeg']
   const type = file.type.split('/').pop()
   if (!allowed.includes(type)) {
-    return alert('僅支援圖片格式(png, jpg, jpeg, webp)')
+    return alert('僅支援圖片格式(png, jpg, jpeg)')
   }
 
   if (file.size > 5 * 1024 * 1024) {
