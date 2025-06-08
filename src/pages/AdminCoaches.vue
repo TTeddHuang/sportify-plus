@@ -303,7 +303,7 @@
                     {{ selectedCoach?.about_me }}
                   </p>
                 </div>
-                <p class="mb-3 fw-bold">學經歷與得獎經歷：</p class="mb-3 fw-bold">
+                <p class="mb-3 fw-bold">學經歷與得獎經歷：</p>
                 <div
                   class="border rounded p-3 mb-3"
                   style="background-color: #f8f9fa"
@@ -553,9 +553,6 @@ async function fetchCoachDetail(coachId) {
     // 注意：把 coachDetails 塞到 selectedCoach
     selectedCoach.value = res.data.data.coachDetails
     // 顯示 Modal
-    const modalEl = document.getElementById('detailModal')
-    const bsModal = new Modal(modalEl)
-    bsModal.show()
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
   }
