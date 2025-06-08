@@ -213,28 +213,127 @@
                 ></button>
               </div>
               <div class="modal-body">
+                <div class="row">
+                  <div class="col-lg-8 d-flex flex-column">
+                    <div class="d-flex">
+                      <div
+                        class="mb-3 d-flex flex-column gap-3"
+                        style="width: 60%"
+                      >
+                        <div class="me-4">
+                          <strong>教練編號：</strong>
+                          {{ selectedCoach?.id }}
+                        </div>
+                        <div class="me-4">
+                          <strong>教練名稱：</strong>
+                          {{ selectedCoach?.nickname }}
+                        </div>
+                        <div class="me-4">
+                          <strong>Email：</strong
+                          ><span>{{ selectedCoach?.email }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>手機：</strong
+                          ><span>{{ selectedCoach?.phone_number }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>身分證字號：</strong
+                          ><span>{{ selectedCoach?.id_number }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>專長類別：</strong
+                          ><span
+                            v-for="s in selectedCoach?.skills || []"
+                            :key="s.name"
+                            class="me-1"
+                          >
+                            {{ s.name }}
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="mb-3 d-flex flex-column gap-3"
+                        style="width: 40%"
+                      >
+                        <div class="me-4">
+                          <strong>註冊時間：</strong
+                          ><span> {{ selectedCoach?.created_at }}</span>
+                        </div>
+
+                        <div class="me-4">
+                          <strong>本名：</strong
+                          ><span>{{ selectedCoach?.realname }}</span>
+                        </div>
+
+                        <div class="me-4">
+                          <strong>出生日期：</strong
+                          ><span>{{ selectedCoach?.birthday }}</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>教學經驗：</strong
+                          ><span>{{ selectedCoach?.experience_years }} 年</span>
+                        </div>
+                        <div class="me-4">
+                          <strong>稱號：</strong
+                          ><span>{{ selectedCoach?.job_title }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 text-center mt-5">
+                    <img
+                      :src="selectedCoach?.profile_image_url"
+                      alt="教練大頭照"
+                      class="rounded-circle mb-3"
+                      style="width: 240px; height: 240px; object-fit: cover"
+                    />
+                  </div>
+                </div>
                 <!-- 這裡可以自由擺放要顯示的欄位，比如 coach_about_me、coach_title... -->
                 <p>
-                  <strong>教練名稱：</strong> {{ selectedCoach?.coach_name }}
+                  <strong>專長介紹：</strong>
+                  {{ selectedCoach?.skill_description }}
+                </p>
+                <p class="mb-3 fw-bold">自我介紹：</p>
+                <div
+                  class="border rounded p-3 mb-3"
+                  style="background-color: #f8f9fa"
+                >
+                  <p>
+                    {{ selectedCoach?.about_me }}
+                  </p>
+                </div>
+                <p class="mb-3 fw-bold">學經歷與得獎經歷：</p class="mb-3 fw-bold">
+                <div
+                  class="border rounded p-3 mb-3"
+                  style="background-color: #f8f9fa"
+                >
+                  <p>
+                    {{ selectedCoach?.experience }}
+                  </p>
+                </div>
+
+                <p>
+                  <strong>感興趣的事物：</strong>
+                  {{ selectedCoach?.hobby }}
                 </p>
                 <p>
-                  <strong>教練簡介：</strong>
-                  {{ selectedCoach?.coach_about_me }}
+                  <strong>最喜歡的一段話：</strong>
+                  {{ selectedCoach?.favorite_words }}
                 </p>
                 <p>
-                  <strong>擅長技能：</strong>
-                  <span
-                    v-for="skill in selectedCoach?.coach_skills || []"
-                    :key="skill.skill_id"
-                    class="badge bg-primary-100 me-1"
-                  >
-                    {{ skill.skill_name }}
-                  </span>
+                  <strong>座右銘：</strong>
+                  {{ selectedCoach?.motto }}
                 </p>
-                <p>
-                  <strong>瀏覽次數：</strong>
-                  {{ selectedCoach?.numbers_of_view }}
-                </p>
+                <div>
+                  <p>相關資格證明照片</p>
+                  <img
+                    :src="selectedCoach?.background_image_url"
+                    alt="證明照片"
+                    class="img-fluid rounded"
+                    style="max-height: 200px"
+                  />
+                </div>
                 <!-- ...如果有更多欄位，可以自行加在這裡 -->
               </div>
               <div class="modal-footer justify-content-center border-0">
@@ -440,12 +539,35 @@ function changePage(page) {
   pagination.value.page = page
 }
 
+// 取得某位教練詳細資料
+async function fetchCoachDetail(coachId) {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await axios.get(
+      `https://sportify.zeabur.app/api/v1/admin/coaches/${coachId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!res.data.status) {
+      throw new Error(res.data.message || '讀取失敗')
+    }
+    // 注意：把 coachDetails 塞到 selectedCoach
+    selectedCoach.value = res.data.data.coachDetails
+    // 顯示 Modal
+    const modalEl = document.getElementById('detailModal')
+    const bsModal = new Modal(modalEl)
+    bsModal.show()
+  } catch (err) {
+    console.error('fetchCoachDetail 錯誤', err)
+  }
+}
+
 // 「點擊檢視」要開 modal
 
 function openDetailModal(coachId) {
-  const coach = allCoaches.value.find(c => c.coach_id === coachId)
-  if (!coach) return
-  selectedCoach.value = coach
+  // const coach = allCoaches.value.find(c => c.coach_id === coachId)
+  // if (!coach) return
+  // selectedCoach.value = coach
+  fetchCoachDetail(coachId)
   const modalEl = document.getElementById('detailModal')
   // eslint-disable-next-line no-undef
   const bs = new bootstrap.Modal(modalEl)

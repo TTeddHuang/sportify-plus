@@ -22,8 +22,8 @@
                 style="padding: 0.75rem 1rem"
                 @click="selectLesson(lesson)"
               >
-                <div class="d-flex flex-column text-center">
-                  <p class="fs-9 mb-1">
+                <div class="d-flex flex-column text-center w-100">
+                  <p class="fs-9 mb-1" style="height: 42px">
                     {{ lesson.name }}
                   </p>
                   <div class="d-flex align-items-center justify-content-center">

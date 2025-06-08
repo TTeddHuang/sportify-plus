@@ -62,20 +62,30 @@
                 {{ selectedPlan || '選擇方案' }}
               </button>
               <ul class="dropdown-menu">
-                <!-- 全部選項 -->
-                <li @click="selectedPlan = ''">
-                  <a class="dropdown-item" href="#">選擇方案</a>
+                <!-- 「全部方案」(清空 selectedPlan) -->
+                <li>
+                  <a
+                    href="#"
+                    class="dropdown-item"
+                    @click.prevent="selectedPlan = ''"
+                  >
+                    全部方案
+                  </a>
                 </li>
-                <!-- 依 planOptions 生成每一個方案 -->
-                <li
-                  v-for="plan in planOptions"
-                  :key="plan"
-                  @click="selectedPlan = plan"
-                >
-                  <a class="dropdown-item" href="#">{{ plan }}</a>
+
+                <!-- 動態產生其他三個方案 -->
+                <li v-for="plan in planOptions" :key="plan">
+                  <a
+                    href="#"
+                    class="dropdown-item"
+                    @click.prevent="selectedPlan = plan"
+                  >
+                    {{ plan }}
+                  </a>
                 </li>
               </ul>
             </div>
+
             <!-- 文字搜尋（教練名稱模糊搜尋） -->
             <div class="input-group" style="width: 200px; height: 42px">
               <input
@@ -105,22 +115,22 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id">
+                <tr v-for="user in paginatedUsers" :key="user.id">
                   <td class="td-custom">***{{ user.id.slice(-5) }}</td>
                   <td class="td-custom">{{ user.name }}</td>
                   <td class="td-custom">{{ user.email }}</td>
                   <td class="td-custom">{{ formatDate(user.createdAt) }}</td>
                   <td class="td-custom">
-                    <template v-if="user.plan === 'fitness方案'">
-                      fitness方案
+                    <template v-if="user.plan === 'Fitness方案'">
+                      Fitness方案
                     </template>
 
-                    <template v-else-if="user.plan === 'wellness方案'">
-                      wellness方案
+                    <template v-else-if="user.plan === 'Wellness方案'">
+                      Wellness方案
                     </template>
 
-                    <template v-else-if="user.plan === 'eagerness方案'">
-                      eagerness方案
+                    <template v-else-if="user.plan === 'Eagerness方案'">
+                      Eagerness方案
                     </template>
                     <template v-else>未訂閱</template>
                   </td>
@@ -135,7 +145,7 @@
                   </td>
                 </tr>
 
-                <tr v-if="users.length === 0">
+                <tr v-if="paginatedUsers.length === 0">
                   <td colspan="5" class="text-center text-muted">
                     暫無會員資料
                   </td>
@@ -150,24 +160,24 @@
           <ul class="pagination mb-0">
             <li
               class="page-item"
-              :class="{ disabled: currentCoursePage === 1 }"
-              @click="changeCoursePage(currentCoursePage - 1)"
+              :class="{ disabled: currentUserPage === 1 }"
+              @click="changeUserPage(currentUserPage - 1)"
             >
               <a class="page-link me-lg-11 me-5">上一頁</a>
             </li>
             <li
-              v-for="page in totalCoursePages"
+              v-for="page in totalUserPages"
               :key="page"
               class="page-item"
-              :class="{ active: page === currentCoursePage }"
-              @click="changeCoursePage(page)"
+              :class="{ active: page === currentUserPage }"
+              @click="changeUserPage(page)"
             >
               <a class="page-link">{{ page }}</a>
             </li>
             <li
               class="page-item"
-              :class="{ disabled: currentCoursePage === totalCoursePages }"
-              @click="changeCoursePage(currentCoursePage + 1)"
+              :class="{ disabled: currentUserPage === totalUserPages }"
+              @click="changeUserPage(currentUserPage + 1)"
             >
               <a class="page-link ms-lg-11 ms-5">下一頁</a>
             </li>
@@ -239,12 +249,7 @@
 
                         <div class="me-4">
                           <strong>所選課程：</strong
-                          ><span>{{
-                            Array.isArray(selectedUser?.course_type) &&
-                            selectedUser.course_type.length > 0
-                              ? selectedUser.course_type.join('、')
-                              : '未訂閱'
-                          }}</span>
+                          ><span>{{ displayCourses }}</span>
                         </div>
                         <div class="me-4">
                           <strong>下次付款日：</strong
@@ -281,12 +286,12 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <tr v-for="item in records" :key="item.id">
-                            <td class="td-custom">{{ item.date }}</td>
-                            <td class="td-custom">{{ item.orderNumber }}</td>
-                            <td class="td-custom">{{ item.plan }}</td>
-                            <td class="td-custom">{{ item.period }}</td>
-                            <td class="td-custom">{{ item.paymentMethod }}</td>
+                          <tr v-for="r in records" :key="r.id">
+                            <td class="td-custom">{{ r.date }}</td>
+                            <td class="td-custom">{{ r.orderNumber }}</td>
+                            <td class="td-custom">{{ r.plan }}</td>
+                            <td class="td-custom">{{ r.period }}</td>
+                            <td class="td-custom">{{ r.paymentMethod }}</td>
                             <td class="td-custom">
                               <a
                                 :href="item.invoiceUrl"
@@ -296,7 +301,12 @@
                                 檢視
                               </a>
                             </td>
-                            <td class="td-custom">NT$ {{ item.price }}</td>
+                            <td class="td-custom">NT$ {{ r.price }}</td>
+                          </tr>
+                          <tr v-if="records.length === 0">
+                            <td colspan="7" class="text-center text-muted">
+                              無訂閱紀錄
+                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -322,12 +332,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
+
+const allUsers = ref([])
 
 //
 // === 身分驗證：只有 role === 'ADMIN' 才能繼續進入此頁面 ===
@@ -356,121 +368,116 @@ async function checkAdmin() {
 }
 
 //  取當前「某一頁」的資料，只供拆分 pagination 之用
-//
-// ↓ 以下為假資料範例，請依需求自行改用後端 API
-const users = ref([
-  {
-    id: 'c1f33da0',
-    name: 'Kevin',
-    email: 'kevin@example.com',
-    profile_image_url: 'https://example.com/profile/kevin.jpg',
-    plan: 'fitness方案',
-    course_type: ['足球', '皮拉提斯', '單車'],
-    createdAt: '2024-08-15T10:00:00Z',
-    period: '2024/09/01 - 2024/09/30',
-    end_at: '2024/09/30',
-    next_payment: '2024/10/01'
-  },
-  {
-    id: 'd4b21a6f',
-    name: 'Annie',
-    email: 'annie@example.com',
-    profile_image_url: 'https://example.com/profile/annie.jpg',
-    plan: 'wellness方案',
-    course_type: ['游泳'],
-    createdAt: '2024-08-21T15:22:11Z',
-    period: '2024/09/01 - 2024/09/30',
-    end_at: '2024/09/30',
-    next_payment: '2024/10/01'
-  },
-  {
-    id: 'ewfgre47',
-    name: 'Cindy',
-    email: 'cindy@example.com',
-    profile_image_url: 'https://example.com/profile/cindy.jpg',
-    plan: 'eagerness方案',
-    course_type: [],
-    createdAt: '2024-08-28T09:45:00Z',
-    period: '2024/09/01 - 2024/09/30',
-    end_at: '2024/09/30',
-    next_payment: '2024/10/01'
-  },
-  {
-    id: 'x8y7z6w5',
-    name: 'Bob',
-    email: 'bob@example.com',
-    profile_image_url: 'https://example.com/profile/bob.jpg',
-    plan: '', // 空字串代表未訂閱
-    course_type: [],
-    createdAt: '2024-08-30T11:30:00Z',
-    period: '',
-    end_at: '',
-    next_payment: ''
-  }
-])
 
+const users = ref([])
 // 用來篩選的三個 ref
 const selectedPlan = ref('') // 目前下拉選到哪個方案
 const searchKeyword = ref('') // 文字搜尋會員名稱
 const selectedUser = ref(null) // Modal 裡顯示的會員物件
 
+watch([selectedPlan, searchKeyword], () => {
+  fetchUsers(1)
+})
+
 // 下拉選單的四個選項
-const planOptions = ['fitness方案', 'wellness方案', 'eagerness方案', '未訂閱']
+const planOptions = ['Fitness方案', 'Wellness方案', 'Eagerness方案', '未訂閱']
 
-// 根據 selectedPlan 做篩選
-const filteredUsers = computed(() => {
-  return users.value.filter(u => {
-    // (A) 先比對文字搜尋（如果有輸入關鍵字，就 name 必須包含）
-    if (searchKeyword.value) {
-      const kw = searchKeyword.value.trim().toLowerCase()
-      if (!u.name.toLowerCase().includes(kw)) {
-        return false
+// 把後端資料抓下來
+async function fetchUsers(page = 1) {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return router.replace('/login')
+    const res = await axios.get(
+      'https://sportify.zeabur.app/api/v1/admin/users',
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page }
       }
+    )
+    if (res.data.status) {
+      // ← 直接把後端給的全部 data 放進 users
+      users.value = res.data.data
+
+      // 更新 pagination
+      const p = res.data.pagination || res.data.meta?.pagination
+      pagination.value = {
+        page: p.page,
+        total: p.total,
+        total_pages: p.total_pages,
+        has_next: p.has_next,
+        has_previous: p.has_previous
+      }
+    } else {
+      console.error('取得會員失敗：', res.data.message)
     }
+  } catch (err) {
+    console.error('fetchUsers error:', err)
+  }
+}
 
-    // (B) 再比對 下拉「方案」 的篩選
+// 抓取所有頁
+async function fetchUsersPage(page = 1) {
+  const token = localStorage.getItem('token')
+  const res = await axios.get(
+    'https://sportify.zeabur.app/api/v1/admin/users',
+    { headers: { Authorization: `Bearer ${token}` }, params: { page } }
+  )
+  return { data: res.data.data, pagination: res.data.pagination }
+}
+
+async function fetchAllUsers() {
+  const first = await fetchUsersPage(1)
+  allUsers.value = first.data
+  pagination.value = {
+    page: first.pagination.page,
+    total_pages: first.pagination.total_pages
+  }
+  for (let p = 2; p <= first.pagination.total_pages; p++) {
+    const { data } = await fetchUsersPage(p)
+    allUsers.value.push(...data)
+  }
+}
+
+const filtered = computed(() => {
+  return allUsers.value.filter(u => {
+    if (
+      searchKeyword.value &&
+      !u.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    )
+      return false
     if (selectedPlan.value) {
-      if (selectedPlan.value === '未訂閱') {
-        // 「未訂閱」：當 u.plan === ''（空字串） 才算
-        return u.plan === ''
-      }
-      // 其餘兩個方案直接跟 u.plan 比
+      if (selectedPlan.value === '未訂閱') return !u.plan
       return u.plan === selectedPlan.value
     }
-
-    // 如果 selectedPlan.value 是空字串 → 就不做任何排除
     return true
   })
 })
+
+const pageSize = 20
+
 const pagination = ref({
   page: 1,
-  total: users.value.length,
-  total_pages: Math.ceil(filteredUsers.value.length / pageSize),
+  total_pages: 1,
   has_next: false,
   has_previous: false
 })
 
-// 由 pagination.value 計算出目前頁碼與總頁數
 const currentPage = computed(() => pagination.value.page)
-const totalPages = computed(() => {
-  // filteredUsers 改變時，分頁數要同步更新
-  const t = Math.ceil(filteredUsers.value.length / pageSize)
-  pagination.value.total_pages = t
-  return t
-})
-
-const pageSize = 2 // 假設一頁顯示 2 筆(測試用可改成 20 或 10)
+const totalPages = computed(() => pagination.value.total_pages)
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * pageSize
-  return filteredUsers.value.slice(start, start + pageSize)
+  return filtered.value.slice(start, start + pageSize)
 })
 
-/**
- * 換頁的時候，只需要改 currentPage.value 即可
- */
-function changePage(page) {
-  if (page < 1 || page > totalPages.value) return
-  pagination.value.page = page
+// 由 pagination.value 計算出目前頁碼與總頁數
+const currentUserPage = computed(() => pagination.value.page)
+// 由 pagination.value 計算出目前課程頁碼與總頁數
+const totalUserPages = computed(() => pagination.value.total_pages)
+
+// 換頁
+function changeUserPage(p) {
+  if (p < 1 || p > totalPages.value) return
+  pagination.value.page = p
 }
 
 // 格式化日期：YYYY/MM/DD HH:mm
@@ -488,64 +495,73 @@ function formatDate(iso) {
 // 載入用戶訂閱紀錄
 // 用來存放訂閱紀錄列表
 const records = ref([])
-
-// 後端回傳的分頁 meta
-const meta = ref({ page: 1, total_pages: 1 })
+// 分页 meta
+const subscriptionMeta = ref({ page: 1, total_pages: 1 })
 
 // 把從後端拿到的 raw 欄位 mapping 成我們要的格式
-async function fetchSubscriptions(page = 1) {
-  const token = localStorage.getItem('token')
-  const userWrapper = JSON.parse(localStorage.getItem('user'))
-  const userId = userWrapper?.data?.id || userWrapper?.id
-  if (!token || !userId) {
-    // 如果沒登入，就跳回登入頁
-    router.push('/login')
-    return
-  }
-
+async function fetchSubscriptions(userId, page = 1) {
   try {
+    const token = localStorage.getItem('token')
     const res = await axios.get(
-      'https://sportify.zeabur.app/api/v1/users/subscriptions',
+      `https://sportify.zeabur.app/api/v1/admin/users/${userId}/subscriptions`,
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page }
       }
     )
     if (res.data.status) {
-      // Map 後端回來的 data 欄位到我們想顯示的格式
       records.value = res.data.data.map(item => ({
         id: item.id,
-        date: item.purchased_at, // 購買日期
-        orderNumber: item.order_number, // 訂單編號
-        plan: item.plan, // 方案
-        period: item.period, // 訂閱期間
-        paymentMethod: item.payment_method, // 付款方式
-        invoiceUrl: item.invoice_image_url, // 發票連結
-        price: item.price, // 金額
-        nextPayment: item.next_payment // 下一次付款日期（如果需要也可以顯示）
+        date: item.purchased_at,
+        orderNumber: item.order_number,
+        plan: item.plan,
+        period: item.period,
+        paymentMethod: item.payment_method,
+        invoiceUrl: item.invoice_image_url,
+        price: item.price,
+        nextPayment: item.next_payment
       }))
-
-      // 更新 meta
-      meta.value = res.data.meta
-      // 同步本地 currentPage
-      currentPage.value = res.data.meta.page
+      subscriptionMeta.value = res.data.meta
+    } else {
+      console.error('取得訂閱失敗：', res.data.message)
+      records.value = []
     }
   } catch (err) {
-    console.error('取得訂閱紀錄失敗：', err.response?.data || err)
+    console.error('fetchSubscriptions error:', err)
+    records.value = []
   }
 }
+
+// 計算要顯示的「所選課程」
+const displayCourses = computed(() => {
+  if (!selectedUser.value) return ''
+
+  const plan = selectedUser.value.plan || ''
+  // 如果是 Eagerness 方案（含試用）
+  if (plan.startsWith('Eagerness方案')) {
+    return '所有課程'
+  }
+  // 否則如果 course_type 陣列有內容，就列出
+  if (
+    Array.isArray(selectedUser.value.course_type) &&
+    selectedUser.value.course_type.length > 0
+  ) {
+    return selectedUser.value.course_type.join('、')
+  }
+  // 其餘都視為「未訂閱」
+  return '未訂閱'
+})
 
 // onMounted 先檢查管理者身分，通過才呼叫 fetchAllCoaches()
 onMounted(async () => {
   const isAdmin = await checkAdmin()
   if (!isAdmin) return
-
-  // 由於這裡都是「假資料」，因此不需要再呼叫 fetch API
-  // 但如果改成真實後端，就放在這裡呼叫 fetchMemberList() 並更新 users.value
+  await fetchAllUsers()
 })
 
 function openDetailModal(user) {
   selectedUser.value = user
+  fetchSubscriptions(user.id, 1)
   const modalEl = document.getElementById('detailModal')
   // eslint-disable-next-line no-undef
   new bootstrap.Modal(modalEl).show()
