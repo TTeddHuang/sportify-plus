@@ -171,18 +171,18 @@ const userInfo = ref(null)
 
 onMounted(async () => {
   try {
-    // const token = localStorage.getItem('token')
-    // if (!token) return
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-    // const userRes = await axios.get(
-    //   'https://sportify.zeabur.app/api/v1/auth/me',
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${token}`
-    //     }
-    //   }
-    // )
-    userInfo.value = user.value
+    const userRes = await axios.get(
+      'https://sportify.zeabur.app/api/v1/auth/me',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+    userInfo.value = userRes.data.data
     console.log(userInfo.value)
   } catch (err) {
     console.error('取得使用者資料失敗', err)
@@ -321,7 +321,7 @@ const canSubmit = computed(() => {
 // 試用七天
 async function submitTrial() {
   try {
-  // userInfo.value.token
+    // userInfo.value.token
     const token = localStorage.getItem('token')
     if (!token) {
       alert('請先登入')
@@ -354,7 +354,6 @@ async function submit() {
     subscription_name: selectedPlanLabel.value,
     course_type: selectedPlan.value === 'Eagerness' ? [] : selectedItems.value
   }
-  console.log('送出的 payload', payload)
   try {
     const token = localStorage.getItem('token')
     await axios

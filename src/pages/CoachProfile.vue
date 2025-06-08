@@ -1,55 +1,87 @@
 <template>
   <div class="form-panel p-8">
-    <form class="container">
-      <div class="mb-3">
-        <label for="coachName" class="form-label">教練名稱</label>
-        <input
-          id="coachName"
-          v-model.trim="coachProfile.coachName"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="name" class="form-label">真實姓名</label>
-        <input
-          id="name"
-          v-model.trim="coachProfile.name"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="birthDay" class="form-label">出生年月日</label>
-        <input
-          id="birthDay"
-          v-model.trim="coachProfile.birthDay"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="idNum" class="form-label">身分證字號</label>
-        <input
-          id="idNum"
-          v-model.trim="coachProfile.idNum"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="tel" class="form-label">手機</label>
-        <input
-          id="tel"
-          v-model.trim="coachProfile.tel"
-          type="tel"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
+    <form class="container" @submit.prevent="handleSubmit">
+      <div class="mb-3 row">
+        <div class="col-8">
+          <div
+            class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
+          >
+            <img
+              :src="profileImageFile"
+              alt="個人照片"
+              class="object-fit-cover"
+            />
+          </div>
+          <div v-if="inputState === 'inEdit'" class="mt-8 text-center">
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="handleFileSelect(e, 'coachAvatar', 'upload-avatar')"
+            />
+            <button
+              type="button"
+              class="btn btn-primary-600"
+              :disabled="isUploading"
+              @click="triggerAvatarSelect"
+            >
+              {{ isUploading ? '上傳中...' : '選擇照片' }}
+            </button>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="mb-3">
+            <label for="coachName" class="form-label">教練名稱</label>
+            <input
+              id="coachName"
+              v-model.trim="coachProfile.coachName"
+              type="text"
+              class="form-control"
+              :disabled="inputState === 'readOnly'"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="name" class="form-label">真實姓名</label>
+            <input
+              id="name"
+              v-model.trim="coachProfile.name"
+              type="text"
+              class="form-control"
+              :disabled="inputState === 'readOnly'"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="birthDay" class="form-label">出生年月日</label>
+            <input
+              id="birthDay"
+              v-model.trim="coachProfile.birthDay"
+              type="text"
+              class="form-control"
+              :disabled="inputState === 'readOnly'"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="idNum" class="form-label">身分證字號</label>
+            <input
+              id="idNum"
+              v-model.trim="coachProfile.idNum"
+              type="text"
+              class="form-control"
+              :disabled="inputState === 'readOnly'"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="tel" class="form-label">手機</label>
+            <input
+              id="tel"
+              v-model.trim="coachProfile.tel"
+              type="tel"
+              class="form-control"
+              :disabled="inputState === 'readOnly'"
+            />
+          </div>
+        </div>
       </div>
       <div class="mb-3">
         <label for="bankCode" class="form-label">銀行代號</label>
@@ -168,12 +200,13 @@
           type="file"
           class="form-control"
           accept="image/*"
-          @change="selectImg(e, passBook)"
+          :disabled="inputState === 'readOnly'"
+          @change="handleFileSelect(e, 'bankbook', 'upload-bankbook')"
         />
         <img
           v-if="passBookURL"
           :src="passBookURL"
-          alt="照片預覽"
+          alt="存摺封面預覽"
           class="mt-3 img-preview"
         />
       </div>
@@ -187,23 +220,66 @@
           class="form-control"
           accept="image/*"
           multiple
-          @change="selectImg(e, license)"
+          :disabled="inputState === 'readOnly'"
+          @change="handleFileSelect(e, 'license', 'upload-license')"
         />
-        <!-- <img
-          v-if="licenseURL"
-          :src="licenseURL"
-          alt="照片預覽"
-          class="mt-3 img-preview"
-        /> -->
+        <!-- 多張證照預覽 -->
+        <div v-if="licenseURLs.length > 0" class="mt-3">
+          <div class="row">
+            <div
+              v-for="(url, index) in licenseURLs"
+              :key="index"
+              class="col-md-4 mb-2"
+            >
+              <img
+                :src="url"
+                :alt="`證照 ${index + 1}`"
+                class="img-preview w-100"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="inputState === 'readOnly'" class="my-5 text-center">
+        <button type="button" class="btn btn-primary-600" @click="toEdit">
+          編輯個人資料
+        </button>
+      </div>
+      <div
+        v-else-if="inputState === 'inEdit'"
+        class="my-5 text-center d-flex justify-content-evenly"
+      >
+        <button
+          type="submit"
+          class="btn btn-primary-600"
+          :disabled="isSubmitting"
+        >
+          {{ isSubmitting ? '儲存中...' : '確定修改' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-notification"
+          :disabled="isSubmitting"
+          @click="cancelEdit"
+        >
+          取消修改
+        </button>
       </div>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const inputState = ref('readOnly')
+const avatarInput = ref(null)
+const isSubmitting = ref(false)
+const isUploading = ref(false)
+
 const coachProfile = ref({
   coachName: 'Jason',
   name: '林傑森',
@@ -223,28 +299,303 @@ const coachProfile = ref({
   aboutMe:
     '專業單車教練，專注提升騎乘技巧與體能訓練。無論你是新手還是進階車友，跟著我的課程一起突破極限，享受騎行樂趣！'
 })
+
+// 備份資料
+const backupData = ref({})
+
+// 圖片相關狀態
+const profileImageFile = ref(null)
+const passBookFile = ref(null)
 const passBookURL = ref('')
-// const licenseURL = ref([])
+const licenseFiles = ref([])
+const licenseURLs = ref([])
 
-function selectImg(e, type) {
-  const file = e.target.files[0]
-  const allowed = ['png', 'jpeg', 'webp']
-  if (type === 'passBook') {
-    const fileType = file.type.split('/').pop()
-    if (!allowed.includes(fileType)) {
-      return alert('僅支援圖片格式(png, jpg, jpeg, webp)')
+// 資料驗證
+const validateForm = () => {
+  const errors = []
+
+  // 必填欄位驗證
+  if (!coachProfile.value.coachName.trim()) {
+    errors.push('教練名稱不能為空')
+  }
+
+  if (!coachProfile.value.name.trim()) {
+    errors.push('真實姓名不能為空')
+  }
+
+  if (!coachProfile.value.tel.trim()) {
+    errors.push('手機號碼不能為空')
+  }
+
+  // 手機號碼格式驗證
+  const phoneRegex = /^09\d{8}$/
+  if (coachProfile.value.tel && !phoneRegex.test(coachProfile.value.tel)) {
+    errors.push('手機號碼格式不正確（請輸入09開頭的10位數字）')
+  }
+
+  // 身分證字號驗證
+  const idRegex = /^[A-Z][1-2]\d{8}$/
+  if (coachProfile.value.idNum && !idRegex.test(coachProfile.value.idNum)) {
+    errors.push('身分證字號格式不正確')
+  }
+
+  // 銀行代號驗證（3位數字）
+  const bankCodeRegex = /^\d{3}$/
+  if (
+    coachProfile.value.bankCode &&
+    !bankCodeRegex.test(coachProfile.value.bankCode)
+  ) {
+    errors.push('銀行代號必須為3位數字')
+  }
+
+  // 銀行帳號驗證（10-16位數字）
+  const bankAccountRegex = /^\d{10,16}$/
+  if (
+    coachProfile.value.bankAccount &&
+    !bankAccountRegex.test(coachProfile.value.bankAccount)
+  ) {
+    errors.push('銀行帳號必須為10-16位數字')
+  }
+
+  if (errors.length > 0) {
+    alert('表單驗證失敗：\n' + errors.join('\n'))
+    return false
+  }
+
+  return true
+}
+
+// 照片檔案處理
+const handleFileSelect = async (e, type) => {
+  const files = e.target.files
+  if (!files || files.length === 0) return
+
+  // 檔案類型驗證
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
+
+  for (const file of files) {
+    if (!allowedTypes.includes(file.type)) {
+      alert('僅支援圖片格式(PNG, JPG, JPEG)')
+      return
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return alert('檔案請勿超過5MB')
+    if (file.size > 2 * 1024 * 1024) {
+      alert('檔案請勿超過2MB')
+      return
     }
+  }
 
-    if (passBookURL.value) {
-      URL.revokeObjectURL(passBookURL.value)
+  try {
+    if (type === 'avatar') {
+      profileImageFile.value = files[0]
+    } else if (type === 'passBook') {
+      passBookFile.value = files[0]
+      if (passBookURL.value) {
+        URL.revokeObjectURL(passBookURL.value)
+      }
+      passBookURL.value = URL.createObjectURL(files[0])
+    } else if (type === 'license') {
+      // 處理多張證照圖片
+      licenseFiles.value = Array.from(files)
+
+      // 清除舊的預覽 URL
+      licenseURLs.value.forEach(url => URL.revokeObjectURL(url))
+      licenseURLs.value = []
+
+      // 創建新的預覽 URL
+      licenseFiles.value.forEach(file => {
+        licenseURLs.value.push(URL.createObjectURL(file))
+      })
     }
-    passBookURL.value = URL.createObjectURL(file)
+  } catch (error) {
+    console.error('上傳檔案失敗:', error)
+    alert('檔案上傳失敗，請重新選擇')
   }
 }
+
+// 上傳單張圖片
+const uploadImage = async (file, imgName, endpoint) => {
+  if (!file) return null
+
+  const formData = new FormData()
+  formData.append(imgName, file)
+
+  const token = localStorage.getItem('token')
+  const response = await axios.post(
+    `https://sportify.zeabur.app/api/v1/coaches/${endpoint}`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  )
+
+  return response.data.data.url
+}
+
+// 上傳多張圖片
+const uploadMultipleImages = async (files, imgName, endpoint) => {
+  if (!files || files.length === 0) return []
+
+  const formData = new FormData()
+  files.forEach(file => {
+    formData.append(imgName, file)
+  })
+
+  const token = localStorage.getItem('token')
+  const response = await axios.post(
+    `https://sportify.zeabur.app/api/v1/coaches/${endpoint}`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    }
+  )
+
+  return response.data.data.urls
+}
+
+const handleSubmit = async () => {
+  if (!validateForm()) return
+
+  isSubmitting.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('請重新登入')
+      router.push('/login')
+    }
+
+    const submitData = { ...coachProfile.value }
+    // 上傳圖片並取得 URL
+    if (profileImageFile.value) {
+      try {
+        submitData.profile_image_url = await uploadImage(
+          profileImageFile.value,
+          'upload-avatar'
+        )
+      } catch (error) {
+        console.error('上傳頭像失敗:', error)
+        alert('頭像上傳失敗，請稍後再試')
+      }
+    }
+
+    if (passBookFile.value) {
+      try {
+        submitData.passbook_image_url = await uploadImage(
+          passBookFile.value,
+          'upload-passbook'
+        )
+      } catch (error) {
+        console.error('上傳存摺封面失敗:', error)
+        alert('存摺封面上傳失敗，請稍後再試')
+      }
+    }
+
+    if (licenseFiles.value.length > 0) {
+      try {
+        submitData.license_image_urls = await uploadMultipleImages(
+          licenseFiles.value,
+          'upload-licenses'
+        )
+      } catch (error) {
+        console.error('上傳證照失敗:', error)
+        alert('證照上傳失敗，請稍後再試')
+      }
+    }
+
+    // 提交主要資料
+    const response = await axios.patch(
+      'https://sportify.zeabur.app/api/v1/coaches/profile',
+      submitData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (response.data.status) {
+      alert('個人資料更新成功！')
+      inputState.value = 'readOnly'
+
+      // 清除檔案狀態
+      profileImageFile.value = null
+      passBookFile.value = null
+      licenseFiles.value = []
+
+      // 重新載入最新資料
+      await loadCoachProfile()
+    } else {
+      throw new Error(response.data.message || '更新失敗')
+    }
+  } catch (error) {
+    console.error('提交失敗:', error)
+
+    // 錯誤原因
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+function toEdit() {
+  backupData.value = JSON.parse(JSON.stringify(coachProfile.value))
+  inputState.value = 'inEdit'
+}
+
+function cancelEdit() {
+  // 恢復備份資料
+  if (Object.keys(backupData.value).length > 0) {
+    coachProfile.value = JSON.parse(JSON.stringify(backupData.value))
+  }
+
+  // 清除圖片預覽
+  if (passBookURL.value) {
+    URL.revokeObjectURL(passBookURL.value)
+    passBookURL.value = ''
+  }
+  licenseURLs.value.forEach(url => URL.revokeObjectURL(url))
+  licenseURLs.value = []
+
+  // 清除檔案狀態
+  profileImageFile.value = null
+  passBookFile.value = null
+  licenseFiles.value = []
+
+  inputState.value = 'readOnly'
+}
+
+function triggerAvatarSelect() {
+  avatarInput.value?.click()
+}
+
+// 取得教練資料
+const loadCoachProfile = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get(
+      'https://sportify.zeabur.app/api/v1/coaches/profile',
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    if (response.data.status) {
+      coachProfile.value = response.data.data
+    }
+  } catch (error) {
+    console.error('載入教練資料失敗:', error)
+  }
+}
+
+onMounted(async () => {
+  loadCoachProfile()
+})
 </script>
 
 <style lang="scss">
@@ -260,6 +611,10 @@ function selectImg(e, type) {
   &::placeholder {
     color: $grey-500;
   }
+}
+
+.profile-avatar {
+  width: 300px;
 }
 
 .img-preview {

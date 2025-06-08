@@ -54,19 +54,31 @@
               >
                 下一次收費日期：{{ records[0].nextPayment }}
               </p>
-              <p v-else class="fs-6 text-muted mb-0">已到期／不續訂</p>
+              <p v-else class="fs-6 mb-0">已到期／不續訂</p>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-9">
               <p class="fs-4 fw-bold mb-lg-6">可觀看類別</p>
-              <div class="d-flex">
-                <p class="btn btn-primary-600 me-2">瑜珈</p>
-                <p class="btn btn-primary-600 me-2">單車</p>
-                <p class="btn btn-primary-600">足球</p>
+              <p v-if="courseType.length > 3" class="btn btn-primary-600 me-2">
+                所有
+              </p>
+              <div v-else class="d-flex">
+                <p
+                  v-for="type in courseType"
+                  :key="type.skill_id"
+                  class="btn btn-primary-600 me-2"
+                >
+                  {{ type.course_type }}
+                </p>
               </div>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-10">
               <p class="fs-4 fw-bold mb-lg-6">NT$ {{ records[0].price }}</p>
-              <button class="btn btn-secondary-700 fw-bold">取消訂閱</button>
+              <button
+                class="btn btn-secondary-700 fw-bold"
+                @click="unsubscribe(records[0].tradeNo)"
+              >
+                取消訂閱
+              </button>
             </div>
           </div>
         </div>
@@ -152,6 +164,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { initUser } from '@/store/user'
+import { cancelPayment } from '@/api/cancelPayment'
 
 const route = useRoute()
 
@@ -163,6 +176,8 @@ const meta = ref({ page: 1, total_pages: 1 })
 const currentPage = ref(1)
 // 4. 計算 totalPages
 const totalPages = computed(() => meta.value.total_pages)
+// 存放課程類別
+const courseType = ref([])
 
 // 5. 抓資料
 async function fetchSubscriptions(page = 1) {
@@ -179,6 +194,9 @@ async function fetchSubscriptions(page = 1) {
         params: { page }
       }
     )
+    // 呼叫取得課程類別API並存放
+    courseType.value = await getCourseType(token)
+
     if (res.data.status) {
       // 你要的欄位映射
       records.value = res.data.data.map(item => ({
@@ -190,7 +208,8 @@ async function fetchSubscriptions(page = 1) {
         paymentMethod: item.payment_method,
         invoiceUrl: item.invoice_image_url,
         price: item.price,
-        nextPayment: item.next_payment
+        nextPayment: item.next_payment,
+        tradeNo: item.merchant_trade_no
       }))
       // 更新後端回傳的 meta
       meta.value = res.data.meta
@@ -200,6 +219,19 @@ async function fetchSubscriptions(page = 1) {
   } catch (err) {
     console.error('取得訂閱紀錄失敗：', err.response?.data || err)
   }
+}
+
+// 取得可觀看課程類別API
+async function getCourseType(token) {
+  const res = await axios.get(
+    'https://sportify.zeabur.app/api/v1/users/course-type',
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  )
+  return res.data.data
 }
 
 // 6. 切頁函式
@@ -213,6 +245,11 @@ onMounted(async () => {
   await initUser()
   fetchSubscriptions(1)
 })
+
+async function unsubscribe(MerchantTradeNo) {
+  const token = localStorage.getItem('token')
+  await cancelPayment(token, MerchantTradeNo)
+}
 </script>
 
 <style scoped lang="scss">
