@@ -15,7 +15,7 @@
 
       <!-- 方案卡片 -->
       <div class="row gx-5 gy-4">
-        <div v-for="plan in plans" :key="plan.key" class="col-lg -4">
+        <div v-for="plan in plans" :key="plan.key" class="col-lg-4">
           <div
             class="card h-100 rounded-4 border border-primary-000"
             :class="{
@@ -182,6 +182,8 @@ onMounted(async () => {
         }
       }
     )
+    console.log('auth/me 回傳:', userRes.data)
+
     userInfo.value = userRes.data.data
     console.log(userInfo.value)
   } catch (err) {

@@ -18,6 +18,10 @@ import CoachNewCourse from '@/pages/CoachNewCourse.vue'
 import CoachProfile from '@/pages/CoachProfile.vue'
 import CoachCourses from '@/pages/CoachCourses.vue'
 import CoachEarnings from '@/pages/CoachEarnings.vue'
+import VideoCourses from '@/pages/VideoCourses.vue'
+import AdminCourses from '@/pages/AdminCourses.vue'
+import AdminCoaches from '@/pages/AdminCoaches.vue'
+import AdminUsers from '@/pages/AdminUsers.vue'
 
 import { user, userRole } from '@/store/user'
 
@@ -52,6 +56,13 @@ const routes = [
     meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
   },
   {
+    path: '/user/courses/:courseId/details',
+    name: 'VideoCourses',
+    component: VideoCourses,
+    props: true,
+    meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
+  },
+  {
     path: '/user/subscriptions',
     component: SubscriptionRecord,
     meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
@@ -77,6 +88,22 @@ const routes = [
       { path: 'courses', name: 'CoachCourses', component: CoachCourses },
       { path: 'earnings', name: 'CoachEarnings', component: CoachEarnings }
     ]
+  },
+  // 管理者後台，需登入，需管理者身分
+  {
+    path: '/admin/courses',
+    component: AdminCourses,
+    meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
+  },
+  {
+    path: '/admin/coaches',
+    component: AdminCoaches,
+    meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
+  },
+  {
+    path: '/admin/users',
+    component: AdminUsers,
+    meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
   }
 ]
 

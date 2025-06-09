@@ -24,7 +24,7 @@
         >
           <h2 :id="`heading${idx}`" class="accordion-header">
             <button
-              class="accordion-button collapsed bg-transparent text-white fs-lg-5"
+              class="accordion-button collapsed bg-transparent text-white fs-lg-5 rounded-0"
               type="button"
               @click="toggle(idx)"
             >

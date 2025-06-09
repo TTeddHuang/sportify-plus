@@ -131,9 +131,17 @@
                   <p class="card-text mb-2 fs-7">
                     {{ course.coach_title }}
                   </p>
-                  <a href="#" class="btn btn-primary-600 w-100 mb-2"
-                    >點擊上課</a
+
+                  <router-link
+                    :to="{
+                      name: 'VideoCourses',
+                      params: { courseId: course.course_id }
+                    }"
                   >
+                    <a href="#" class="btn btn-primary-600 w-100 mb-2"
+                      >點擊上課</a
+                    >
+                  </router-link>
 
                   <a
                     href="#"

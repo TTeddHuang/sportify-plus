@@ -646,11 +646,11 @@ onMounted(() => {
   cursor: not-allowed;
 }
 .rating-card {
-  width: 32%;
-  min-width: 280px;
+  width: 100%;
+  max-width: 389px;
 
-  @media (max-width: 768px) {
-    width: 100%;
+  @media (max-width: 992px) {
+    max-width: 100%;
   }
 }
 </style>
