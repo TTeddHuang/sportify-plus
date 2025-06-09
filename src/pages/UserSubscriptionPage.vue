@@ -142,7 +142,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { submitEcpay } from '@/api/submitEcpay'
-import { user } from '@/store/user'
+// import { user } from '@/store/user'
 
 const router = useRouter()
 
