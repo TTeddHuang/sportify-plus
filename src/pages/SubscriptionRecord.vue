@@ -47,100 +47,170 @@
             class="card-content p-5 d-lg-flex gap-12 mb-5"
           >
             <div class="mb-lg-0 mb-5">
-              <p class="fs-4 fw-bold mb-lg-6 mb-1">{{ records[0].plan }}</p>
+              <p class="fs-4 fw-bold mb-lg-3 mb-1">{{ records[0].plan }}</p>
               <p
-                v-if="records.length > 0 && records[0].nextPayment"
-                class="fs-6 fw-bold mb-0 pe-lg-3 py-lg-1"
+                v-if="subscriptionStatus === 'active'"
+                class="fs-7 mb-0 pe-lg-3 py-lg-1 mt-7"
               >
                 下一次收費日期：{{ records[0].nextPayment }}
               </p>
-              <p v-else class="fs-6 text-muted mb-0">已到期／不續訂</p>
+              <p
+                v-else-if="subscriptionStatus === 'trial-active'"
+                class="fs-7 mb-0 mt-7"
+              >
+                試用期至：{{ records[0].endAt }}
+              </p>
+              <p
+                v-else-if="subscriptionStatus === 'trial-expired'"
+                class="fs-7 mb-0 mt-7"
+              >
+                試用期已結束
+              </p>
+              <div v-else-if="subscriptionStatus === 'cancelled-but-valid'">
+                <p class="fs-6 fw-bold mb-1">已取消訂閱</p>
+                <p class="fs-7 mb-0">剩餘觀看期限至：{{ records[0].endAt }}</p>
+              </div>
+              <p
+                v-else-if="subscriptionStatus === 'expired'"
+                class="fs-7 mb-0 mt-7"
+              >
+                訂閱已到期
+              </p>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-9">
               <p class="fs-4 fw-bold mb-lg-6">可觀看類別</p>
-              <div class="d-flex">
-                <p class="btn btn-primary-600 me-2">瑜珈</p>
-                <p class="btn btn-primary-600 me-2">單車</p>
-                <p class="btn btn-primary-600">足球</p>
+              <p v-if="courseType.length > 3" class="btn btn-primary-600 me-2">
+                所有
+              </p>
+              <div v-else class="d-flex">
+                <p
+                  v-for="type in courseType"
+                  :key="type.skill_id"
+                  class="btn btn-primary-600 me-2"
+                >
+                  {{ type.course_type }}
+                </p>
               </div>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-10">
               <p class="fs-4 fw-bold mb-lg-6">NT$ {{ records[0].price }}</p>
-              <button class="btn btn-secondary-700 fw-bold">取消訂閱</button>
+              <button
+                v-if="subscriptionStatus === 'active'"
+                class="btn btn-notification fw-bold"
+                @click="unsubscribe(records[0].tradeNo)"
+              >
+                取消訂閱
+              </button>
+              <router-link
+                v-else-if="
+                  subscriptionStatus === 'trial-active' ||
+                  subscriptionStatus === 'trial-expired'
+                "
+                to="/users/subscription"
+                class="btn btn-primary-600 fw-bold text-decoration-none"
+              >
+                升等方案
+              </router-link>
+              <router-link
+                v-else-if="subscriptionStatus === 'cancelled-but-valid'"
+                to="/users/subscription"
+                class="btn btn-primary-600 fw-bold text-decoration-none"
+              >
+                重新訂閱
+              </router-link>
+              <router-link
+                v-else-if="subscriptionStatus === 'expired'"
+                to="/users/subscription"
+                class="btn btn-primary-600 fw-bold text-decoration-none"
+              >
+                我要續訂
+              </router-link>
             </div>
           </div>
-        </div>
-        <p class="fs-6">訂閱紀錄</p>
-        <div class="subscription-card">
-          <div class="card-wrapper"></div>
-          <div class="card-content p-5 mb-5">
-            <div class="table-responsive">
-              <table class="table table-striped mb-0 align-middle">
-                <thead class="">
-                  <tr class="text-start">
-                    <th class="th-custom">日期</th>
-                    <th class="th-custom">訂單編號</th>
-                    <th class="th-custom">付款內容</th>
-                    <th class="th-custom">訂閱期間</th>
-                    <th class="th-custom">付款方式</th>
-                    <th class="th-custom">發票</th>
-                    <th class="th-custom">金額</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in records" :key="item.id">
-                    <td class="td-custom">{{ item.date }}</td>
-                    <td class="td-custom">{{ item.orderNumber }}</td>
-                    <td class="td-custom">{{ item.plan }}</td>
-                    <td class="td-custom">{{ item.period }}</td>
-                    <td class="td-custom">{{ item.paymentMethod }}</td>
-                    <td class="td-custom">
-                      <a
-                        :href="item.invoiceUrl"
-                        target="_blank"
-                        class="text-decoration-none"
-                      >
-                        檢視
-                      </a>
-                    </td>
-                    <td class="td-custom">NT$ {{ item.price }}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div v-else class="card-content p-5 text-center mb-5">
+            <div class="py-5">
+              <h4 class="mb-4">尚未訂閱任何方案</h4>
+              <p class="mb-4">馬上開始您的旅程，探索豐富的課程內容！</p>
+              <router-link
+                to="/users/subscription"
+                class="btn btn-primary-600 btn-lg px-5 py-3 text-decoration-none"
+              >
+                馬上訂閱
+              </router-link>
             </div>
           </div>
-        </div>
-        <!-- 分頁（若需要） v-if="meta.total_pages > 1" -->
-        <div class="mt-11">
-          <nav class="d-flex justify-content-center" style="padding-top: 4px">
-            <ul class="pagination mb-0">
-              <li
-                class="page-item"
-                :class="{ disabled: currentPage === 1 }"
-                @click="changePage(currentPage - 1)"
-              >
-                <a class="page-link me-lg-11">上一頁</a>
-              </li>
+          <p class="fs-6">訂閱紀錄</p>
+          <div class="subscription-card">
+            <div class="card-wrapper"></div>
+            <div class="card-content p-5 mb-5">
+              <div class="table-responsive">
+                <table class="table table-striped mb-0 align-middle">
+                  <thead class="">
+                    <tr class="text-start">
+                      <th class="th-custom">日期</th>
+                      <th class="th-custom">訂單編號</th>
+                      <th class="th-custom">付款內容</th>
+                      <th class="th-custom">訂閱期間</th>
+                      <th class="th-custom">付款方式</th>
+                      <th class="th-custom">發票</th>
+                      <th class="th-custom">金額</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in records" :key="item.id">
+                      <td class="td-custom">{{ item.date }}</td>
+                      <td class="td-custom">{{ item.orderNumber }}</td>
+                      <td class="td-custom">{{ item.plan }}</td>
+                      <td class="td-custom">{{ item.period }}</td>
+                      <td class="td-custom">{{ item.paymentMethod }}</td>
+                      <td class="td-custom">
+                        <a
+                          :href="item.invoiceUrl"
+                          target="_blank"
+                          class="text-decoration-none"
+                        >
+                          檢視
+                        </a>
+                      </td>
+                      <td class="td-custom">NT$ {{ item.price }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- 分頁（若需要） v-if="meta.total_pages > 1" -->
+          <div class="mt-11">
+            <nav class="d-flex justify-content-center" style="padding-top: 4px">
+              <ul class="pagination mb-0">
+                <li
+                  class="page-item"
+                  :class="{ disabled: currentPage === 1 }"
+                  @click="changePage(currentPage - 1)"
+                >
+                  <a class="page-link me-lg-11">上一頁</a>
+                </li>
 
-              <li
-                v-for="page in totalPages"
-                :key="page"
-                class="page-item mx-2"
-                :class="{ active: page === currentPage }"
-                @click="changePage(page)"
-              >
-                <a class="page-link">{{ page }}</a>
-              </li>
+                <li
+                  v-for="page in totalPages"
+                  :key="page"
+                  class="page-item mx-2"
+                  :class="{ active: page === currentPage }"
+                  @click="changePage(page)"
+                >
+                  <a class="page-link">{{ page }}</a>
+                </li>
 
-              <li
-                class="page-item"
-                :class="{ disabled: currentPage === totalPages }"
-                @click="changePage(currentPage + 1)"
-              >
-                <a class="page-link ms-lg-11">下一頁</a>
-              </li>
-            </ul>
-          </nav>
+                <li
+                  class="page-item"
+                  :class="{ disabled: currentPage === totalPages }"
+                  @click="changePage(currentPage + 1)"
+                >
+                  <a class="page-link ms-lg-11">下一頁</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
@@ -152,6 +222,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { initUser } from '@/store/user'
+import { cancelPayment } from '@/api/cancelPayment'
 
 const route = useRoute()
 
@@ -163,6 +234,8 @@ const meta = ref({ page: 1, total_pages: 1 })
 const currentPage = ref(1)
 // 4. 計算 totalPages
 const totalPages = computed(() => meta.value.total_pages)
+// 存放課程類別
+const courseType = ref([])
 
 // 5. 抓資料
 async function fetchSubscriptions(page = 1) {
@@ -173,12 +246,15 @@ async function fetchSubscriptions(page = 1) {
 
   try {
     const res = await axios.get(
-      'https://sportify-backend-1wt9.onrender.com/api/v1/users/subscriptions',
+      'https://sportify.zeabur.app/api/v1/users/subscriptions',
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page }
       }
     )
+    // 呼叫取得課程類別API並存放
+    courseType.value = await getCourseType(token)
+    console.log(res.data)
     if (res.data.status) {
       // 你要的欄位映射
       records.value = res.data.data.map(item => ({
@@ -190,7 +266,9 @@ async function fetchSubscriptions(page = 1) {
         paymentMethod: item.payment_method,
         invoiceUrl: item.invoice_image_url,
         price: item.price,
-        nextPayment: item.next_payment
+        nextPayment: item.next_payment,
+        endAt: item.end_at,
+        tradeNo: item.merchant_trade_no
       }))
       // 更新後端回傳的 meta
       meta.value = res.data.meta
@@ -200,6 +278,63 @@ async function fetchSubscriptions(page = 1) {
   } catch (err) {
     console.error('取得訂閱紀錄失敗：', err.response?.data || err)
   }
+}
+
+// 計算目前訂閱狀態
+const subscriptionStatus = computed(() => {
+  // 沒有訂閱
+  if (records.value.length === 0) {
+    return 'no-subscription'
+  }
+
+  const latestRecord = records.value[0]
+
+  if (latestRecord.plan && latestRecord.plan.includes('試用')) {
+    // 檢查試用期是否還有效
+    if (latestRecord.endAt) {
+      const endDate = new Date(latestRecord.endAt)
+      const today = new Date()
+
+      if (endDate > today) {
+        return 'trial-active' // 試用期有效
+      } else {
+        return 'trial-expired' // 試用期已到期
+      }
+    }
+    return 'trial-active' // 預設試用期有效
+  }
+
+  // 有下次付款日期 → 有訂閱
+  if (latestRecord.nextPayment) {
+    return 'active'
+  }
+
+  // 沒有下次付款日期，確認是否還在觀看期限內
+  if (latestRecord.endAt) {
+    const endDate = new Date(latestRecord.endAt)
+    const today = new Date()
+
+    if (endDate > today) {
+      return 'cancelled-but-valid' // 已取消但還在觀看期限內
+    } else {
+      return 'expired' // 完全到期
+    }
+  }
+
+  return 'expired' // 預設為到期
+})
+
+// 取得可觀看課程類別API
+async function getCourseType(token) {
+  const res = await axios.get(
+    'https://sportify.zeabur.app/api/v1/users/course-type',
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  )
+  return res.data.data
 }
 
 // 6. 切頁函式
@@ -213,6 +348,25 @@ onMounted(async () => {
   await initUser()
   fetchSubscriptions(1)
 })
+
+async function unsubscribe(MerchantTradeNo) {
+  try {
+    const token = localStorage.getItem('token')
+
+    const confirmed = confirm(
+      '確定要取消訂閱嗎？\n取消後將在當前訂閱期結束後停止自動續訂。'
+    )
+    if (!confirmed) return
+
+    await cancelPayment(token, MerchantTradeNo)
+
+    await fetchSubscriptions(currentPage.value)
+    alert('訂閱已成功取消\n您可以繼續使用服務至當前訂閱期結束')
+  } catch (error) {
+    console.error('取消訂閱失敗:', error)
+    alert('取消訂閱失敗，請稍後再試')
+  }
+}
 </script>
 
 <style scoped lang="scss">
