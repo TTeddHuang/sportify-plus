@@ -1,22 +1,20 @@
 <template>
-  <section class="faq-section position-relative py-lg-12 text-white">
-    <div class="container d-flex">
+  <section class="faq-section position-relative py-lg-12 text-white mb-12">
+    <div class="container d-lg-flex">
       <!-- 標題與裝飾 -->
       <div
-        class="faq-header position-relative d-flex align-items-start justify-content-center mb-4"
+        class="faq-header d-flex align-items-start justify-content-center mb-4 position-relative"
       >
-        <h2 class="me-3 fs-lg-2 fw-bold">FAQ</h2>
+        <h2 class="me-lg-3 fs-lg-2 fw-bold faq-custom position-relative">
+          FAQ
+          <img :src="lineImg" alt="decor" class="corner-decor top-end" />
+          <img :src="lineImg" alt="decor" class="corner-decor bottom-start" />
+        </h2>
         <!-- 左下與右上角裝飾 -->
-        <img :src="lineImg" alt="decor" class="corner-decor top-end" />
-        <img :src="lineImg" alt="decor" class="corner-decor bottom-start" />
       </div>
 
       <!-- Accordion，置中顯示 -->
-      <div
-        id="faqAccordion"
-        class="accordion w-100"
-        style="max-width: 900px; margin-left: 120px"
-      >
+      <div id="faqAccordion" class="accordion w-100">
         <div
           v-for="(item, idx) in faqList"
           :key="idx"
@@ -24,7 +22,7 @@
         >
           <h2 :id="`heading${idx}`" class="accordion-header">
             <button
-              class="accordion-button collapsed bg-transparent text-white fs-lg-5 rounded-0"
+              class="accordion-button collapsed bg-transparent text-white fs-lg-5 fs-7 fw-bold rounded-0"
               type="button"
               @click="toggle(idx)"
             >
@@ -51,10 +49,11 @@
 
       <!-- 回頂部按鈕 (右下角) -->
       <button
-        class="btn btn-outline-light fs-lg-6 btn-top"
+        class="btn btn-outline-light fs-lg-6 btn-top d-flex align-items-center"
         @click="scrollToTop"
       >
-        Top
+        <i class="bi bi-chevron-up me-2" style="font-size: 24px"></i>
+        <p class="mb-0">Top</p>
       </button>
     </div>
   </section>
@@ -105,24 +104,9 @@ function scrollToTop() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* 裝飾線圖檔 */
-.corner-decor {
-  position: absolute;
-  color: #0d6efd;
-  text-shadow:
-    0 0 28px #005ca4,
-    0 0 10.8px #005ca4,
-    0 0 10.8px #005ca4;
-}
-.corner-decor.top-end {
-  top: -55px;
-  right: -60px;
-}
-.corner-decor.bottom-start {
-  top: 10px;
-  left: -70px;
-}
+
 .accordion-button {
   padding: 24px 0;
   border: none;
@@ -134,6 +118,9 @@ function scrollToTop() {
 .accordion-body {
   padding-top: 24px;
   padding-left: 0;
+  @media (max-width: 992px) {
+    padding-right: 0;
+  }
 }
 .text-gray-400 {
   color: rgba(255, 255, 255, 0.7);
@@ -146,8 +133,57 @@ function scrollToTop() {
   position: absolute;
   right: 60px;
   bottom: -30px;
+  @media (max-width: 992px) {
+    position: static;
+    display: block;
+    margin: 0 auto;
+    margin-top: 52px;
+    width: 96px;
+    height: 56px;
+  }
 }
 .accordion-button::after {
   display: none;
+}
+.accordion {
+  max-width: 900px;
+  margin-left: 120px;
+  @media (max-width: 992px) {
+    margin-left: 0;
+    padding: 12px;
+  }
+}
+.faq-custom {
+  position: relative;
+  display: inline-block;
+  @media (max-width: 992px) {
+    width: 93px;
+    font-size: 48px;
+    margin-bottom: 76px;
+  }
+  .corner-decor {
+    position: absolute;
+    color: #0d6efd;
+    text-shadow:
+      0 0 28px #005ca4,
+      0 0 10.8px #005ca4,
+      0 0 10.8px #005ca4;
+  }
+  .corner-decor.top-end {
+    top: -65px;
+    left: 90px;
+    @media (max-width: 992px) {
+      top: -60px;
+      left: 80px;
+    }
+  }
+  .corner-decor.bottom-start {
+    top: 15px;
+    left: -80px;
+    @media (max-width: 992px) {
+      top: 10px;
+      left: -72px;
+    }
+  }
 }
 </style>

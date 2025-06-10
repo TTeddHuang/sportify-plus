@@ -1,6 +1,6 @@
 <template>
-  <div class="detail-carousel-wrapper py-5">
-    <div class="detail-carousel-container-outer mb-lg-5">
+  <div class="detail-carousel-wrapper py-lg-10 py-8">
+    <div class="detail-carousel-container-outer mb-lg-5 px-lg-0 px-5">
       <div class="container detail-carousel-container px-0">
         <swiper
           :modules="[Navigation, Pagination]"
@@ -14,13 +14,13 @@
         >
           <swiper-slide v-for="(item, index) in slides" :key="index">
             <div
-              class="detail-slide d-flex flex-column flex-lg-row justify-content-between align-items-center p-lg-8"
+              class="detail-slide d-lg-flex flex-column flex-lg-row justify-content-between p-lg-8 p-0"
             >
-              <div class="text-block mb-4 mb-lg-0 h-100">
-                <h2 class="detail-title fw-bold mb-lg-2 fs-lg-3">
+              <div class="text-block mb-8 mb-lg-0 h-100">
+                <h2 class="detail-title fw-bold mb-lg-2 fs-3">
                   {{ item.title }}
                 </h2>
-                <p class="detail-desc text-light mb-lg-5">
+                <p class="detail-desc text-primary-000 mb-5">
                   {{ item.description }}
                 </p>
                 <img
@@ -28,16 +28,14 @@
                   :src="item.image"
                   :alt="`${item.title} 小圖`"
                   class="rounded w-100 d-block object-fit-cover"
-                  style="width: 352px; height: 400px"
                 />
               </div>
 
-              <div class="media-block position-relative d-block">
+              <div class="media-block position-relative">
                 <img
                   :src="item.videoCover"
                   :alt="`${item.title} 預覽`"
                   class="video-cover rounded"
-                  style="width: 808px"
                 />
                 <div class="play-icon position-absolute">
                   <i class="bi bi-play-circle-fill"></i>
@@ -49,8 +47,8 @@
       </div>
     </div>
 
-    <div class="custom-pagination my-lg-8"></div>
-    <div class="text-center mt-4">
+    <div class="custom-pagination my-lg-8" style="height: 12px"></div>
+    <div class="text-center" style="margin-top: 56px">
       <button class="btn btn-primary-600 px-lg-5 py-lg-3 fs-lg-6">
         <router-link to="/users/subscription" class="text-primary-000">
           我要體驗
@@ -96,6 +94,7 @@ const onSwiper = swiper => {
   setTimeout(() => {
     swiper.params.pagination.el = '.custom-pagination'
     swiper.pagination.init()
+    swiper.pagination.render()
     swiper.pagination.update()
   })
 }
@@ -106,10 +105,10 @@ const onSwiper = swiper => {
 
 /* 保持箭頭外露，但隱藏多餘 slide */
 ::v-deep(.swiper-slide) {
-  width: 100% !important;
+  width: 100%;
   flex-shrink: 0;
   overflow: hidden;
-  padding: 0 8px; // 或者你希望的空隙
+
   box-sizing: border-box;
 }
 
@@ -117,24 +116,29 @@ const onSwiper = swiper => {
 ::v-deep(.swiper-button-prev),
 ::v-deep(.swiper-button-next) {
   border-radius: 8px;
-  border: 2px solid #a8a8a8 !important;
-  width: 72px;
-  height: 62px;
+  border: 2px solid #a8a8a8;
+  color: $primary-100;
+  width: 48px;
+  height: 48px;
   font-size: 16px;
-  z-index: 20 !important;
+  z-index: 20;
   top: 50%;
   transform: translateY(-50%);
 }
 ::v-deep(.swiper-button-prev) {
-  left: -48px;
+  left: -100px;
 }
 ::v-deep(.swiper-button-next) {
-  right: -48px;
+  right: -100px;
+}
+
+::v-deep(.swiper-button-prev::after),
+::v-deep(.swiper-button-next::after) {
+  font-size: 16px; // 控制箭頭圖示大小
 }
 
 .detail-swiper,
 .detail-swiper .text-block .small-image {
-  max-width: 352px;
   height: auto;
   display: block;
 }
@@ -166,47 +170,46 @@ const onSwiper = swiper => {
 }
 
 .detail-slide {
-  display: flex;
+  justify-content: center;
   gap: 32px;
-  align-items: center;
+  flex-wrap: wrap;
+
+  @media (min-width: 992px) {
+    flex-wrap: nowrap;
+  }
 
   .text-block {
+    width: 100%;
     flex: 1;
-    width: 352px;
-    .detail-title {
-      font-size: 1.75rem;
+    max-width: 352px;
+    background-position: center;
+    @media (min-width: 992px) {
+      max-width: 352px;
+      flex: 1;
     }
-    .detail-desc {
-      line-height: 1.6;
-    }
-    .small-image {
-      max-width: 300px;
+    @media (max-width: 992px) {
+      max-width: 100%;
+      width: 100%;
+      padding: 0 24px;
+      align-self: flex-start;
+      padding: 24px;
+      padding-bottom: 0;
     }
   }
 }
+.text-block img {
+  width: 100%;
+  height: 400px;
+  max-width: 352px;
 
-::v-deep(.swiper-button-prev),
-::v-deep(.swiper-button-next) {
-  background: rgba(255, 255, 255, 0.1);
-  border: 16px solid #a8a8a8;
-  border-radius: 16px;
-  width: 40px;
-  height: 40px;
-  color: #fff;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  &::after {
-    font-size: 20px;
+  @media (max-width: 992px) {
+    max-width: 100%;
+    height: 160px;
+    object-fit: cover;
+    object-position: top center; //
   }
 }
-::v-deep(.swiper-button-prev) {
-  left: -100px; // 負值推出去
-}
 
-::v-deep(.swiper-button-next) {
-  right: -100px;
-}
 .custom-pagination {
   display: flex;
   justify-content: center;
@@ -232,7 +235,7 @@ const onSwiper = swiper => {
 
   .detail-carousel-container-outer {
     position: relative;
-    overflow: hidden; // 確保 swiper 不會跑出
+    overflow: visible; // ✅ 允許陰影超出顯示
     max-width: 100%; // ❗ 不限制寬度
   }
 
@@ -250,12 +253,20 @@ const onSwiper = swiper => {
   overflow: visible;
 }
 .media-block {
-  width: 808px; // 固定寬度
+  width: 70%;
+  max-width: 808px;
   height: 599px;
   position: relative;
+  margin-bottom: 24px;
+
+  @media (max-width: 992px) {
+    width: 100%;
+    height: 200px;
+    padding: 0 24px;
+  }
 
   .video-cover {
-    width: 100%;
+    max-width: 100%;
     height: 100%;
     object-fit: cover;
     filter: brightness(50%);
@@ -272,16 +283,17 @@ const onSwiper = swiper => {
     z-index: 2;
   }
 }
-.detail-slide {
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  flex-wrap: wrap;
-
-  @media (min-width: 992px) {
-    flex-wrap: nowrap;
+.media-block img {
+  max-width: 808px;
+  width: 100%;
+  max-height: 599px;
+  height: 100%;
+  @media (max-width: 992px) {
+    width: 100%;
+    height: 200px;
   }
 }
+
 ::v-deep(.custom-pagination) {
   display: flex;
   justify-content: center;

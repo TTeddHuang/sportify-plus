@@ -21,7 +21,21 @@ export function clearUser() {
 
 export async function initUser() {
   const token = localStorage.getItem('token')
-  if (token && !user.value) {
+  const needsInit = !user.value || !user.value.id
+
+  if (token && needsInit) {
+    try {
+      const profile = await getUserProfile()
+      const fullUser = {
+        ...profile,
+        token
+      }
+      user.value = fullUser
+      localStorage.setItem('user', JSON.stringify(fullUser))
+    } catch {
+      clearUser()
+    }
+
     // 先從 localStorage 抓取資料
     const storedUser = localStorage.getItem('user')
     if (storedUser) {

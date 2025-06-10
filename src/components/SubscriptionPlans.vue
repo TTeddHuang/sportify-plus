@@ -1,7 +1,7 @@
 <template>
   <section class="subscription-plans py-lg-12">
     <div class="container">
-      <h2 class="plans-title text-center mb-4 fs-lg-2 mb-lg-12">
+      <h2 class="plans-title text-center mb-4 fs-lg-2 mb-lg-12 mb-11">
         從這裡開始，一起尋找你喜歡的運動方式！
       </h2>
       <div class="table-responsive">
@@ -9,12 +9,14 @@
           <tbody>
             <!-- 第一行：方案名稱 & 價錢 & 按鈕 -->
             <tr>
-              <td class="label-cell fw-semibold fs-lg-6">方案</td>
+              <td class="label-cell fw-semibold fs-lg-6 mobile-hide">方案</td>
               <td v-for="plan in plans" :key="plan.name">
                 <div class="plan-card fs-lg-6 my-lg-12">
-                  <h5 class="plan-name mb-5">{{ plan.name }} 方案</h5>
+                  <h5 class="plan-name mb-5 fs-lg-5 fs-6">
+                    {{ plan.name }} 方案
+                  </h5>
                   <p class="plan-price mb-5 fs-lg-3">
-                    {{ plan.price }}<small class="ms-1 fs-lg-6">/月</small>
+                    {{ plan.price }}<small class="ms-1 fs-lg-6 fs-7">/月</small>
                   </p>
                   <button
                     :class="[
@@ -37,19 +39,21 @@
             </tr>
             <!-- 其餘行：各項規格，手動加粗處理 -->
             <tr v-for="row in rows" :key="row.label">
-              <td class="label-cell fw-semibold fs-lg-6 py-lg-12 px-4">
+              <td
+                class="label-cell fw-semibold fs-lg-6 py-lg-12 px-4 mobile-hide"
+              >
                 {{ row.label }}
               </td>
               <td
                 v-for="(parts, idx) in row.values"
                 :key="idx"
-                class="fs-lg-4 fw-bold"
+                class="fs-lg-4 fw-bold fs-7"
               >
                 <span>
                   <span
                     v-for="(part, pidx) in parts"
                     :key="pidx"
-                    :class="part.bold ? 'fs-lg-4 fw-bold' : 'fs-lg-6'"
+                    :class="part.bold ? 'fs-4 fw-bold' : 'fs-lg-6 fs-7'"
                   >
                     {{ part.text }}
                   </span>
@@ -60,15 +64,17 @@
         </table>
       </div>
       <div
-        class="my-lg-12 py-lg-8 border border-primary-000 text-center"
+        class="my-lg-12 py-lg-8 border border-primary-000 text-center my-11 p-3"
         style="border-radius: 16px"
       >
         <div class="mb-lg-8">
-          <p class="fs-lg-4 mb-lg-2">準備好開啟全新的健身旅程了嗎？</p>
-          <p class="fs-lg-6">加入 Sportify+，和上千名會員一起改變生活。</p>
+          <p class="fs-lg-4 mb-lg-2 fw-bold fs-7">
+            準備好開啟全新的健身旅程了嗎？
+          </p>
+          <p class="fs-lg-6 fs-9">加入 Sportify+，和上千名會員一起改變生活。</p>
         </div>
         <button
-          class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6"
+          class="btn-primary-600 btn px-lg-5 py-lg-3 fs-lg-6 px-8"
           type="button"
         >
           <router-link to="/users/subscription" class="text-primary-000">
@@ -145,7 +151,14 @@ const rows = [
 .table-responsive {
   border: 1px solid #eceffd;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @media (max-width: 992px) {
+    // 強制讓 table 超出寬度，觸發滑動條
+    .plan-table {
+      min-width: 768px;
+    }
+  }
 }
 .subscription-plans {
   &,
@@ -177,8 +190,10 @@ const rows = [
   font-weight: 600;
 }
 .plan-price {
-  font-size: 1.75rem;
   font-weight: 700;
+  @media (max-width: 992px) {
+    font-size: 30px;
+  }
 }
 .btn-outline-light {
   background: transparent;
@@ -187,5 +202,10 @@ const rows = [
 /* Eagerness 欄背景色 */
 .plan-table td:nth-child(4) {
   background-color: rgba(255, 255, 255, 0.15);
+}
+.mobile-hide {
+  @media (max-width: 992px) {
+    display: none;
+  }
 }
 </style>
