@@ -1,5 +1,5 @@
 <template>
-  <div class="category-swiper-wrapper position-relative py-5">
+  <div class="category-swiper-wrapper position-relative">
     <div class="swiper-button-prev swiper-button-prev-custom d-none d-md-flex">
       <i class="bi bi-chevron-left"></i>
     </div>
@@ -7,8 +7,8 @@
       <i class="bi bi-chevron-right"></i>
     </div>
 
-    <div class="container text-center text-primary-000 py-lg-12 px-0">
-      <h2 class="fw-bold mb-lg-12">豐富多元的運動課程，任你自由探索！</h2>
+    <div class="container text-center text-primary-000 py-12 px-5">
+      <h2 class="fw-bold mb-12">豐富多元的運動課程，任你自由探索！</h2>
 
       <swiper
         :modules="[Navigation, Pagination]"
@@ -18,9 +18,9 @@
         }"
         :breakpoints="{
           0: { slidesPerView: 1, spaceBetween: 0 },
-          768: { slidesPerView: 3, spaceBetween: 10 },
-          1024: { slidesPerView: 4, spaceBetween: 15 },
-          1440: { slidesPerView: 5, spaceBetween: 20 }
+          768: { slidesPerView: 3, spaceBetween: 32 },
+          1024: { slidesPerView: 4, spaceBetween: 32 },
+          1440: { slidesPerView: 5, spaceBetween: 44 }
         }"
         class="mySwiper"
       >
@@ -51,11 +51,13 @@
         <div class="custom-pagination my-lg-8"></div>
       </swiper>
 
-      <p class="text-light mt-lg-8 fs-lg-4 mb-lg-12">
+      <p class="text-light mt-lg-8 fs-lg-4 mb-lg-0 fs-6 mt-12 pt-lg-0 pt-8">
         Sportify+ 已經幫助超過
-        <span class="text-primary-000 fs-lg-1 custom-text-highlight"
-          >3,067</span
+        <span
+          class="text-primary-000 fs-1 custom-text-highlight fw-bold mx-5 fs-custom"
         >
+          3,067 <br class="d-lg-none" />
+        </span>
         人，展開全新的運動旅程。
       </p>
     </div>
@@ -103,7 +105,7 @@ const categories = ref([
 
   .swiper-button-prev,
   .swiper-button-next {
-    transform: translateY(-80%);
+    transform: translateY(-50%);
     z-index: 20;
     width: 48px;
     height: 48px;
@@ -147,6 +149,7 @@ const categories = ref([
   width: 224px;
   height: 224px;
   border-radius: 12px;
+  overflow: visible;
   &::before {
     content: '';
     position: absolute;
@@ -199,5 +202,10 @@ const categories = ref([
 .swiper-button-prev::after,
 .swiper-button-next::after {
   display: none; // ⛔️ 隱藏原生箭頭
+}
+.fs-custom {
+  @media (max-width: 992px) {
+    font-size: 48px;
+  }
 }
 </style>

@@ -59,7 +59,7 @@
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {{ selectedPlan || '選擇方案' }}
+                {{ selectedPlanLabel || '選擇方案' }}
               </button>
               <ul class="dropdown-menu">
                 <!-- 「全部方案」(清空 selectedPlan) -->
@@ -74,13 +74,13 @@
                 </li>
 
                 <!-- 動態產生其他三個方案 -->
-                <li v-for="plan in planOptions" :key="plan">
+                <li v-for="plan in planOptions" :key="plan.value">
                   <a
                     href="#"
                     class="dropdown-item"
-                    @click.prevent="selectedPlan = plan"
+                    @click.prevent="selectedPlan = plan.value"
                   >
-                    {{ plan }}
+                    {{ plan.label }}
                   </a>
                 </li>
               </ul>
@@ -119,7 +119,7 @@
                   <td class="td-custom">***{{ user.id.slice(-5) }}</td>
                   <td class="td-custom">{{ user.name }}</td>
                   <td class="td-custom">{{ user.email }}</td>
-                  <td class="td-custom">{{ formatDate(user.createdAt) }}</td>
+                  <td class="td-custom">{{ user.createdAt }}</td>
                   <td class="td-custom">
                     <template v-if="user.plan === 'Fitness方案'">
                       Fitness方案
@@ -131,6 +131,9 @@
 
                     <template v-else-if="user.plan === 'Eagerness方案'">
                       Eagerness方案
+                    </template>
+                    <template v-else-if="user.plan === 'Eagerness方案-7天試用'">
+                      試用方案
                     </template>
                     <template v-else>未訂閱</template>
                   </td>
@@ -242,9 +245,7 @@
 
                         <div class="me-4">
                           <strong>註冊時間：</strong
-                          ><span>{{
-                            formatDate(selectedUser?.createdAt)
-                          }}</span>
+                          ><span>{{ selectedUser?.createdAt }}</span>
                         </div>
 
                         <div class="me-4">
@@ -269,6 +270,7 @@
                   </div>
                 </div>
                 <p class="fs-6 fw-bold">訂閱紀錄</p>
+                <!-- 訂閱記錄表格 -->
                 <div class="subscription-card">
                   <div class="card-wrapper"></div>
                   <div class="card-content p-5 mb-5">
@@ -294,7 +296,7 @@
                             <td class="td-custom">{{ r.paymentMethod }}</td>
                             <td class="td-custom">
                               <a
-                                :href="item.invoiceUrl"
+                                :href="r.invoiceUrl"
                                 target="_blank"
                                 class="text-decoration-none"
                               >
@@ -313,6 +315,44 @@
                     </div>
                   </div>
                 </div>
+                <!-- 切換頁數 -->
+                <nav
+                  class="d-flex justify-content-center"
+                  style="padding-top: 4px"
+                >
+                  <ul class="pagination modal-pagination mb-0">
+                    <li
+                      class="page-item"
+                      :class="{ disabled: currentModalPage === 1 }"
+                      @click="changeModalPage(currentModalPage - 1)"
+                    >
+                      <a class="page-link me-lg-11 me-5 text-grey-700"
+                        >上一頁</a
+                      >
+                    </li>
+                    <li
+                      v-for="page in totalModalPages"
+                      :key="page"
+                      class="page-item mx-2 text-primary-900;"
+                      :class="{ active: page === currentModalPage }"
+                      @click="changeModalPage(page)"
+                    >
+                      <a class="page-link">{{ page }}</a>
+                    </li>
+                    <li
+                      class="page-item"
+                      :class="{
+                        disabled: currentModalPage === totalModalPages
+                      }"
+                      @click="changeModalPage(currentModalPage + 1)"
+                    >
+                      <a class="page-link ms-lg-11 ms-5 text-grey-700"
+                        >下一頁</a
+                      >
+                    </li>
+                  </ul>
+                </nav>
+
                 <div class="modal-footer justify-content-center border-0">
                   <button
                     type="button"
@@ -380,7 +420,18 @@ watch([selectedPlan, searchKeyword], () => {
 })
 
 // 下拉選單的四個選項
-const planOptions = ['Fitness方案', 'Wellness方案', 'Eagerness方案', '未訂閱']
+const planOptions = [
+  { label: 'Fitness方案', value: 'Fitness方案' },
+  { label: 'Wellness方案', value: 'Wellness方案' },
+  { label: 'Eagerness方案', value: 'Eagerness方案' },
+  { label: '試用方案', value: 'Eagerness方案-7天試用' }, // 顯示文字是「試用方案」
+  { label: '未訂閱', value: '未訂閱' }
+]
+
+const selectedPlanLabel = computed(() => {
+  const found = planOptions.find(p => p.value === selectedPlan.value)
+  return found ? found.label : '選擇方案'
+})
 
 // 把後端資料抓下來
 async function fetchUsers(page = 1) {
@@ -480,18 +531,6 @@ function changeUserPage(p) {
   pagination.value.page = p
 }
 
-// 格式化日期：YYYY/MM/DD HH:mm
-function formatDate(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const Y = d.getFullYear()
-  const M = String(d.getMonth() + 1).padStart(2, '0')
-  const D = String(d.getDate()).padStart(2, '0')
-  const h = String(d.getHours()).padStart(2, '0')
-  const m = String(d.getMinutes()).padStart(2, '0')
-  return `${Y}/${M}/${D} ${h}:${m}`
-}
-
 // 載入用戶訂閱紀錄
 // 用來存放訂閱紀錄列表
 const records = ref([])
@@ -503,7 +542,7 @@ async function fetchSubscriptions(userId, page = 1) {
   try {
     const token = localStorage.getItem('token')
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/admin/users/${userId}/subscriptions`,
+      `https://sportify.zeabur.app/api/v1/admin/subscriptions/${userId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { page }
@@ -529,6 +568,17 @@ async function fetchSubscriptions(userId, page = 1) {
   } catch (err) {
     console.error('fetchSubscriptions error:', err)
     records.value = []
+  }
+}
+
+const currentModalPage = ref(1)
+const totalModalPages = computed(() => subscriptionMeta.value.total_pages)
+
+function changeModalPage(p) {
+  if (p < 1 || p > totalModalPages.value) return
+  currentModalPage.value = p
+  if (selectedUser.value) {
+    fetchSubscriptions(selectedUser.value.id, p)
   }
 }
 
@@ -561,6 +611,7 @@ onMounted(async () => {
 
 function openDetailModal(user) {
   selectedUser.value = user
+  currentModalPage.value = 1
   fetchSubscriptions(user.id, 1)
   const modalEl = document.getElementById('detailModal')
   // eslint-disable-next-line no-undef
@@ -624,6 +675,31 @@ function openDetailModal(user) {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+// modal Page
+.modal-pagination .page-link {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  color: $grey-700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(48, 79, 254, 0.1);
+  }
+}
+.modal-pagination .page-item.active .page-link {
+  background-color: $primary-700;
+  color: $primary-100;
+}
+
+.modal-pagination .page-item.disabled .page-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .card-wrapper {
   background-color: $primary-600;
   border-radius: 15px 15px 0 0;
