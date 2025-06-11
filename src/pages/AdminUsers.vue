@@ -46,7 +46,7 @@
       </div>
 
       <!-- 右側主區塊 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <div class="d-lg-flex">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">會員管理</h2>
 

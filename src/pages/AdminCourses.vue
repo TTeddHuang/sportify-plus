@@ -45,7 +45,7 @@
         </div>
       </div>
       <!-- 外框顏色 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <div class="d-lg-flex gap-6">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">課程管理</h2>
           <div class="d-flex mb-5">

@@ -38,7 +38,7 @@
       <!-- 右側主區塊：你的專屬教練群 -->
       <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
         <h2 class="fs-lg-4 mb-lg-8 mb-6">你的專屬教練群</h2>
-        <div class="scrollable-btn-wrapper position-relative">
+        <div ref="scrollWrapper" class="scrollable-btn-wrapper">
           <div
             class="scrollable-btn-group d-flex flex-row align-items-center mb-lg-8 mb-6"
             @scroll="onScroll"
@@ -78,7 +78,7 @@
                 已收藏
               </button>
               <button
-                v-for="type in uniqueCourseTypes"
+                v-for="type in courseTypes"
                 :key="type"
                 href="#"
                 class="btn btn-outline-grey-400"
@@ -293,15 +293,11 @@ const isFavoriteOnly = ref(false)
 const rating = ref(0)
 const comment = ref('')
 const selectedCourse = ref(null)
+const pageSize = 6
 
 const isEditing = ref(false)
 
 const courses = ref([])
-
-const uniqueCourseTypes = computed(() => {
-  const types = courses.value.map(c => c.course_type)
-  return [...new Set(types)] // 用 Set 過濾重複類別
-})
 
 const filteredCourses = computed(() => {
   let filtered = courses.value
@@ -318,6 +314,61 @@ const filteredCourses = computed(() => {
 
   return filtered
 })
+
+const fetchAllUserCourses = async token => {
+  try {
+    // 先抓第 1 頁，並拿到總頁數
+    const first = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/courses',
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page: 1 }
+      }
+    )
+    const allData = [...first.data.data]
+    const totalPages = first.data.meta.pagination.total_pages
+
+    // 之後的頁一起併入
+    const requests = []
+    for (let p = 2; p <= totalPages; p++) {
+      requests.push(
+        axios.get('https://sportify.zeabur.app/api/v1/users/courses', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: p }
+        })
+      )
+    }
+    const results = await Promise.all(requests)
+    results.forEach(r => allData.push(...r.data.data))
+
+    // 最後一次性寫入 courses
+    courses.value = allData.map(c => ({
+      ...c,
+      isRated: false,
+      isFavorited: c.isFavorited || false
+    }))
+
+    // 為每堂課補抓評分狀態
+    await Promise.all(courses.value.map(c => fetchUserRatingByCourseId(c)))
+  } catch (err) {
+    console.error('載入所有課程失敗:', err)
+  }
+}
+
+const courseTypes = ref([])
+
+const fetchCourseTypes = async token => {
+  try {
+    const res = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/course-type',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    // 後端回傳的是 data: [ { skill_id, course_type, … }, … ]
+    courseTypes.value = res.data.data.map(item => item.course_type)
+  } catch (err) {
+    console.error('載入課程類別失敗', err)
+  }
+}
 
 const toggleFavorite = async course => {
   const token = localStorage.getItem('token')
@@ -374,44 +425,20 @@ const checkOverflow = () => {
   isOverflowing.value = isMobile && wrapper.scrollWidth > wrapper.clientWidth
 }
 
-const fetchUserCourses = async token => {
-  try {
-    const res = await axios.get(
-      'https://sportify.zeabur.app/api/v1/users/courses',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-    courses.value = res.data.data.map(course => ({
-      ...course,
-      isRated: course.isRated || false,
-      isFavorited: course.isFavorited || false
-    }))
-  } catch (err) {
-    console.error('載入課程失敗:', err)
+const totalPages = computed(() =>
+  Math.ceil(filteredCourses.value.length / pageSize)
+)
+const pagedCourses = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredCourses.value.slice(start, start + pageSize)
+})
+function changePage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
 // 4. 修正 onMounted 中的初始化順序
-onMounted(async () => {
-  checkOverflow()
-  window.addEventListener('resize', checkOverflow)
-
-  await initUser()
-  const token = localStorage.getItem('token')
-  if (!token) {
-    route.push('/login')
-    return
-  }
-
-  await fetchUserCourses(token)
-
-  for (const course of courses.value) {
-    await fetchUserRatingByCourseId(course)
-  }
-})
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkOverflow)
@@ -601,19 +628,67 @@ const fetchUserRatingByCourseId = async course => {
   }
 }
 
-const pageSize = 6
-const pagedCourses = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredCourses.value.slice(start, start + pageSize)
-})
-const totalPages = computed(() =>
-  Math.ceil(filteredCourses.value.length / pageSize)
-)
-function changePage(page) {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-  }
+const scrollWrapper = ref(null)
+let isDown = false
+let startX = 0
+let scrollLeft = 0
+
+function onMouseDown(e) {
+  // 如果點到按鈕或連結，就放過，不當拖拉
+  if (e.target.closest('button, a, .btn')) return
+
+  isDown = true
+  scrollWrapper.value.classList.add('dragging')
+  // 記錄起始座標與初始 scroll
+  startX = e.pageX - scrollWrapper.value.offsetLeft
+  scrollLeft = scrollWrapper.value.scrollLeft
+  // 取消文字選取
+  document.body.style.userSelect = 'none'
 }
+
+function onMouseMove(e) {
+  if (!isDown) return
+  e.preventDefault()
+  const x = e.pageX - scrollWrapper.value.offsetLeft
+  const walk = x - startX
+  scrollWrapper.value.scrollLeft = scrollLeft - walk
+}
+
+function onMouseUp() {
+  isDown = false
+  scrollWrapper.value.classList.remove('dragging')
+  document.body.style.userSelect = ''
+}
+
+onMounted(() => {
+  const el = scrollWrapper.value
+  el.addEventListener('mousedown', onMouseDown)
+  el.addEventListener('mousemove', onMouseMove)
+  el.addEventListener('mouseup', onMouseUp)
+  el.addEventListener('mouseleave', onMouseUp)
+})
+
+onBeforeUnmount(() => {
+  const el = scrollWrapper.value
+  el.removeEventListener('mousedown', onMouseDown)
+  el.removeEventListener('mousemove', onMouseMove)
+  el.removeEventListener('mouseup', onMouseUp)
+  el.removeEventListener('mouseleave', onMouseUp)
+})
+
+onMounted(async () => {
+  checkOverflow()
+  window.addEventListener('resize', checkOverflow)
+
+  await initUser()
+  const token = localStorage.getItem('token')
+  if (!token) {
+    route.push('/login')
+    return
+  }
+  await fetchCourseTypes(token)
+  await fetchAllUserCourses(token)
+})
 </script>
 
 <style scoped lang="scss">
@@ -652,7 +727,20 @@ function changePage(page) {
 .scrollable-btn-wrapper {
   position: relative;
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE 10+ */
+  -ms-overflow-style: none;
+}
+/* Chrome、Safari、Edge */
+.scrollable-btn-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.scrollable-btn-wrapper.dragging {
+  cursor: grabbing;
 }
 .scroll-hint {
   position: absolute;
@@ -678,8 +766,6 @@ function changePage(page) {
   }
 }
 .scrollable-btn-group {
-  overflow-x: auto;
-  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   white-space: nowrap;
   display: block;
@@ -688,7 +774,7 @@ function changePage(page) {
     display: none; // Chrome、Safari、Edge
   }
   .btn-group {
-    display: flex;
+    display: inline-flex;
     flex-wrap: nowrap;
     min-width: max-content; // 讓它延伸超過容器寬
   }

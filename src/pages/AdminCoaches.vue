@@ -46,11 +46,11 @@
       </div>
 
       <!-- 右側主區塊 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <div class="d-lg-flex">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">教練管理</h2>
 
-          <div class="d-flex flex-wrap gap-lg-6 gap-1 ms-1 ms-lg-6 mb-5">
+          <div class="d-flex flex-wrap gap-lg-6 gap-3 ms-lg-6 mb-3">
             <!-- 選擇類別（技能） -->
             <div class="dropdown">
               <button
@@ -63,13 +63,13 @@
               </button>
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
-                <li @click="() => (selectedSkill = '')">
+                <li @click="selectedSkill = ''">
                   <a class="dropdown-item" href="#">選擇類別</a>
                 </li>
                 <li
                   v-for="skill in skillOptions"
                   :key="skill"
-                  @click="() => (selectedSkill = skill)"
+                  @click="selectedSkill = skill"
                 >
                   <a class="dropdown-item" href="#">{{ skill }}</a>
                 </li>
@@ -87,13 +87,13 @@
               </button>
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
-                <li @click="() => (selectedCoachName = '')">
+                <li @click="selectedCoachName = ''">
                   <a class="dropdown-item" href="#">選擇教練</a>
                 </li>
                 <li
                   v-for="name in coachOptions"
                   :key="name"
-                  @click="() => (selectedCoachName = name)"
+                  @click="selectedCoachName = name"
                 >
                   <a class="dropdown-item" href="#">{{ name }}</a>
                 </li>
@@ -355,7 +355,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -414,13 +414,8 @@ const loading = ref(false)
 const error = ref(null)
 
 // 由 pagination.value 計算出目前頁碼與總頁數
-const currentPage = computed(() => pagination.value.page)
-const totalPages = computed(() => pagination.value.total_pages)
 
 // 篩選用的三個 ref，一定要都存在
-const selectedSkill = ref('')
-const selectedCoachName = ref('')
-const searchKeyword = ref('')
 
 // --------------------------------------------------
 // 取得單一頁的教練資料，並回傳「data + pagination info」
@@ -450,11 +445,16 @@ async function fetchCoachesPage(page = 1) {
 }
 
 /**
- * 這支函式在元件載入時會呼叫一次，作用：
- *  1) 先去 GET /coaches?page=1
- *  2) 拿到 pagination.total_pages 之後，若 total_pages > 1，就迴圈把後面的每一頁都拉下來
- *  3) 最終把所有頁的資料合併到 allCoaches 裡
+ * 切分「分頁顯示」給前端 Table 用
+ * 由 filteredCoaches 先做過濾、再把結果切成 pageSize，回傳當前 currentPage 那一小段
  */
+
+const pageSize = 9
+
+const selectedSkill = ref('')
+const selectedCoachName = ref('')
+const searchKeyword = ref('')
+
 async function fetchAllCoaches() {
   loading.value = true
   error.value = null
@@ -490,54 +490,50 @@ async function fetchAllCoaches() {
   }
 }
 
-/**
- * 切分「分頁顯示」給前端 Table 用
- * 由 filteredCoaches 先做過濾、再把結果切成 pageSize，回傳當前 currentPage 那一小段
- */
-const pageSize = 9 // 你要一頁顯示幾筆
 const filteredCoaches = computed(() => {
-  // 1) 先篩掉 allCoaches 裡不符合條件的
   return allCoaches.value.filter(coach => {
-    // (A) 技能篩選：如果選了 selectedSkill，且此 coach.coach_skills 不包含，就排除
-    if (selectedSkill.value) {
-      const hasSkill = coach.coach_skills.some(
-        s => s.skill_name === selectedSkill.value
-      )
-      if (!hasSkill) return false
-    }
-    // (B) 教練名稱下拉：如果選了 selectedCoachName，且名稱不一致，就排除
+    // 技能篩選
     if (
-      selectedCoachName.value &&
-      coach.coach_name !== selectedCoachName.value
-    ) {
+      selectedSkill.value &&
+      !coach.coach_skills.some(s => s.skill_name === selectedSkill.value)
+    )
       return false
-    }
-    // (C) 文字搜尋：如果輸入了 searchKeyword，且 coach_name or coach_skills 裡都不包含，就排除
+    // 教練名稱下拉
+    if (selectedCoachName.value && coach.coach_name !== selectedCoachName.value)
+      return false
+    // 關鍵字搜尋
     if (searchKeyword.value) {
-      const kw = searchKeyword.value.trim().toLowerCase()
+      const kw = searchKeyword.value.toLowerCase()
       const nameMatch = coach.coach_name.toLowerCase().includes(kw)
-      const skillNames = coach.coach_skills
+      const skillMatch = coach.coach_skills
         .map(s => s.skill_name.toLowerCase())
         .join(' ')
-      const skillMatch = skillNames.includes(kw)
+        .includes(kw)
       if (!nameMatch && !skillMatch) return false
     }
     return true
   })
 })
-// 2) 將 filteredCoaches 切分成「當前頁」要顯示的那一段
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredCoaches.value.length / pageSize)
+})
+
+const currentPage = ref(1)
+
 const paginatedResults = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return filteredCoaches.value.slice(start, start + pageSize)
 })
 
-/**
- * 換頁的時候，只需要改 currentPage.value 即可
- */
 function changePage(page) {
-  if (page < 1 || page > pagination.value.total_pages) return
-  pagination.value.page = page
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
 }
+
+watch([selectedSkill, selectedCoachName, searchKeyword], () => {
+  currentPage.value = 1
+})
 
 // 取得某位教練詳細資料
 async function fetchCoachDetail(coachId) {
@@ -584,21 +580,26 @@ onMounted(async () => {
 
 // 1. 技能下拉項目：從 coaches.value 裡蒐集所有技能名稱 (去重)
 const skillOptions = computed(() => {
+  let list = allCoaches.value
+  if (selectedCoachName.value) {
+    list = list.filter(coach => coach.coach_name === selectedCoachName.value)
+  }
+
   const set = new Set()
-  allCoaches.value.forEach(coach => {
-    coach.coach_skills.forEach(skill => {
-      set.add(skill.skill_name)
-    })
-  })
+  list.forEach(coach => coach.coach_skills.forEach(s => set.add(s.skill_name)))
   return Array.from(set)
 })
 
-// 2. 教練名稱下拉項目：從 coaches.value 裡蒐集所有 coach_name (去重)
+// 2. 教練下拉：先依 selectedSkill 過濾，再去重 coach_name
 const coachOptions = computed(() => {
+  let list = allCoaches.value
+  if (selectedSkill.value) {
+    list = list.filter(coach =>
+      coach.coach_skills.some(s => s.skill_name === selectedSkill.value)
+    )
+  }
   const set = new Set()
-  allCoaches.value.forEach(coach => {
-    set.add(coach.coach_name)
-  })
+  list.forEach(c => set.add(c.coach_name))
   return Array.from(set)
 })
 
