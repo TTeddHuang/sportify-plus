@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import draggable from 'vuedraggable'
-import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from 'uuid'
 
 /* ---------- state ---------- */
 const chapters = ref([])
@@ -16,7 +16,7 @@ const totalSections = computed(() =>
 /* ---------- helpers ---------- */
 const addChapter = () =>
   chapters.value.push({
-    id: nanoid(),
+    id: uuidv4(),
     title: '新章節',
     collapsed: false,
     sections: []
@@ -27,7 +27,7 @@ const addSection = chapter => {
     chapter.collapsed = false
   }
   chapter.sections.push({
-    id: nanoid(),
+    id: uuidv4(),
     title: '新小節',
     file: null,
     fileName: '',
@@ -55,7 +55,7 @@ const hasFile = section => {
 }
 
 const saveOrder = () => {
-  console.log('新排序', JSON.parse(JSON.stringify(chapters.value)))
+  // console.log('新排序', JSON.parse(JSON.stringify(chapters.value)))
   // 可以在這裡呼叫 API 保存
   // await saveChaptersOrder(chapters.value)
 }
@@ -115,6 +115,10 @@ const formatFileSize = bytes => {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
+
+defineExpose({
+  chapters
+})
 </script>
 
 <template>

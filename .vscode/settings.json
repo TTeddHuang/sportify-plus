@@ -16,5 +16,5 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["Ecpay", "popperjs"]
+  "cSpell.words": ["Bookloading", "Ecpay", "Licenseloading", "popperjs"]
 }

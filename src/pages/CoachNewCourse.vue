@@ -59,7 +59,7 @@
       </div>
       <div class="mb-5">
         <label class="form-label">課程影片上傳</label>
-        <draggable></draggable>
+        <draggable ref="draggableRef"></draggable>
       </div>
       <div class="text-center mt-8">
         <button
@@ -68,6 +68,14 @@
           @click.prevent="formSubmit"
         >
           建立新課程
+        </button>
+        <!-- 測試按鈕 -->
+        <button
+          type="button"
+          class="btn btn-primary ml-2"
+          @click="getDraggableData"
+        >
+          取得章節資料
         </button>
       </div>
     </form>
@@ -81,6 +89,28 @@ import draggable from '@/components/VueDraggable.vue'
 const categories = ['瑜珈', '單車', '登山', '皮拉提斯']
 const form = reactive({ name: '', intro: '', category: '' })
 const previewURL = ref('')
+const draggableRef = ref(null)
+
+function getDraggableData() {
+  if (draggableRef.value) {
+    // 取得所有章節資料
+    const chapters = draggableRef.value.chapters
+    console.log('所有章節資料:', chapters)
+
+    // 取得所有章節的 ID
+    const chapterIds = chapters.map(chapter => chapter.id)
+    console.log('章節 IDs:', chapterIds)
+
+    // 取得所有小節的 ID
+    const sectionIds = []
+    chapters.forEach(chapter => {
+      chapter.sections.forEach(section => {
+        sectionIds.push(section.id)
+      })
+    })
+    console.log('小節 IDs:', sectionIds)
+  }
+}
 
 function selectImg(e) {
   const file = e.target.files[0]

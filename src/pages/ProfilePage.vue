@@ -267,6 +267,7 @@ const triggerFileSelect = () => {
 
 // 處理檔案選擇
 const handleFileSelect = async event => {
+
   const file = event.target.files[0]
   if (!file) return
   // 檔案類型驗證
