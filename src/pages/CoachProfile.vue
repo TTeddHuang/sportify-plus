@@ -98,7 +98,7 @@
         <input
           id="bankCode"
           v-model.trim="coachProfile.bank_code"
-          type="number"
+          type="text"
           class="form-control"
           :disabled="inputState === 'readOnly'"
         />
@@ -108,7 +108,7 @@
         <input
           id="bankAccount"
           v-model.trim="coachProfile.bank_account"
-          type="number"
+          type="text"
           class="form-control"
           :disabled="inputState === 'readOnly'"
         />
@@ -206,39 +206,63 @@
         <img :src="bankBookFile" class="mt-3 img-preview" />
       </div>
       <div class="mb-3">
-        <label for="licensePhoto" class="form-label"
-          >證照與資格證上傳(多張)</label
-        >
-        <input
-          id="licensePhoto"
-          type="file"
-          class="form-control"
-          accept="image/*"
-          multiple
-          :disabled="inputState === 'readOnly' || isLicenseloading"
-          @change="handleFileSelect($event, 'license')"
-        />
-        <div class="mt-3">
+        <label for="licensePhoto" class="form-label">證照與資格證上傳</label>
+
+        <!-- 現有證照列表 -->
+        <div v-if="coachLicenses.length > 0" class="mt-3">
           <div class="row">
             <div
-              v-for="license in coachLicenses"
-              :key="license.publicId"
-              class="col-md-4 mb-2"
+              v-for="(license, index) in coachLicenses"
+              :key="license.file_public_id || index"
+              class="col-md-6 mb-3"
             >
-              <div class="position-relative">
-                <!-- 加入錯誤處理和 alt 文字 -->
-                <img :src="license.url" class="img-preview w-100" />
-                <!-- <button
-                  v-if="inputState === 'inEdit'"
-                  type="button"
-                  class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1"
-                  @click="removeLicense(license.file_public_id)"
-                >
-                  <span class="material-symbols-outlined"> close </span>
-                </button> -->
+              <div class="card">
+                <div class="card-body">
+                  <div class="position-relative mb-2">
+                    <img :src="license.file_url" class="img-preview w-100" />
+                    <button
+                      v-if="inputState === 'inEdit'"
+                      type="button"
+                      class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                      @click="removeLicense(index)"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small">證照名稱</label>
+                    <input
+                      v-model="license.filename"
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="請輸入證照名稱"
+                      :disabled="inputState === 'readOnly' || !license.file_url"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- 新增證照按鈕（編輯模式時顯示） -->
+        <div v-if="inputState === 'inEdit'" class="mt-3">
+          <input
+            ref="licenseInput"
+            type="file"
+            class="form-control"
+            accept="image/*"
+            style="display: none"
+            @change="handleFileSelect($event, 'license')"
+          />
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            :disabled="isLicenseloading"
+            @click="triggerLicenseSelect"
+          >
+            {{ isLicenseloading ? '上傳中...' : '+ 新增證照' }}
+          </button>
         </div>
       </div>
 
@@ -299,6 +323,7 @@ const profileImageFile = ref(null)
 const profileImageId = ref(null)
 const bankBookFile = ref(null)
 const bankBookId = ref(null)
+const licenseInput = ref(null)
 
 // 顯示技能列表
 const skillsDisplay = computed(() => {
@@ -347,7 +372,7 @@ const validateForm = () => {
   const bankCodeRegex = /^\d{3}$/
   if (
     coachProfile.value.bank_code &&
-    !bankCodeRegex.test(coachProfile.value.bank_code)
+    !bankCodeRegex.test(parseInt(coachProfile.value.bank_code))
   ) {
     errors.push('銀行代號必須為3位數字')
   }
@@ -356,7 +381,7 @@ const validateForm = () => {
   const bankAccountRegex = /^\d{10,16}$/
   if (
     coachProfile.value.bank_account &&
-    !bankAccountRegex.test(coachProfile.value.bank_account)
+    !bankAccountRegex.test(parseInt(coachProfile.value.bank_account))
   ) {
     errors.push('銀行帳號必須為10-16位數字')
   }
@@ -412,14 +437,25 @@ const handleFileSelect = async ($event, type) => {
       isBankBookloading.value = false
     } else if (type === 'license') {
       isLicenseloading.value = true
-      coachLicenses.value = await uploadMultipleImages(
+      const uploadResult = await uploadMultipleImages(
         files,
         type,
         'upload-license'
       )
-      console.log(coachProfile.value)
+
+      // 添加到證照列表
+      coachLicenses.value.push({
+        file_url: uploadResult[0].url,
+        file_public_id: uploadResult[0].publicId,
+        filename: ''
+      })
+
+      console.log(uploadResult)
+      console.log(coachLicenses.value)
       isLicenseloading.value = false
     }
+
+    $event.target.value = ''
   } catch (error) {
     console.error('上傳檔案失敗:', error)
     alert('檔案上傳失敗，請重新選擇')
@@ -470,11 +506,15 @@ const uploadMultipleImages = async (files, imgName, endpoint) => {
     }
   )
 
-  console.log('API 完整回應:', response.data)
-  console.log('dataArray:', response.data.dataArray)
-
   const imageData = response.data.dataArray
   return imageData
+}
+
+// 移除證照
+const removeLicense = index => {
+  if (confirm('確定要刪除這張照片嗎？')) {
+    coachLicenses.value.splice(index, 1)
+  }
 }
 
 const handleSubmit = async () => {
@@ -485,28 +525,64 @@ const handleSubmit = async () => {
   try {
     const token = localStorage.getItem('token')
     submitData.value = JSON.parse(JSON.stringify(coachProfile.value))
-    submitData.value.profile_image_url = profileImageFile.value
-    submitData.value.profile_image_public_id = profileImageId.value
-    submitData.value.bankbook_copy_url = bankBookFile.value
-    submitData.value.bankbook_copy_public_id = bankBookId.value
-    submitData.value.license = coachLicenses.value
-      .map(file => file.filename)
-      .join('、')
-    submitData.value.license_data = coachLicenses.value.map(file => ({
-      filename: file.filename,
-      file_url: file.url,
-      file_public_id: file.publicId
-    }))
+
+    console.log('coachProfile', coachProfile.value)
+
+    if (profileImageId.value && profileImageFile.value) {
+      submitData.value.profile_image_url = profileImageFile.value
+      submitData.value.profile_image_public_id = profileImageId.value
+    } else {
+      delete submitData.value.profile_image_url
+      delete submitData.value.profile_image_public_id
+    }
+
+    if (bankBookId.value && bankBookFile.value) {
+      submitData.value.bankbook_copy_url = bankBookFile.value
+      submitData.value.bankbook_copy_public_id = bankBookId.value
+    } else {
+      delete submitData.value.bankbook_copy_url
+      delete submitData.value.bankbook_copy_public_id
+    }
+    console.log(coachLicenses.value)
+
+    // 過濾證照資料：只保留 url、filename、publicId 都有值的物件
+    const validLicenses = coachLicenses.value.filter(license => {
+      const hasUrl = license.file_url && license.file_url.trim() !== ''
+      const hasFilename = license.filename && license.filename.trim() !== ''
+      const hasId =
+        license.file_public_id && license.file_public_id.trim() !== ''
+
+      console.log(
+        `證照驗證 - URL: ${hasUrl}, Filename: ${hasFilename}, ID: ${hasId}`
+      )
+
+      return hasUrl && hasFilename && hasId
+    })
+
+    console.log('有效的證照資料:', validLicenses)
+
+    if (validLicenses.length > 0) {
+      submitData.value.license = validLicenses
+        .map(file => file.filename)
+        .join('、')
+      submitData.value.license_data = validLicenses.map(file => ({
+        filename: file.filename,
+        file_url: file.file_url,
+        file_public_id: file.file_public_id
+      }))
+    } else {
+      delete submitData.value.license
+      delete submitData.value.license_data
+    }
 
     delete submitData.value.skills
     delete submitData.value.is_verified
     delete submitData.value.id
-    delete submitData.value.background_image_url
     delete submitData.value.email
 
     submitData.value.skill = skills.value
 
-    console.log(submitData.value)
+    console.log('submitData', submitData.value)
 
     // 提交主要資料
     const response = await axios.patch(
@@ -583,6 +659,11 @@ function triggerAvatarSelect() {
   avatarInput.value?.click()
 }
 
+// 觸發證照選擇
+const triggerLicenseSelect = () => {
+  licenseInput.value?.click()
+}
+
 // 取得教練資料
 const loadCoachProfile = async () => {
   try {
@@ -595,15 +676,24 @@ const loadCoachProfile = async () => {
     )
     if (response.data.status) {
       const data = response.data.data
-      coachLicenses.value = data.licenses || []
+      coachLicenses.value = data.licenses.map(file => ({
+        filename: file.name,
+        file_public_id: file.file_public_id,
+        file_url: file.file_url
+      }))
       coachProfile.value = data.coachDetails || {}
       skills.value = skillsDisplay.value
+
       profileImageFile.value = coachProfile.value.profile_image_url
       bankBookFile.value = coachProfile.value.bankbook_copy_url
 
       delete coachProfile.value.created_at
+      delete coachProfile.value.background_image_url
+      delete coachProfile.value.background_image_public_id
 
       console.log('教練資料:', coachProfile.value)
+      console.log('證照資料:', coachLicenses.value)
+      console.log('原資料:', data)
     }
   } catch (error) {
     console.error('載入教練資料失敗:', error)
@@ -636,5 +726,14 @@ onMounted(async () => {
 
 .img-preview {
   max-width: 200px;
+  border-radius: 4px;
+}
+
+.position-relative {
+  position: relative;
+}
+
+.position-absolute {
+  position: absolute;
 }
 </style>
