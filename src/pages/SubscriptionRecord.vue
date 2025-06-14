@@ -303,6 +303,7 @@ const currentValidPlan = computed(() => {
 
   // 找到第一筆未到期的已付款記錄
   const validRecord = records.value.find(record => {
+    if (!record.isPaid) return false
     if (!record.endAt) return false
 
     const endDate = new Date(record.endAt)
@@ -319,8 +320,7 @@ const currentValidPlan = computed(() => {
 const subscriptionStatus = computed(() => {
   const currentPlan = currentValidPlan.value
 
-  // 沒有訂閱
-  if (records.value.length === 0) {
+  if (!currentPlan) {
     return 'no-subscription'
   }
 
