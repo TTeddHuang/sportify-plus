@@ -1,33 +1,36 @@
 <template>
-  <div class="container">
-    <h1 class="fs-2 primary-000 my-10">課程分類</h1>
-    <div class="d-flex flex-row justify-content-between">
+  <div class="container mb-lg-12 mb-8">
+    <h1 class="fs-2 primary-000 my-lg-10 my-8">課程分類</h1>
+    <div class="d-xl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
-      <div
-        class="btn-group types-btn-group gap-1"
-        role="group"
-        aria-label="Basic outlined button group"
-      >
-        <button
-          href="#"
-          class="btn btn-outline-primary"
-          :class="{ active: currentType === '' }"
-          @click="((currentType = ''), (currentPage = 1))"
+
+      <div class="types-btn-wrapper gap-1">
+        <div
+          class="btn-group types-btn-group gap-1 mb-xl-0 mb-5 d-flex flex-lg-wrap"
+          role="group"
+          aria-label="Basic outlined button group"
         >
-          所有課程
-        </button>
-        <button
-          v-for="skill in skills"
-          :key="skill.skill_id"
-          href="#"
-          class="btn btn-outline-primary"
-          :class="{ active: currentType === skill.skill_id }"
-          @click="((currentType = skill.skill_id), (currentPage = 1))"
-        >
-          {{ skill.course_type }}
-        </button>
-        <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
-        <!-- <div class="dropdown">
+          <button
+            href="#"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            :class="{ active: currentType === '' }"
+            @click="((currentType = ''), (currentPage = 1))"
+          >
+            所有課程
+          </button>
+          <button
+            v-for="skill in skills"
+            :key="skill.skill_id"
+            href="#"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            :class="{ active: currentType === skill.skill_id }"
+            @click="((currentType = skill.skill_id), (currentPage = 1))"
+          >
+            {{ skill.course_type }}
+          </button>
+
+          <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
+          <!-- <div class="dropdown">
           <button
             id="dropdownMenuButton"
             class="btn btn-outline-primary dropdown-toggle"
@@ -43,7 +46,9 @@
             <li><a class="dropdown-item" href="#">滑板</a></li>
           </ul>
         </div> -->
+        </div>
       </div>
+
       <!-- 排序按鍵 -->
       <div class="d-flex gap-1 align-items-center sort-btn-group">
         <span>排序：</span>
@@ -65,7 +70,7 @@
         </button>
       </div>
     </div>
-    <div class="card-section d-flex flex-wrap gap-8">
+    <div class="card-section d-flex flex-wrap gap-lg-8 gap-5">
       <!-- 單一卡片範本-start -->
       <div
         v-for="course in courses"
@@ -95,8 +100,8 @@
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> person </span
-              ><span>{{ course.student_amount }}</span
-              >位學生
+              ><span>{{ course.numbers_of_view }}</span
+              >瀏覽次數
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> schedule </span
@@ -124,21 +129,32 @@
     <nav aria-label="Page navigation">
       <ul class="pagination d-flex justify-content-center mb-0">
         <li
-          class="page-item mx-7"
+          class="page-item mx-lg-7"
           :class="{ disabled: !pagination.has_previous }"
         >
-          <a class="page-link" @click="currentPage--">上一頁</a>
+          <a class="page-link" @click="currentPage--">
+            <!-- 小於 lg 顯示圖示 -->
+            <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+            <!-- lg 以上顯示文字 -->
+            <span class="d-none d-lg-inline">上一頁</span></a
+          >
         </li>
         <li
           v-for="page in pagination.total_pages"
           :key="page + 123"
-          class="page-item mx-5"
+          class="page-item mx-lg-5"
           :class="{ active: currentPage === page }"
         >
           <a class="page-link" @click="currentPage = page">{{ page }}</a>
         </li>
-        <li class="page-item mx-7" :class="{ disabled: !pagination.has_next }">
-          <a class="page-link" @click="currentPage++">下一頁</a>
+        <li
+          class="page-item mx-lg-7"
+          :class="{ disabled: !pagination.has_next }"
+        >
+          <a class="page-link" @click="currentPage++"
+            ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+            <span class="d-none d-lg-inline">下一頁</span></a
+          >
         </li>
       </ul>
     </nav>
@@ -212,6 +228,9 @@ watch([currentPage, currentType, currentSort], () => {
 .container {
   padding: 0;
   max-width: 1296px;
+  @media (max-width: 992px) {
+    padding: 0 24px;
+  }
 }
 
 .types-btn-group.btn-group > .btn {
@@ -270,7 +289,7 @@ watch([currentPage, currentType, currentSort], () => {
   box-shadow: inset 0 0 0 1px $grey-400;
   padding: 8px;
   border: 0px;
-  transform: translate(0px, 480px);
+  // transform: translate(0px, 480px);
   & li {
     &:not(:last-child) {
       padding-bottom: 8px;
@@ -285,6 +304,9 @@ watch([currentPage, currentType, currentSort], () => {
 
 .card-section {
   margin: 40px 0px 80px 0px;
+  @media (max-width: 992px) {
+    margin: 32px 0px 40px 0px;
+  }
 }
 
 .card {
@@ -297,6 +319,7 @@ watch([currentPage, currentType, currentSort], () => {
     0px 0px 5px #5e8edd,
     inset 0px 0px 0px 1px $primary-000;
   padding: 24px;
+  background: rgba(252, 252, 252, 0.1);
 }
 
 .badge {
@@ -371,5 +394,20 @@ watch([currentPage, currentType, currentSort], () => {
 .page-item.active .page-link {
   color: $primary-100;
   background-color: $primary-700;
+}
+.page-item {
+  @media (max-width: 992px) {
+    margin: 0 5px;
+  }
+}
+.types-btn-wrapper {
+  overflow-x: auto; // 保留橫向捲動
+}
+/* Chrome/Safari/Webkit */
+.types-btn-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.pagination .page-link {
+  cursor: pointer;
 }
 </style>

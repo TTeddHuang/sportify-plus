@@ -35,7 +35,7 @@ const navItems = computed(() => {
 const centerLink = computed(() => {
   if (isCoach.value) return '/coach/courses'
   if (isUser.value) return '/user/courses'
-  if (isAdmin.value) return '/admin'
+  if (isAdmin.value) return '/admin/courses'
   return ''
 })
 
@@ -79,7 +79,6 @@ function handleLogout() {
   clearUser()
   router.push('/')
 }
-
 </script>
 
 <template>
@@ -222,7 +221,7 @@ function handleLogout() {
 
     <div
       id="offcanvasMenu"
-      class="offcanvas offcanvas-end d-lg-none"
+      class="offcanvas offcanvas-end d-lg-none w-50"
       tabindex="-1"
       aria-labelledby="offcanvasMenuLabel"
       data-bs-dismiss="offcanvas"
@@ -231,17 +230,17 @@ function handleLogout() {
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li v-for="item in navItems" :key="item.to" class="nav-item">
-            <router-link :to="item.to" class="nav-link text-primary-000">
+            <router-link :to="item.to" class="nav-link text-primary-600">
               {{ item.label }}
             </router-link>
           </li>
           <li v-if="isLogin" class="nav-item">
-            <router-link :to="centerLink" class="nav-link text-primary-000">
+            <router-link :to="centerLink" class="nav-link text-primary-600">
               {{ centerLabel }}
             </router-link>
           </li>
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-000">
+            <router-link to="/login" class="nav-link text-primary-600">
               登入/註冊
             </router-link>
           </li>
@@ -255,14 +254,13 @@ function handleLogout() {
 @import '@/assets/styles/all.scss';
 
 .offcanvas {
-  background-color: $grey-000 !important; // 白色背景
-  top: 56px !important; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
-  height: calc(100% - 56px) !important;
+  background-color: $grey-000; // 白色背景
+  top: 72px !important; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
+  height: calc(100% - 56px);
   border-top: 1px solid #ccc;
   box-shadow: 0 4px 12 px rgba(0, 0, 0, 0.1);
 }
 .offcanvas .nav-link {
-  color: $primary-600 !important;
   text-align: center;
 }
 .dropdown-menu {

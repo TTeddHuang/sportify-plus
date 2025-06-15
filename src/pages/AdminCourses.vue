@@ -45,7 +45,7 @@
         </div>
       </div>
       <!-- 外框顏色 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <div class="d-lg-flex gap-6">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">課程管理</h2>
           <div class="d-flex mb-5">
@@ -455,7 +455,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="w-50 mx-auto">
+                <div class="mx-auto w-100">
                   <!-- 如果此課程已經是「上架中」而且尚未按下編輯，就只顯示「編輯」＋「確定」兩個按鈕 -->
                   <template
                     v-if="selectedDetail.status === '上架中' && !isEditing"
@@ -472,7 +472,7 @@
                       <!-- 直接關閉 Modal -->
                       <button
                         type="button"
-                        class="btn btn-grey-400 ms-3 text-grey-700"
+                        class="btn btn-grey-400 ms-lg-3 text-grey-700"
                         @click="closeDetailModal"
                       >
                         確定
@@ -501,7 +501,7 @@
                       </button>
                       <button
                         type="button"
-                        class="btn btn-success text-grey-700 ms-5"
+                        class="btn btn-success text-grey-700 ms-lg-5"
                         @click="approveReview"
                       >
                         通過
@@ -524,7 +524,12 @@
                 :class="{ disabled: currentCoursePage === 1 }"
                 @click="changeCoursePage(currentCoursePage - 1)"
               >
-                <a class="page-link me-lg-11 me-5">上一頁</a>
+                <a class="page-link me-lg-11 me-5"
+                  ><!-- 小於 lg 顯示圖示 -->
+                  <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                  <!-- lg 以上顯示文字 -->
+                  <span class="d-none d-lg-inline">上一頁</span></a
+                >
               </li>
               <li
                 v-for="page in totalCoursePages"
@@ -540,7 +545,10 @@
                 :class="{ disabled: currentCoursePage === totalCoursePages }"
                 @click="changeCoursePage(currentCoursePage + 1)"
               >
-                <a class="page-link ms-lg-11 ms-5">下一頁</a>
+                <a class="page-link ms-lg-11 ms-5"
+                  ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">下一頁</span></a
+                >
               </li>
             </ul>
           </nav>

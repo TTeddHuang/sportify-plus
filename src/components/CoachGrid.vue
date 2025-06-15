@@ -1,6 +1,6 @@
 <!-- 會跑出X軸要再調整 -->
 <template>
-  <div class="position-relative swiper-wrapper-with-nav">
+  <div class="position-relative swiper-wrapper-with-nav mt-3">
     <swiper
       slides-per-view="3"
       space-between="40"
@@ -12,11 +12,11 @@
       :breakpoints="{
         0: {
           slidesPerView: 1,
-          spaceBetween: 10
+          spaceBetween: 0
         },
         768: {
           slidesPerView: 2,
-          spaceBetween: 20
+          spaceBetween: 36
         },
         1024: {
           slidesPerView: 3,
@@ -29,7 +29,7 @@
       <swiper-slide v-for="coach in coaches" :key="coach.name">
         <div class="coach-col">
           <div
-            class="card coach-card position-relative"
+            class="card coach-card position-relative mt-lg-12 mt-8"
             style="background-color: rgba(255, 255, 255, 0.1)"
           >
             <!-- 圖片區 -->
@@ -61,7 +61,7 @@
           </div>
         </div>
       </swiper-slide>
-      <div class="custom-pagination my-lg-12 mt-8"></div>
+      <div class="custom-pagination my-lg-12 mt-8 mb-12"></div>
     </swiper>
   </div>
 </template>
@@ -129,6 +129,11 @@ const coaches = ref([
   box-shadow:
     0 0 24px rgba(94, 142, 221, 1),
     0 0 5px rgba(94, 142, 221, 1);
+  @media (max-width: 992px) {
+    padding: 24px;
+    width: 264px;
+    height: 654px;
+  }
 }
 .card-text {
   display: -webkit-box;

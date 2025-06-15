@@ -1,128 +1,136 @@
 <template>
-  <div class="learning-center row container">
-    <div class="side-nav col-3">
-      <div class="px-3 py-5">
-        <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
-        <hr class="divider my-5" />
-        <ul class="list-group list-group-flush">
-          <li
-            class="list-group-item"
-            :class="{ active: route.path === '/user/courses' }"
-          >
-            <router-link to="/user/courses" class="nav-link">
-              我的課程
-            </router-link>
-          </li>
-          <li
-            class="list-group-item"
-            :class="{ active: route.path === '/user/subscriptions' }"
-          >
-            <router-link to="/user/subscriptions" class="nav-link">
-              訂閱紀錄
-            </router-link>
-          </li>
-          <li
-            class="list-group-item active"
-            :class="{ active: route.path === '/user/profiles' }"
-          >
-            編輯個人資料
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div class="user-profile col-9">
-      <h2 class="fs-4">個人資料</h2>
-      <div class="profile-group row">
-        <div class="col-6 text-center">
-          <div
-            class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
-          >
-            <img :src="userAvatar" alt="個人照片" class="object-fit-cover" />
-          </div>
-          <div v-if="inputState === 'inEdit'" class="mt-3">
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              style="display: none"
-              @change="handleFileSelect"
-            />
-            <button
-              class="btn btn-primary-600"
-              :disabled="isUploading"
-              @click="triggerFileSelect"
-            >
-              {{ isUploading ? '上傳中...' : '選擇照片' }}
-            </button>
+  <div class="container">
+    <div class="d-flex">
+      <div class="learning-center row container">
+        <div class="side-nav col-xl-3 d-xl-block d-none">
+          <div class="px-3 py-5">
+            <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
+            <hr class="divider my-5" />
+            <ul class="list-group list-group-flush">
+              <li
+                class="list-group-item"
+                :class="{ active: route.path === '/user/courses' }"
+              >
+                <router-link to="/user/courses" class="nav-link">
+                  我的課程
+                </router-link>
+              </li>
+              <li
+                class="list-group-item"
+                :class="{ active: route.path === '/user/subscriptions' }"
+              >
+                <router-link to="/user/subscriptions" class="nav-link">
+                  訂閱紀錄
+                </router-link>
+              </li>
+              <li
+                class="list-group-item active"
+                :class="{ active: route.path === '/user/profiles' }"
+              >
+                編輯個人資料
+              </li>
+            </ul>
           </div>
         </div>
-        <div class="col-6">
-          <div class="mb-3">
-            <label class="form-label">會員名</label>
-            <input
-              v-model="userName"
-              type="text"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input
-              v-model="userEmail"
-              type="email"
-              class="form-control"
-              disabled
-            />
-          </div>
-          <div v-if="inputState === 'inEdit'">
-            <div class="mb-3">
-              <label class="form-label">目前密碼</label>
-              <input
-                v-model="userOldPwd"
-                type="password"
-                class="form-control"
-                placeholder="如需修改密碼，再輸入"
-              />
+        <div class="col-xl-9 p-lg-8 px-2 py-8" style="max-width: 1056px">
+          <h2 class="fs-lg-4 mb-lg-8 mb-6">個人資料</h2>
+          <div class="profile-group row">
+            <div class="col-12 col-md-6 text-center">
+              <div
+                class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
+              >
+                <img
+                  :src="userAvatar"
+                  alt="個人照片"
+                  class="object-fit-cover"
+                />
+              </div>
+              <div v-if="inputState === 'inEdit'" class="mt-3">
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  style="display: none"
+                  @change="handleFileSelect"
+                />
+                <button
+                  class="btn btn-primary-600"
+                  :disabled="isUploading"
+                  @click="triggerFileSelect"
+                >
+                  {{ isUploading ? '上傳中...' : '選擇照片' }}
+                </button>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">新密碼</label>
-              <input
-                v-model="userNewPwd"
-                type="password"
-                class="form-control"
-                placeholder="如需修改密碼，再輸入"
-                :disabled="!isNewPwdEnabled"
-              />
+            <div class="col-12 col-md-6">
+              <div class="mb-3">
+                <label class="form-label">會員名</label>
+                <input
+                  v-model="userName"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input
+                  v-model="userEmail"
+                  type="email"
+                  class="form-control"
+                  disabled
+                />
+              </div>
+              <div v-if="inputState === 'inEdit'">
+                <div class="mb-3">
+                  <label class="form-label">目前密碼</label>
+                  <input
+                    v-model="userOldPwd"
+                    type="password"
+                    class="form-control"
+                    placeholder="如需修改密碼，再輸入"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">新密碼</label>
+                  <input
+                    v-model="userNewPwd"
+                    type="password"
+                    class="form-control"
+                    placeholder="如需修改密碼，再輸入"
+                    :disabled="!isNewPwdEnabled"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">再輸入一次新密碼</label>
+                  <input
+                    v-model="userCheckPwd"
+                    type="password"
+                    class="form-control"
+                    placeholder="如需修改密碼，再輸入"
+                    :disabled="!isCheckPwdEnabled"
+                  />
+                </div>
+                <!-- 佔用於密碼狀態提示，後面可換成 vee-validation之類的? -->
+                <p class="valid-message">{{ pwdValidMessage }}</p>
+              </div>
+              <div v-if="inputState === 'readOnly'" class="my-5 text-center">
+                <button class="btn btn-primary-600" @click="goEdit">
+                  編輯個人資料
+                </button>
+              </div>
+              <div
+                v-else-if="inputState === 'inEdit'"
+                class="my-5 text-center d-flex justify-content-evenly"
+              >
+                <button class="btn btn-primary-600" @click="confirmEdit">
+                  確定修改
+                </button>
+                <button class="btn btn-notification" @click="cancelEdit">
+                  取消修改
+                </button>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">再輸入一次新密碼</label>
-              <input
-                v-model="userCheckPwd"
-                type="password"
-                class="form-control"
-                placeholder="如需修改密碼，再輸入"
-                :disabled="!isCheckPwdEnabled"
-              />
-            </div>
-            <!-- 佔用於密碼狀態提示，後面可換成 vee-validation之類的? -->
-            <p class="valid-message">{{ pwdValidMessage }}</p>
-          </div>
-          <div v-if="inputState === 'readOnly'" class="my-5 text-center">
-            <button class="btn btn-primary-600" @click="goEdit">
-              編輯個人資料
-            </button>
-          </div>
-          <div
-            v-else-if="inputState === 'inEdit'"
-            class="my-5 text-center d-flex justify-content-evenly"
-          >
-            <button class="btn btn-primary-600" @click="confirmEdit">
-              確定修改
-            </button>
-            <button class="btn btn-notification" @click="cancelEdit">
-              取消修改
-            </button>
           </div>
         </div>
       </div>
@@ -398,19 +406,20 @@ const confirmEdit = async () => {
 </script>
 
 <style scoped lang="scss">
-.container {
-  max-width: 1296px;
-  height: 100vh;
-  margin: 0 auto;
-}
-
 .side-nav {
   border-left: 1px solid $primary-100;
   border-right: 1px solid $primary-100;
+  padding: 0;
+  width: 240px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
 }
 
-.side-nav {
-  padding: 0;
+.container > .d-flex {
+  align-items: stretch;
+  min-height: 100vh; // 關鍵：讓整個容器最小高度滿版
 }
 
 .divider {
@@ -439,6 +448,9 @@ const confirmEdit = async () => {
   .profile-avatar {
     width: 300px;
   }
+  @media (max-width: 992px) {
+    padding: 40px 12px;
+  }
 }
 // input的樣式，可以考慮放到全域
 .form-control {
@@ -460,7 +472,6 @@ const confirmEdit = async () => {
 }
 
 .btn-notification {
-  // background-color: $primary-300;
   color: #fff0f0;
   &:hover {
     background-color: #ff8080;
@@ -471,5 +482,11 @@ const confirmEdit = async () => {
 
 .valid-message {
   color: $notification;
+}
+
+@media (max-width: 1024px) {
+  .side-nav {
+    display: none;
+  }
 }
 </style>

@@ -1,8 +1,15 @@
 <template>
   <div class="container mt-10">
     <div class="row">
-      <div class="col-lg-6">
-        <img src="../assets/images/logo.png" alt="" class="img-fluid" />
+      <div class="col-lg-6 mb-5">
+        <div class="image-wrapper position-relative d-inline-block">
+          <img src="@/assets/images/logo.png" alt="logo" class="img-fluid" />
+
+          <!-- 模糊遮罩：右、上、下 -->
+          <div class="blur-overlay right"></div>
+          <div class="blur-overlay top"></div>
+          <div class="blur-overlay bottom"></div>
+        </div>
       </div>
       <div class="col-lg-6">
         <h2>註冊</h2>
@@ -115,15 +122,12 @@ async function handleRegister() {
     return
 
   try {
-    await axios.post(
-      'https://sportify.zeabur.app/api/v1/auth/users/signup',
-      {
-        name: name.value,
-        email: email.value,
-        password: password.value,
-        password_check: checkPassword.value
-      }
-    )
+    await axios.post('https://sportify.zeabur.app/api/v1/auth/users/signup', {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      password_check: checkPassword.value
+    })
 
     alert('註冊成功')
     router.push('/login')
@@ -134,11 +138,54 @@ async function handleRegister() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .custom-btn {
   display: block;
   margin: 0 auto;
   width: 200px;
   max-width: 100%;
+}
+.blur-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+
+  &.right {
+    top: 0;
+    right: -19px;
+    width: 80px;
+    height: 216px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0), #000918);
+  }
+
+  &.top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to bottom, #000918, rgba(0, 0, 0, 0));
+  }
+
+  &.bottom {
+    bottom: -23px;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to top, #000918, rgba(0, 0, 0, 0));
+  }
+  @media (max-width: 991.98px) {
+    &.right {
+      right: -12px;
+      width: 40px;
+    }
+    &.top {
+      top: -3x;
+      height: 30px;
+    }
+    &.bottom {
+      bottom: -2px;
+      height: 30px;
+    }
+  }
 }
 </style>

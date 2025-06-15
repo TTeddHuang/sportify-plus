@@ -1,31 +1,32 @@
 <template>
-  <div class="container">
-    <h1 class="fs-2 primary-000 my-10">教練列表</h1>
-    <div class="d-flex flex-row justify-content-between">
+  <div class="container mb-lg-12 mb-8">
+    <h1 class="fs-2 primary-000 my-lg-10 my-8">教練列表</h1>
+    <div class="d-xl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
-      <div
-        class="btn-group types-btn-group gap-1"
-        role="group"
-        aria-label="Basic outlined button group"
-      >
-        <button
-          class="btn btn-outline-primary"
-          :class="{ active: currentType === '' }"
-          @click="((currentType = ''), (currentPage = 1))"
+      <div class="types-btn-wrapper gap-1">
+        <div
+          class="btn-group types-btn-group gap-1 mb-xl-0 mb-5 d-flex flex-lg-wrap"
+          role="group"
+          aria-label="Basic outlined button group"
         >
-          教練類別
-        </button>
-        <button
-          v-for="skill in skills"
-          :key="skill.skill_id"
-          class="btn btn-outline-primary"
-          :class="{ active: currentType === skill.skill_id }"
-          @click="((currentType = skill.skill_id), (currentPage = 1))"
-        >
-          {{ skill.course_type }}
-        </button>
-        <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
-        <!-- <div class="dropdown">
+          <button
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            :class="{ active: currentType === '' }"
+            @click="((currentType = ''), (currentPage = 1))"
+          >
+            教練類別
+          </button>
+          <button
+            v-for="skill in skills"
+            :key="skill.skill_id"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            :class="{ active: currentType === skill.skill_id }"
+            @click="((currentType = skill.skill_id), (currentPage = 1))"
+          >
+            {{ skill.course_type }}
+          </button>
+          <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
+          <!-- <div class="dropdown">
           <button
             id="dropdownMenuButton"
             class="btn btn-outline-primary dropdown-toggle"
@@ -41,9 +42,10 @@
             <li><a class="dropdown-item" href="#">滑板</a></li>
           </ul>
         </div> -->
+        </div>
       </div>
     </div>
-    <div class="card-section d-flex flex-wrap gap-8">
+    <div class="card-section d-flex flex-wrap gap-lg-8 gap-5">
       <!-- 單一卡片範本-start -->
       <div
         v-for="coach in coaches"
@@ -88,21 +90,32 @@
     <nav aria-label="Page navigation">
       <ul class="pagination d-flex justify-content-center mb-0">
         <li
-          class="page-item mx-7"
+          class="page-item mx-lg-7"
           :class="{ disabled: !pagination.has_previous }"
         >
-          <a class="page-link" @click="currentPage--">上一頁</a>
+          <a class="page-link" @click="currentPage--">
+            <!-- 小於 lg 顯示圖示 -->
+            <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+            <!-- lg 以上顯示文字 -->
+            <span class="d-none d-lg-inline">上一頁</span></a
+          >
         </li>
         <li
           v-for="page in pagination.total_pages"
           :key="page"
-          class="page-item mx-5"
+          class="page-item mx-lg-5"
           :class="{ active: currentPage === page }"
         >
           <a class="page-link" @click="currentPage = page">{{ page }}</a>
         </li>
-        <li class="page-item mx-7" :class="{ disabled: !pagination.has_next }">
-          <a class="page-link" @click="currentPage++">下一頁</a>
+        <li
+          class="page-item mx-lg-7"
+          :class="{ disabled: !pagination.has_next }"
+        >
+          <a class="page-link" @click="currentPage++"
+            ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+            <span class="d-none d-lg-inline">下一頁</span></a
+          >
         </li>
       </ul>
     </nav>
@@ -171,6 +184,9 @@ watch([currentPage, currentType], () => {
 .container {
   padding: 0;
   max-width: 1296px;
+  @media (max-width: 992px) {
+    padding: 0 24px;
+  }
 }
 
 .types-btn-group.btn-group > .btn {
@@ -244,6 +260,9 @@ watch([currentPage, currentType], () => {
 
 .card-section {
   margin: 40px 0px 80px 0px;
+  @media (max-width: 992px) {
+    margin: 32px 0px 40px 0px;
+  }
 }
 
 .card {
@@ -256,6 +275,7 @@ watch([currentPage, currentType], () => {
     0px 0px 5px #5e8edd,
     inset 0px 0px 0px 1px $primary-000;
   padding: 24px;
+  background: rgba(252, 252, 252, 0.1);
 }
 
 .badge {
@@ -330,5 +350,20 @@ watch([currentPage, currentType], () => {
 .page-item.active .page-link {
   color: $primary-100;
   background-color: $primary-700;
+}
+.page-item {
+  @media (max-width: 992px) {
+    margin: 0 5px;
+  }
+}
+.types-btn-wrapper {
+  overflow-x: auto; // 保留橫向捲動
+}
+/* Chrome/Safari/Webkit */
+.types-btn-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.pagination .page-link {
+  cursor: pointer;
 }
 </style>
