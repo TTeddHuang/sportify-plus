@@ -25,28 +25,40 @@
         class="mySwiper"
       >
         <swiper-slide v-for="(cat, index) in categories" :key="index">
-          <div class="category-card">
-            <p class="category-title mt-lg-3 text-primary-000 fs-lg-4">
-              {{ cat.name }}
-            </p>
-            <div class="category-img-wrapper">
-              <img
-                v-if="cat.name === '皮拉提斯'"
-                :src="decoPilates"
-                class="decoration"
-                alt="裝飾方框"
-                :style="{ top: '60px', left: '-100px' }"
-              />
-              <img
-                v-if="cat.name === '滑板'"
-                :src="decoSkate"
-                class="decoration"
-                alt="裝飾方框"
-                :style="{ top: '-130px', right: '-61px' }"
-              />
-              <img :src="cat.image" class="category-img" alt="" />
+          <router-link
+            class="category-card"
+            :to="{
+              path: '/courses',
+              query: {
+                page: 1,
+                skillId: cat.skillId,
+                sortBy: 'popular'
+              }
+            }"
+          >
+            <div class="">
+              <p class="category-title mt-lg-3 text-primary-000 fs-lg-4">
+                {{ cat.name }}
+              </p>
+              <div class="category-img-wrapper">
+                <img
+                  v-if="cat.name === '皮拉提斯'"
+                  :src="decoPilates"
+                  class="decoration"
+                  alt="裝飾方框"
+                  :style="{ top: '60px', left: '-100px' }"
+                />
+                <img
+                  v-if="cat.name === '滑板'"
+                  :src="decoSkate"
+                  class="decoration"
+                  alt="裝飾方框"
+                  :style="{ top: '-130px', right: '-61px' }"
+                />
+                <img :src="cat.image" class="category-img" alt="" />
+              </div>
             </div>
-          </div>
+          </router-link>
         </swiper-slide>
         <div class="custom-pagination my-lg-8"></div>
       </swiper>
@@ -75,22 +87,27 @@ import decoSkate from '@/assets/images/Frame-921.png'
 const categories = ref([
   {
     name: '皮拉提斯',
+    skillId: '6960dcf8-eea4-4473-859d-0c7fdd157ae3',
     image: new URL('@/assets/images/yoga.png', import.meta.url).href
   },
   {
     name: '重訓',
+    skillId: '4c4f4d82-9c51-4867-820f-a9b15223975a',
     image: new URL('@/assets/images/weight-lifting.png', import.meta.url).href
   },
   {
     name: '登山',
+    skillId: 'aa07b965-53ae-4e92-b4d0-731fc9df31bb',
     image: new URL('@/assets/images/hiking.png', import.meta.url).href
   },
   {
     name: '籃球',
+    skillId: 'e4182555-4bce-4772-95e7-e442c034cef1',
     image: new URL('@/assets/images/basketball.png', import.meta.url).href
   },
   {
     name: '滑板',
+    skillId: 'a1b59724-25c3-4a58-99ef-cddeb0816a0d',
     image: new URL('@/assets/images/skateboarding.png', import.meta.url).href
   }
 ])
@@ -127,14 +144,18 @@ const categories = ref([
   padding: 24px 0;
 }
 .category-card {
+  width: 100%; //新增
   position: relative;
   border-radius: 16px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 0 auto;
-  transition: transform 0.3s;
+  margin: 0; // auto
+  cursor: pointer;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
   &:hover {
     transform: scale(1.05);
   }
@@ -146,7 +167,7 @@ const categories = ref([
 }
 .category-img-wrapper {
   position: relative;
-  width: 224px;
+  width: 100%; //224px;
   height: 224px;
   border-radius: 12px;
   overflow: visible;
@@ -166,7 +187,7 @@ const categories = ref([
 }
 .category-img {
   position: relative;
-  width: 224px;
+  width: 100%; // width: 224px;
   height: 224px;
   object-fit: cover;
   border-radius: 12px;

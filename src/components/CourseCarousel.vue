@@ -55,7 +55,7 @@
                 </div>
                 <div class="icon-custom">
                   <i class="bi bi-person me-1 text-secondary-600 fs-6"></i>
-                  <p class="fs-8">{{ course.students }} 位學生</p>
+                  <p class="fs-8">{{ course.students }} 瀏覽</p>
                 </div>
                 <div class="icon-custom">
                   <i class="bi bi-clock me-1 text-secondary-600 fs-6"></i>
@@ -117,7 +117,7 @@ const fetchRecommendedCourses = async () => {
       title: item.course_name,
       category: item.course_type,
       rating: item.course_score,
-      students: item.student_amount,
+      students: item.numbers_of_view,
       duration: item.total_hours,
       instructor: {
         name: item.coach_name,
@@ -181,9 +181,8 @@ onMounted(() => {
 .mySwiper {
   padding: 0; // 🔥 padding 交由箭頭來控制位置
   position: relative; // 為絕對定位的箭頭提供定位基準
-  padding: 24px;
-  margin-left: -20px;
-  margin-right: -20px;
+  padding: 12px;
+
   overflow: hidden;
 }
 

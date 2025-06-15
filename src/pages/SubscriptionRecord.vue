@@ -2,7 +2,7 @@
   <div class="container">
     <div class="d-flex">
       <!-- 左側選單 -->
-      <div class="side-nav d-lg-block d-none">
+      <div class="side-nav d-xl-block d-none">
         <div class="px-3 py-5">
           <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
           <hr class="divider my-5" />
@@ -37,7 +37,7 @@
         </div>
       </div>
       <!-- 外框顏色 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <h2 class="fs-lg-4 mb-lg-8 mb-6">訂閱紀錄</h2>
         <p class="fs-6">目前方案</p>
         <div class="subscription-card">
@@ -47,10 +47,10 @@
             class="card-content p-5 d-lg-flex gap-12 mb-5"
           >
             <div class="mb-lg-0 mb-5">
-              <p class="fs-4 fw-bold mb-lg-3 mb-1">{{ records[0].plan }}</p>
+              <p class="fs-4 fw-bold mb-lg-3">{{ records[0].plan }}</p>
               <p
                 v-if="subscriptionStatus === 'active'"
-                class="fs-7 mb-0 pe-lg-3 py-lg-1 mt-7"
+                class="fs-7 mb-0 pe-lg-3 py-lg-1 mt-lg-7 mt-3"
               >
                 下一次收費日期：{{ records[0].nextPayment }}
               </p>
@@ -146,7 +146,7 @@
               <div class="table-responsive">
                 <table class="table table-striped mb-0 align-middle">
                   <thead class="">
-                    <tr class="text-start">
+                    <tr class="text-center">
                       <th class="th-custom">日期</th>
                       <th class="th-custom">訂單編號</th>
                       <th class="th-custom">付款內容</th>
@@ -157,7 +157,11 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="item in records" :key="item.id">
+                    <tr
+                      v-for="item in records"
+                      :key="item.id"
+                      class="text-center"
+                    >
                       <td class="td-custom">{{ item.date }}</td>
                       <td class="td-custom">{{ item.orderNumber }}</td>
                       <td class="td-custom">{{ item.plan }}</td>
@@ -188,7 +192,10 @@
                   :class="{ disabled: currentPage === 1 }"
                   @click="changePage(currentPage - 1)"
                 >
-                  <a class="page-link me-lg-11">上一頁</a>
+                  <a class="page-link me-lg-11"
+                    ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                    <span class="d-none d-lg-inline">上一頁</span></a
+                  >
                 </li>
 
                 <li
@@ -206,7 +213,10 @@
                   :class="{ disabled: currentPage === totalPages }"
                   @click="changePage(currentPage + 1)"
                 >
-                  <a class="page-link ms-lg-11">下一頁</a>
+                  <a class="page-link ms-lg-11"
+                    ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                    <span class="d-none d-lg-inline">下一頁</span></a
+                  >
                 </li>
               </ul>
             </nav>
@@ -380,6 +390,7 @@ async function unsubscribe(MerchantTradeNo) {
   flex-direction: column;
   justify-content: start;
 }
+
 .container > .d-flex {
   align-items: stretch; // 這你已經有加了
   min-height: 100vh; // 關鍵：讓整個容器最小高度滿版
@@ -446,6 +457,10 @@ async function unsubscribe(MerchantTradeNo) {
   color: $primary-900;
   background: $primary-000;
   font-size: 14px;
+}
+.th-custom,
+.td-custom {
+  white-space: nowrap;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */

@@ -4,7 +4,7 @@
     <div class="d-xl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
 
-      <div class="types-btn-wrapper pe-3">
+      <div class="types-btn-wrapper gap-1">
         <div
           class="btn-group types-btn-group gap-1 mb-xl-0 mb-5 d-flex flex-lg-wrap"
           role="group"
@@ -100,8 +100,8 @@
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> person </span
-              ><span>{{ course.student_amount }}</span
-              >位學生
+              ><span>{{ course.numbers_of_view }}</span
+              >瀏覽次數
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> schedule </span

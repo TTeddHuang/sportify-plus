@@ -2,7 +2,7 @@
   <div class="container">
     <div class="d-flex">
       <!-- 左側選單 -->
-      <div class="side-nav d-lg-block d-none">
+      <div class="side-nav">
         <div class="px-3 py-5">
           <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
           <hr class="divider my-5" />
@@ -36,7 +36,7 @@
         </div>
       </div>
       <!-- 右側主區塊：你的專屬教練群 -->
-      <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
+      <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
         <h2 class="fs-lg-4 mb-lg-8 mb-6">你的專屬教練群</h2>
         <div ref="scrollWrapper" class="scrollable-btn-wrapper">
           <div
@@ -247,7 +247,11 @@
                 :class="{ disabled: currentPage === 1 }"
                 @click="changePage(currentPage - 1)"
               >
-                <a class="page-link me-lg-11">上一頁</a>
+                <a class="page-link me-lg-11"
+                  ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
+
+                  <span class="d-none d-lg-inline">上一頁</span></a
+                >
               </li>
 
               <li
@@ -265,7 +269,10 @@
                 :class="{ disabled: currentPage === totalPages }"
                 @click="changePage(currentPage + 1)"
               >
-                <a class="page-link ms-lg-11">下一頁</a>
+                <a class="page-link ms-lg-11"
+                  ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">下一頁</span></a
+                >
               </li>
             </ul>
           </nav>
@@ -702,6 +709,12 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: start;
 }
+@media (max-width: 1400px) {
+  .side-nav {
+    display: none;
+  }
+}
+
 .container > .d-flex {
   align-items: stretch; // 這你已經有加了
   min-height: 100vh; // 關鍵：讓整個容器最小高度滿版
@@ -753,17 +766,23 @@ onMounted(async () => {
   z-index: 10;
 
   // 可加上閃爍動畫讓它被注意到
-  animation: pulse-hint 1.5s ease-in-out infinite;
+  animation-name: pulse-hint; /* 動畫名稱          */
+  animation-duration: 1.6s; /* 每圈 0.8 秒       */
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 3; /* 只跑 3 圈          */
+  animation-fill-mode: forwards; /* 跑完保持最後狀態   */
 }
 
 @keyframes pulse-hint {
-  0%,
-  100% {
+  0% {
     opacity: 0.8;
   }
   50% {
     opacity: 0.2;
   }
+  100% {
+    opacity: 0;
+  } /* ← 這裡改掉，跑完就看不見 */
 }
 .scrollable-btn-group {
   -webkit-overflow-scrolling: touch;

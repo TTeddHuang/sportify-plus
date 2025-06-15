@@ -166,7 +166,12 @@
               :class="{ disabled: currentUserPage === 1 }"
               @click="changeUserPage(currentUserPage - 1)"
             >
-              <a class="page-link me-lg-11 me-5">上一頁</a>
+              <a class="page-link me-lg-11 me-5"
+                ><!-- 小於 lg 顯示圖示 -->
+                <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                <!-- lg 以上顯示文字 -->
+                <span class="d-none d-lg-inline">上一頁</span></a
+              >
             </li>
             <li
               v-for="page in totalUserPages"
@@ -182,7 +187,10 @@
               :class="{ disabled: currentUserPage === totalUserPages }"
               @click="changeUserPage(currentUserPage + 1)"
             >
-              <a class="page-link ms-lg-11 ms-5">下一頁</a>
+              <a class="page-link ms-lg-11 ms-5"
+                ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                <span class="d-none d-lg-inline">下一頁</span></a
+              >
             </li>
           </ul>
         </nav>

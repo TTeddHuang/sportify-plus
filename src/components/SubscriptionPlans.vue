@@ -65,7 +65,7 @@
       </div>
       <div
         class="my-lg-12 py-lg-8 border border-primary-000 text-center my-11 p-3"
-        style="border-radius: 16px"
+        style="border-radius: 16px; background-color: rgba(255, 255, 255, 0.1)"
       >
         <div class="mb-lg-8">
           <p class="fs-lg-4 mb-lg-2 fw-bold fs-7">

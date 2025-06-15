@@ -33,7 +33,7 @@
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> person </span
               ><span>{{ course.numbers_of_view }}</span
-              >位學生
+              >瀏覽次數
             </p>
             <p class="d-flex align-items-center">
               <span class="material-symbols-outlined"> schedule </span
@@ -74,7 +74,7 @@ async function getCourses() {
         headers: { Authorization: `Bearer ${token}` }
       }
     )
-    courses.value = res.data.data.courses 
+    courses.value = res.data.data.courses
     coach.value = res.data.data.coach
     console.log(courses.value)
     console.log(coach.value)

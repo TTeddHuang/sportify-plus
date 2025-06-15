@@ -169,7 +169,10 @@
                 :class="{ disabled: currentPage === 1 }"
                 @click="changePage(currentPage - 1)"
               >
-                <a class="page-link">上一頁</a>
+                <a class="page-link"
+                  ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">上一頁</span></a
+                >
               </li>
               <li
                 v-for="page in totalPages"
@@ -185,7 +188,10 @@
                 :class="{ disabled: currentPage === totalPages }"
                 @click="changePage(currentPage + 1)"
               >
-                <a class="page-link">下一頁</a>
+                <a class="page-link"
+                  ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">下一頁</span></a
+                >
               </li>
             </ul>
           </nav>
@@ -626,6 +632,11 @@ const coachOptions = computed(() => {
   flex-direction: column;
   justify-content: start;
 }
+@media (max-width: 1024px) {
+  .side-nav {
+    display: none;
+  }
+}
 .container > .d-flex {
   align-items: stretch; // 這你已經有加了
   min-height: 100vh; // 關鍵：讓整個容器最小高度滿版
@@ -715,11 +726,6 @@ textarea::placeholder {
 @media (max-width: 900px) {
   .wide-table {
     min-width: 900px;
-  }
-}
-@media (max-width: 1024px) {
-  .side-nav {
-    display: none;
   }
 }
 </style>

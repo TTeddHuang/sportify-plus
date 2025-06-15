@@ -2,415 +2,437 @@
   <div>
     <div v-if="courseDetail">
       <div class="course-detail container py-5 text-white">
-        <!-- 課程標題與統計 -->
-        <div class="my-lg-12">
-          <div class="d-lg-flex justify-content-between align-items-center">
-            <h2 class="fw-bold mb-lg-0 mb-5 fs-lg-2 fs-4">
-              {{ courseDetail.course.name || '課程名稱載入中' }}
-            </h2>
-            <div class="d-flex align-items-center gap-5 gap-lg-8 mb-lg-0 mb-6">
-              <div class="icon-custom">
-                <i class="bi bi-star-fill text-secondary-600 me-1 fs-6"></i>
-                <p>{{ courseDetail.course.score }}</p>
-              </div>
-              <div class="icon-custom">
-                <i class="bi bi-person me-1 text-secondary-600 fs-6"></i>
-                <p>{{ courseDetail.course.student_amount }} 位學生</p>
-              </div>
-              <div class="icon-custom">
-                <i class="bi bi-clock me-1 text-secondary-600 fs-6"></i>
-                <p>{{ courseDetail.course.hours }} 小時</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 課程圖片與介紹 -->
-        <div class="gy-4 d-lg-flex mb-lg-12 mb-6">
-          <div class="">
-            <img
-              :src="courseDetail.course.image_url"
-              :alt="courseDetail.course.name"
-              class="course-image rounded-3 d-block mb-5 mb-lg-0"
-              width="320px"
-              height="320px"
-            />
-          </div>
-          <div>
-            <div
-              class="p-lg-8 p-5 rounded-4 border border-primary-000 ms-lg-12 h-100"
-              style="background-color: rgba(255, 255, 255, 0.05)"
-            >
-              <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
-              <div>
-                <p class="mb-5">
-                  {{ courseDetail.course.description }}
-                </p>
+        <div class="px-2">
+          <!-- 課程標題與統計 -->
+          <div class="my-lg-12">
+            <div class="d-lg-flex justify-content-between align-items-center">
+              <h2 class="fw-bold mb-lg-0 mb-5 fs-lg-2 fs-4">
+                {{ courseDetail.course.name || '課程名稱載入中' }}
+              </h2>
+              <div
+                class="d-flex align-items-center gap-5 gap-lg-8 mb-lg-0 mb-6"
+              >
+                <div class="icon-custom">
+                  <i class="bi bi-star-fill text-secondary-600 me-1 fs-6"></i>
+                  <p>{{ courseDetail.course.score }}</p>
+                </div>
+                <div class="icon-custom">
+                  <i class="bi bi-person me-1 text-secondary-600 fs-6"></i>
+                  <p>{{ courseDetail.course.numbers_of_view }} 瀏覽次數</p>
+                </div>
+                <div class="icon-custom">
+                  <i class="bi bi-clock me-1 text-secondary-600 fs-6"></i>
+                  <p>{{ courseDetail.course.hours }} 小時</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 播放影片試看 -->
-        <div class="mb-lg-12 mb-6">
-          <div class="media-block position-relative d-block">
-            <img
-              src="@/assets/images/video1.png"
-              class="rounded-2 video-cover"
-            />
-            <div class="play-icon position-absolute">
-              <i class="bi bi-play-circle-fill"></i>
+          <!-- 課程圖片與介紹 -->
+          <div class="gy-4 d-lg-flex mb-lg-12 mb-6">
+            <div class="">
+              <img
+                :src="courseDetail.course.image_url"
+                :alt="courseDetail.course.name"
+                class="course-image rounded-3 d-block mb-5 mb-lg-0"
+                width="320px"
+                height="320px"
+              />
             </div>
-          </div>
-        </div>
-
-        <!-- 教練介紹 -->
-        <div
-          class="border border-primary-000 rounded-4 p-lg-8 p-5 mb-lg-12 mb-6"
-          style="background-color: rgba(255, 255, 255, 0.05)"
-        >
-          <div
-            class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
-          >
-            <p class="fs-lg-5 fs-6 mb-0">教練介紹</p>
-            <a
-              :href="courseDetail.coach.coachPage_Url"
-              target="_blank"
-              class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
-            >
-              教練詳細資訊
-            </a>
-          </div>
-          <div class="d-lg-flex">
-            <img
-              :src="courseDetail.coach.profile_image_url"
-              :alt="courseDetail.coach.name"
-              class="rounded-3 me-lg-8 object-fit-cover mb-lg-0 mb-8 coach-image"
-            />
             <div>
               <div
-                class="d-lg-flex align-items-center gap-3 text-white flex-wrap mb-5"
+                class="p-lg-8 p-5 rounded-4 border border-primary-000 ms-lg-12 h-100"
+                style="background-color: rgba(255, 255, 255, 0.05)"
               >
-                <span class="fw-bold fs-lg-7">{{
-                  courseDetail.coach.name
-                }}</span>
-                <div class="py-lg-0 py-1">
-                  <!-- 小螢幕顯示：水平線 -->
-                  <div
-                    class="d-block d-lg-none"
-                    style="
-                      width: 18px;
-                      height: 2px;
-                      background-color: rgba(255, 255, 255, 0.5);
-                    "
-                  ></div>
-
-                  <!-- 桌機顯示：垂直線 -->
-                  <div
-                    class="d-none d-lg-block"
-                    style="
-                      width: 2px;
-                      height: 18px;
-                      background-color: rgba(255, 255, 255, 0.5);
-                    "
-                  ></div>
+                <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
+                <div>
+                  <p class="mb-5">
+                    {{ courseDetail.course.description }}
+                  </p>
                 </div>
-
-                <span class="fw-bold fs-lg-7">
-                  {{ courseDetail.coach.title }}
-                </span>
-              </div>
-              <div>
-                <p>
-                  {{ courseDetail.coach.intro }}
-                </p>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 章節介紹 -->
-        <div
-          class="rounded-4 p-lg-8 p-5 border border-primary-000 mb-lg-12 mb-6"
-          style="background-color: rgba(255, 255, 255, 0.05)"
-        >
-          <div
-            class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
-          >
-            <p class="fs-lg-5 fs-6 mb-0 fw-bold">章節介紹</p>
-            <p
-              class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
-              @click="toggleAll"
-            >
-              {{ isAllOpen ? '全部收合' : '全部展開' }}
-            </p>
+          <!-- 播放影片試看 -->
+          <div class="mb-lg-12 mb-6">
+            <div class="media-block position-relative d-block">
+              <img
+                src="@/assets/images/video1.png"
+                class="rounded-2 video-cover"
+              />
+              <div class="play-icon position-absolute">
+                <i class="bi bi-play-circle-fill"></i>
+              </div>
+            </div>
           </div>
-          <div id="courseDetail" class="accordion w-100">
+
+          <!-- 教練介紹 -->
+          <div
+            class="border border-primary-000 rounded-4 p-lg-8 p-5 mb-lg-12 mb-6"
+            style="background-color: rgba(255, 255, 255, 0.05)"
+          >
             <div
-              v-for="(item, idx) in courseDetail.chapters"
-              :key="idx"
-              class="accordion-item border-0 rounded-3 overflow-hidden"
-              style="background-color: rgba(255, 255, 255, 0.05)"
+              class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
             >
-              <h2 :id="`heading${idx}`" class="accordion-header">
-                <button
-                  class="accordion-button collapsed text-white fs-lg-6 p-5"
-                  type="button"
-                  @click="toggle(idx)"
-                >
-                  {{ item.title }}
-                  <i
-                    class="bi ms-auto"
-                    :class="
-                      openIndexes[idx] ? 'bi-chevron-up' : 'bi-chevron-down'
-                    "
-                  ></i>
-                </button>
-              </h2>
-
-              <div
-                :id="`collapse${idx}`"
-                class="accordion-collapse collapse"
-                :class="{
-                  show: openIndexes[idx],
-                  'rounded-bottom-3': openIndexes[idx]
-                }"
-                :aria-labelledby="`heading${idx}`"
-                data-bs-parent="#courseDetail"
+              <p class="fs-lg-5 fs-6 mb-0">教練介紹</p>
+              <a
+                :href="courseDetail.coach.coachPage_Url"
+                target="_blank"
+                class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
               >
-                <div class="accordion-body fs-lg-6 text-primary-000">
-                  <div v-if="openIndexes[idx]" class="hr-line mb-4"></div>
-                  <ul class="mb-0 list-unstyled">
-                    <li v-for="(sub, i) in item.subtitles" :key="i">
-                      {{ sub }}
-                    </li>
-                  </ul>
+                教練詳細資訊
+              </a>
+            </div>
+            <div class="d-lg-flex">
+              <img
+                :src="courseDetail.coach.profile_image_url"
+                :alt="courseDetail.coach.name"
+                class="rounded-3 me-lg-8 object-fit-cover mb-lg-0 mb-8 coach-image"
+              />
+              <div>
+                <div
+                  class="d-lg-flex align-items-center gap-3 text-white flex-wrap mb-5"
+                >
+                  <span class="fw-bold fs-lg-7">{{
+                    courseDetail.coach.name
+                  }}</span>
+                  <div class="py-lg-0 py-1">
+                    <!-- 小螢幕顯示：水平線 -->
+                    <div
+                      class="d-block d-lg-none"
+                      style="
+                        width: 18px;
+                        height: 2px;
+                        background-color: rgba(255, 255, 255, 0.5);
+                      "
+                    ></div>
+
+                    <!-- 桌機顯示：垂直線 -->
+                    <div
+                      class="d-none d-lg-block"
+                      style="
+                        width: 2px;
+                        height: 18px;
+                        background-color: rgba(255, 255, 255, 0.5);
+                      "
+                    ></div>
+                  </div>
+
+                  <span class="fw-bold fs-lg-7">
+                    {{ courseDetail.coach.title }}
+                  </span>
+                </div>
+                <div>
+                  <p>
+                    {{ courseDetail.coach.intro }}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 課程評價 -->
-        <div
-          class="rounded-4 p-lg-8 p-5 border border-primary-000 mb-lg-12 mb-6"
-          style="background-color: rgba(255, 255, 255, 0.05)"
-        >
+          <!-- 章節介紹 -->
           <div
-            class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
+            class="rounded-4 p-lg-8 p-5 border border-primary-000 mb-lg-12 mb-6"
+            style="background-color: rgba(255, 255, 255, 0.05)"
           >
-            <div class="d-flex justify-content-between align-items-center">
-              <p class="fs-lg-5 fs-6 mb-0 fw-bold">課程評價</p>
-              <p class="mb-0 fs-lg-7 fs-9 ms-2">
-                ({{ userRatings.paginatedData?.length || 0 }} 則評價)
+            <div
+              class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
+            >
+              <p class="fs-lg-5 fs-6 mb-0 fw-bold">章節介紹</p>
+              <p
+                class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
+                @click="toggleAll"
+              >
+                {{ isAllOpen ? '全部收合' : '全部展開' }}
               </p>
             </div>
-            <button
-              class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
-              data-bs-toggle="modal"
-              data-bs-target="#ratingsModal"
-            >
-              所有評價
-            </button>
-          </div>
-          <!-- modal -->
-          <div
-            id="ratingsModal"
-            class="modal fade"
-            tabindex="-1"
-            aria-labelledby="ratingsModalLabel"
-            aria-hidden="true"
-          >
-            <div class="modal-dialog modal-lg custom-modal-width">
-              <div class="modal-content">
-                <div
-                  class="modal-header bg-grey-000 text-grey-900 p-lg-5 pb-lg-3 border-0"
-                >
-                  <h5
-                    id="ratingsModalLabel"
-                    class="modal-title fw-bold text-primary-900 fs-lg-5 fs-6"
-                  >
-                    課程評價
-                  </h5>
-                  <p class="mb-0 fs-lg-7 fs-9 ms-2 text-primary-900">
-                    ({{ userRatings.paginatedData.length || 0 }}
-                    則評價)
-                  </p>
+            <div id="courseDetail" class="accordion w-100">
+              <div
+                v-for="(item, idx) in courseDetail.chapters"
+                :key="idx"
+                class="accordion-item border-0 rounded-3 overflow-hidden"
+                style="background-color: rgba(255, 255, 255, 0.05)"
+              >
+                <h2 :id="`heading${idx}`" class="accordion-header">
                   <button
+                    class="accordion-button collapsed text-white fs-lg-6 p-5"
                     type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div class="px-lg-5 bg-grey-000">
-                  <hr
-                    class="my-0"
-                    style="height: 2px; background-color: #d2d2d2; border: none"
-                  />
-                </div>
+                    @click="toggle(idx)"
+                  >
+                    {{ item.title }}
+                    <i
+                      class="bi ms-auto"
+                      :class="
+                        openIndexes[idx] ? 'bi-chevron-up' : 'bi-chevron-down'
+                      "
+                    ></i>
+                  </button>
+                </h2>
 
                 <div
-                  class="modal-body bg-grey-000 text-grey-700 p-lg-5 rounded-bottom-3"
+                  :id="`collapse${idx}`"
+                  class="accordion-collapse collapse"
+                  :class="{
+                    show: openIndexes[idx],
+                    'rounded-bottom-3': openIndexes[idx]
+                  }"
+                  :aria-labelledby="`heading${idx}`"
+                  data-bs-parent="#courseDetail"
                 >
+                  <div class="accordion-body fs-lg-6 text-primary-000">
+                    <div v-if="openIndexes[idx]" class="hr-line mb-4"></div>
+                    <ul class="mb-0 list-unstyled">
+                      <li v-for="(sub, i) in item.subtitles" :key="i">
+                        {{ sub }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 課程評價 -->
+          <div
+            class="rounded-4 p-lg-8 p-5 border border-primary-000 mb-lg-12 mb-6"
+            style="background-color: rgba(255, 255, 255, 0.05)"
+          >
+            <div
+              class="d-flex justify-content-between align-items-center mb-lg-8 mb-5"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="fs-lg-5 fs-6 mb-0 fw-bold">課程評價</p>
+                <p class="mb-0 fs-lg-7 fs-9 ms-2">
+                  ({{ userRatings.paginatedData?.length || 0 }} 則評價)
+                </p>
+              </div>
+              <button
+                class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
+                data-bs-toggle="modal"
+                data-bs-target="#ratingsModal"
+              >
+                所有評價
+              </button>
+            </div>
+            <!-- modal -->
+            <div
+              id="ratingsModal"
+              class="modal fade"
+              tabindex="-1"
+              aria-labelledby="ratingsModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-lg custom-modal-width px-lg-0">
+                <div class="modal-content">
                   <div
-                    v-for="rating in paginatedRatings"
-                    :key="rating.id"
-                    class="mb-4 p-lg-3 bg-primary-000 rounded-3"
+                    class="modal-header bg-grey-000 text-grey-900 p-5 pb-3 border-0"
+                  >
+                    <h5
+                      id="ratingsModalLabel"
+                      class="modal-title fw-bold text-primary-900 fs-lg-5 fs-6"
+                    >
+                      課程評價
+                    </h5>
+                    <p class="mb-0 fs-lg-7 fs-9 ms-2 text-primary-900">
+                      ({{ userRatings.paginatedData.length || 0 }}
+                      則評價)
+                    </p>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <div class="px-5 bg-grey-000">
+                    <hr
+                      class="my-0"
+                      style="
+                        height: 2px;
+                        background-color: #d2d2d2;
+                        border: none;
+                      "
+                    />
+                  </div>
+
+                  <div
+                    class="modal-body bg-grey-000 text-grey-700 p-5 rounded-bottom-3"
                   >
                     <div
-                      class="d-flex border-bottom justify-content-between align-items-center pb-2"
+                      v-for="rating in paginatedRatings"
+                      :key="rating.id"
+                      class="mb-4 p-3 bg-primary-000 rounded-3"
                     >
                       <div
-                        class="d-flex justify-content-between align-items-center"
+                        class="d-lg-flex border-bottom justify-content-between align-items-center pb-2"
                       >
-                        <div class="fw-bold">{{ rating.username }}</div>
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <div class="fw-bold">{{ rating.username }}</div>
 
-                        <div class="text-stars ms-lg-5">
-                          <i
-                            v-for="n in Math.floor(rating.score)"
-                            :key="'full-' + n"
-                            class="bi bi-star-fill me-1"
-                          ></i>
-                          <i
-                            v-if="
-                              rating.score % 1 >= 0.25 &&
+                          <div class="text-stars ms-5">
+                            <i
+                              v-for="n in Math.floor(rating.score)"
+                              :key="'full-' + n"
+                              class="bi bi-star-fill me-1"
+                            ></i>
+                            <i
+                              v-if="
+                                rating.score % 1 >= 0.25 &&
+                                rating.score % 1 < 0.75
+                              "
+                              class="bi bi-star-half me-1 text-warning"
+                            ></i>
+                            <i
+                              v-for="n in 5 -
+                              Math.floor(rating.score) -
+                              (rating.score % 1 >= 0.25 &&
                               rating.score % 1 < 0.75
-                            "
-                            class="bi bi-star-half me-1 text-warning"
-                          ></i>
-                          <i
-                            v-for="n in 5 -
-                            Math.floor(rating.score) -
-                            (rating.score % 1 >= 0.25 && rating.score % 1 < 0.75
-                              ? 1
-                              : 0)"
-                            :key="'empty-' + n"
-                            class="bi bi-star text-secondary me-1"
-                          ></i>
+                                ? 1
+                                : 0)"
+                              :key="'empty-' + n"
+                              class="bi bi-star text-secondary me-1"
+                            ></i>
+                          </div>
+                        </div>
+
+                        <div class="text-grey-600 fs-lg-8 small">
+                          {{ rating.createdAt }}
                         </div>
                       </div>
 
-                      <div class="text-grey-600 fs-lg-8 small">
-                        {{ rating.createdAt }}
-                      </div>
+                      <p class="mt-2 mb-0 text-grey-700">
+                        {{ rating.comment }}
+                      </p>
                     </div>
+                    <!-- Pagination 控制列 -->
+                    <nav
+                      class="d-flex justify-content-center"
+                      style="padding-top: 4px"
+                    >
+                      <ul class="pagination mb-0">
+                        <li
+                          class="page-item bg-grey-000"
+                          :class="{ disabled: currentPage === 1 }"
+                          @click="changePage(currentPage - 1)"
+                        >
+                          <a class="page-link me-lg-12"
+                            ><i
+                              class="bi bi-chevron-left d-inline d-lg-none"
+                            ></i>
 
-                    <p class="mt-2 mb-0 text-grey-700">{{ rating.comment }}</p>
+                            <span class="d-none d-lg-inline">上一頁</span></a
+                          >
+                        </li>
+
+                        <li
+                          v-for="page in totalPages"
+                          :key="page"
+                          class="page-item mx-2"
+                          :class="{ active: page === currentPage }"
+                          @click="changePage(page)"
+                        >
+                          <a class="page-link">{{ page }}</a>
+                        </li>
+
+                        <li
+                          class="page-item"
+                          :class="{ disabled: currentPage === totalPages }"
+                          @click="changePage(currentPage + 1)"
+                        >
+                          <a class="page-link ms-lg-12"
+                            ><i
+                              class="bi bi-chevron-right d-inline d-lg-none"
+                            ></i>
+                            <span class="d-none d-lg-inline">下一頁</span></a
+                          >
+                        </li>
+                      </ul>
+                    </nav>
                   </div>
-                  <!-- Pagination 控制列 -->
-                  <nav
-                    class="d-flex justify-content-center"
-                    style="padding-top: 4px"
-                  >
-                    <ul class="pagination mb-0">
-                      <li
-                        class="page-item bg-grey-000"
-                        :class="{ disabled: currentPage === 1 }"
-                        @click="changePage(currentPage - 1)"
-                      >
-                        <a class="page-link me-12">上一頁</a>
-                      </li>
-
-                      <li
-                        v-for="page in totalPages"
-                        :key="page"
-                        class="page-item mx-2"
-                        :class="{ active: page === currentPage }"
-                        @click="changePage(page)"
-                      >
-                        <a class="page-link">{{ page }}</a>
-                      </li>
-
-                      <li
-                        class="page-item"
-                        :class="{ disabled: currentPage === totalPages }"
-                        @click="changePage(currentPage + 1)"
-                      >
-                        <a class="page-link ms-12">下一頁</a>
-                      </li>
-                    </ul>
-                  </nav>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div id="ratings" class="accordion w-100">
-            <div class="d-lg-flex gap-5 align-items-stretch">
-              <div
-                v-for="(rating, index) in latestThreeRatings"
-                :key="rating.id"
-                :class="[
-                  'card rating-card',
-                  'h-100',
-                  index === latestThreeRatings.length - 1 ? 'mb-0' : 'mb-5'
-                ]"
-                style="background-color: rgba(255, 255, 255, 0.05)"
-              >
-                <div class="card-body p-lg-5">
-                  <div
-                    class="d-lg-block d-flex justify-content-between align-items-center mb-1"
-                  >
-                    <h6 class="card-title fw-bold fs-lg-6 fs-8 mb-0 mb-lg-1">
-                      {{ rating.username }}
-                    </h6>
-                    <h6
-                      class="card-subtitle mb-lg-1 text-body-secondary mb-0 mb-lg-1"
+            <div id="ratings" class="accordion w-100">
+              <div class="d-lg-flex gap-5 align-items-stretch">
+                <div
+                  v-for="(rating, index) in latestThreeRatings"
+                  :key="rating.id"
+                  :class="[
+                    'card rating-card',
+                    'h-100',
+                    index === latestThreeRatings.length - 1 ? 'mb-0' : 'mb-5'
+                  ]"
+                  style="background-color: rgba(255, 255, 255, 0.05)"
+                >
+                  <div class="card-body p-lg-5">
+                    <div
+                      class="d-lg-block d-flex justify-content-between align-items-center mb-1"
                     >
-                      <!-- 滿星 -->
-                      <i
-                        v-for="n in Math.floor(rating.score)"
-                        :key="'full-' + n"
-                        class="bi bi-star-fill text-warning me-1"
-                      ></i>
+                      <h6 class="card-title fw-bold fs-lg-6 fs-8 mb-0 mb-lg-1">
+                        {{ rating.username }}
+                      </h6>
+                      <h6
+                        class="card-subtitle mb-lg-1 text-body-secondary mb-0 mb-lg-1"
+                      >
+                        <!-- 滿星 -->
+                        <i
+                          v-for="n in Math.floor(rating.score)"
+                          :key="'full-' + n"
+                          class="bi bi-star-fill text-warning me-1"
+                        ></i>
 
-                      <!-- 半星 -->
-                      <i
-                        v-if="
-                          rating.score % 1 >= 0.25 && rating.score % 1 < 0.75
-                        "
-                        class="bi bi-star-half text-warning me-1"
-                      ></i>
+                        <!-- 半星 -->
+                        <i
+                          v-if="
+                            rating.score % 1 >= 0.25 && rating.score % 1 < 0.75
+                          "
+                          class="bi bi-star-half text-warning me-1"
+                        ></i>
 
-                      <!-- 空星 -->
-                      <i
-                        v-for="n in 5 -
-                        Math.floor(rating.score) -
-                        (rating.score % 1 >= 0.25 && rating.score % 1 < 0.75
-                          ? 1
-                          : 0)"
-                        :key="'empty-' + n"
-                        class="bi bi-star text-secondary me-1"
-                      ></i>
-                    </h6>
-                  </div>
-                  <div>
-                    <p class="text-grey-400 fs-lg-8 fs-9 mb-5">
-                      {{ rating.createdAt }}
+                        <!-- 空星 -->
+                        <i
+                          v-for="n in 5 -
+                          Math.floor(rating.score) -
+                          (rating.score % 1 >= 0.25 && rating.score % 1 < 0.75
+                            ? 1
+                            : 0)"
+                          :key="'empty-' + n"
+                          class="bi bi-star text-secondary me-1"
+                        ></i>
+                      </h6>
+                    </div>
+                    <div>
+                      <p class="text-grey-400 fs-lg-8 fs-9 mb-5">
+                        {{ rating.createdAt }}
+                      </p>
+                    </div>
+
+                    <hr class="my-lg-5" />
+                    <p class="card-text fs-lg-6">
+                      {{ rating.comment }}
                     </p>
                   </div>
-
-                  <hr class="my-lg-5" />
-                  <p class="card-text fs-lg-6">
-                    {{ rating.comment }}
-                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <WaveBanner />
-    <div class="coaches my-lg-12 my-8 text-white">
-      <div class="container">
-        <h3 class="mb-lg-8">你可能會喜歡</h3>
-        <CourseCarousel />
-        <div class="text-center mb-lg-12 mb-8">
-          <button class="btn border-grey-400 py-3 px-5 fs-6">
-            瀏覽更多課程
-          </button>
+      <WaveBanner />
+      <div class="coaches my-lg-12 my-8 text-white">
+        <div class="container">
+          <h3 class="mb-lg-8">你可能會喜歡</h3>
+          <CourseCarousel />
+          <div class="text-center mb-lg-12 mb-8">
+            <button class="btn border-grey-400 py-3 px-5 fs-6">
+              瀏覽更多課程
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -615,9 +637,17 @@ onMounted(() => {
 #courseDetail .accordion-item:last-child {
   margin-bottom: 0;
 }
-// modal
+
 .custom-modal-width {
   max-width: 900px;
+  margin: auto;
+}
+
+@media (max-width: 992px) {
+  .custom-modal-width {
+    max-width: 90%; /* 寬度約為 90% */
+    margin: 0 auto; /* 置中 */
+  }
 }
 .card:last-child {
   margin-bottom: 0;

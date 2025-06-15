@@ -1,6 +1,6 @@
 <template>
   <div class="learning-center row container">
-    <div class="side-nav col-3">
+    <div class="side-nav col-xl-3 d-xl-block d-none">
       <div class="px-3 py-5">
         <h3 class="fs-6 px-3 fw-bold">學習中心</h3>
         <hr class="divider my-5" />
@@ -30,10 +30,10 @@
         </ul>
       </div>
     </div>
-    <div class="user-profile col-9">
+    <div class="user-profile col-xl-9 mx-auto" style="max-width: 1056px">
       <h2 class="fs-4">個人資料</h2>
       <div class="profile-group row">
-        <div class="col-6 text-center">
+        <div class="col-12 col-md-6 text-center">
           <div
             class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
           >
@@ -56,7 +56,7 @@
             </button>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-md-6">
           <div class="mb-3">
             <label class="form-label">會員名</label>
             <input
@@ -438,6 +438,9 @@ const confirmEdit = async () => {
   }
   .profile-avatar {
     width: 300px;
+  }
+  @media (max-width: 992px) {
+    padding: 40px 12px;
   }
 }
 // input的樣式，可以考慮放到全域

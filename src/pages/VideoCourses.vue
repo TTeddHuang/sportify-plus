@@ -48,8 +48,8 @@
           </div>
         </div>
         <!-- 右側主區塊：你的專屬教練群 -->
-        <div class="p-lg-8 w-100" style="max-width: 1056px">
-          <h3 class="mb-lg-8">{{ currentLesson.name }}</h3>
+        <div class="p-lg-8 p-2 py-6 w-100" style="max-width: 1056px">
+          <h3 class="mb-lg-8 mb-6">{{ currentLesson.name }}</h3>
           <!-- 播放影片 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
@@ -86,7 +86,7 @@
                 </div>
                 <div class="icon-custom">
                   <i class="bi bi-person me-1 text-secondary-600 fs-6"></i>
-                  <p>{{ courseDetail.course.student_amount }} 位學生</p>
+                  <p>{{ courseDetail.course.numbers_of_view }} 瀏覽次數</p>
                 </div>
                 <div class="icon-custom">
                   <i class="bi bi-clock me-1 text-secondary-600 fs-6"></i>
@@ -268,7 +268,7 @@
               <div class="modal-dialog modal-lg custom-modal-width">
                 <div class="modal-content">
                   <div
-                    class="modal-header bg-grey-000 text-grey-900 p-lg-5 pb-lg-3 border-0"
+                    class="modal-header bg-grey-000 text-grey-900 p-5 pb-3 border-0"
                   >
                     <h5
                       id="ratingsModalLabel"
@@ -287,7 +287,7 @@
                       aria-label="Close"
                     ></button>
                   </div>
-                  <div class="px-lg-5 bg-grey-000">
+                  <div class="px-5 bg-grey-000">
                     <hr
                       class="my-0"
                       style="
@@ -299,22 +299,22 @@
                   </div>
 
                   <div
-                    class="modal-body bg-grey-000 text-grey-700 p-lg-5 rounded-bottom-3"
+                    class="modal-body bg-grey-000 text-grey-700 p-5 rounded-bottom-3"
                   >
                     <div
                       v-for="rating in paginatedRatings"
                       :key="rating.id"
-                      class="mb-4 p-lg-3 bg-primary-000 rounded-3"
+                      class="mb-4 p-3 bg-primary-000 rounded-3"
                     >
                       <div
-                        class="d-flex border-bottom justify-content-between align-items-center pb-2"
+                        class="d-lg-flex border-bottom justify-content-between align-items-center pb-2"
                       >
                         <div
                           class="d-flex justify-content-between align-items-center"
                         >
                           <div class="fw-bold">{{ rating.username }}</div>
 
-                          <div class="text-stars ms-lg-5">
+                          <div class="text-stars ms-5">
                             <i
                               v-for="n in Math.floor(rating.score)"
                               :key="'full-' + n"
@@ -360,7 +360,12 @@
                           :class="{ disabled: currentPage === 1 }"
                           @click="changePage(currentPage - 1)"
                         >
-                          <a class="page-link me-12">上一頁</a>
+                          <a class="page-link me-lg-12"
+                            ><i
+                              class="bi bi-chevron-left d-inline d-lg-none"
+                            ></i>
+                            <span class="d-none d-lg-inline">上一頁</span></a
+                          >
                         </li>
 
                         <li
@@ -378,7 +383,12 @@
                           :class="{ disabled: currentPage === totalPages }"
                           @click="changePage(currentPage + 1)"
                         >
-                          <a class="page-link ms-12">下一頁</a>
+                          <a class="page-link ms-lg-12"
+                            ><i
+                              class="bi bi-chevron-right d-inline d-lg-none"
+                            ></i>
+                            <span class="d-none d-lg-inline">下一頁</span></a
+                          >
                         </li>
                       </ul>
                     </nav>

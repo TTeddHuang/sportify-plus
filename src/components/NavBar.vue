@@ -35,7 +35,7 @@ const navItems = computed(() => {
 const centerLink = computed(() => {
   if (isCoach.value) return '/coach/courses'
   if (isUser.value) return '/user/courses'
-  if (isAdmin.value) return '/admin'
+  if (isAdmin.value) return '/admin/courses'
   return ''
 })
 
