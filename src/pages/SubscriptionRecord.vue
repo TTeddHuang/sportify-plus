@@ -43,43 +43,41 @@
         <div class="subscription-card">
           <div class="card-wrapper"></div>
           <div
-            v-if="records.length > 0"
+            v-if="currentValidPlan"
             class="card-content p-5 d-lg-flex gap-12 mb-5"
           >
             <div class="mb-lg-0 mb-5">
-              <p class="fs-4 fw-bold mb-lg-3">{{ records[0].plan }}</p>
+              <p class="fs-4 fw-bold mb-lg-3 mb-1">
+                {{ currentValidPlan.plan }}
+              </p>
               <p
                 v-if="subscriptionStatus === 'active'"
                 class="fs-7 mb-0 pe-lg-3 py-lg-1 mt-lg-7 mt-3"
               >
-                下一次收費日期：{{ records[0].nextPayment }}
+                下一次收費日期：{{ currentValidPlan.nextPayment }}
               </p>
               <p
                 v-else-if="subscriptionStatus === 'trial-active'"
                 class="fs-7 mb-0 mt-7"
               >
-                試用期至：{{ records[0].endAt }}
+                試用期至：{{ currentValidPlan.endAt }}
               </p>
-              <p
-                v-else-if="subscriptionStatus === 'trial-expired'"
-                class="fs-7 mb-0 mt-7"
-              >
-                試用期已結束
-              </p>
+
               <div v-else-if="subscriptionStatus === 'cancelled-but-valid'">
                 <p class="fs-6 fw-bold mb-1">已取消訂閱</p>
-                <p class="fs-7 mb-0">剩餘觀看期限至：{{ records[0].endAt }}</p>
+                <p class="fs-7 mb-0">
+                  剩餘觀看期限至：{{ currentValidPlan.endAt }}
+                </p>
               </div>
-              <p
-                v-else-if="subscriptionStatus === 'expired'"
-                class="fs-7 mb-0 mt-7"
-              >
-                訂閱已到期
-              </p>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-9">
               <p class="fs-4 fw-bold mb-lg-6">可觀看類別</p>
-              <p v-if="courseType.length > 3" class="btn btn-primary-600 me-2">
+              <p
+                v-if="
+                  courseType.length > 3 || subscriptionStatus === 'trial-active'
+                "
+                class="btn btn-primary-600 me-2"
+              >
                 所有
               </p>
               <div v-else class="d-flex">
@@ -93,19 +91,18 @@
               </div>
             </div>
             <div class="mb-lg-0 mb-5 ms-lg-10">
-              <p class="fs-4 fw-bold mb-lg-6">NT$ {{ records[0].price }}</p>
+              <p class="fs-4 fw-bold mb-lg-6">
+                NT$ {{ currentValidPlan.price }}
+              </p>
               <button
                 v-if="subscriptionStatus === 'active'"
                 class="btn btn-notification fw-bold"
-                @click="unsubscribe(records[0].tradeNo)"
+                @click="unsubscribe(currentValidPlan.tradeNo)"
               >
                 取消訂閱
               </button>
               <router-link
-                v-else-if="
-                  subscriptionStatus === 'trial-active' ||
-                  subscriptionStatus === 'trial-expired'
-                "
+                v-else-if="subscriptionStatus === 'trial-active'"
                 to="/users/subscription"
                 class="btn btn-primary-600 fw-bold text-decoration-none"
               >
@@ -118,24 +115,26 @@
               >
                 重新訂閱
               </router-link>
-              <router-link
-                v-else-if="subscriptionStatus === 'expired'"
-                to="/users/subscription"
-                class="btn btn-primary-600 fw-bold text-decoration-none"
-              >
-                我要續訂
-              </router-link>
             </div>
           </div>
           <div v-else class="card-content p-5 text-center mb-5">
             <div class="py-5">
-              <h4 class="mb-4">尚未訂閱任何方案</h4>
-              <p class="mb-4">馬上開始您的旅程，探索豐富的課程內容！</p>
+              <h4 class="mb-4">
+                <span v-if="records.length > 0">目前沒有訂閱方案</span>
+                <span v-else>尚未訂閱任何方案</span>
+              </h4>
+              <p class="mb-4">
+                <span v-if="records.length > 0"
+                  >您的訂閱已到期，請重新訂閱以繼續享受服務！</span
+                >
+                <span v-else>馬上開始您的旅程，探索豐富的課程內容！</span>
+              </p>
               <router-link
                 to="/users/subscription"
                 class="btn btn-primary-600 btn-lg px-5 py-3 text-decoration-none"
               >
-                馬上訂閱
+                <span v-if="records.length > 0">我要續訂</span>
+                <span v-else>馬上訂閱</span>
               </router-link>
             </div>
           </div>
@@ -143,10 +142,10 @@
           <div class="subscription-card">
             <div class="card-wrapper"></div>
             <div class="card-content p-5 mb-5">
-              <div class="table-responsive">
+              <div v-if="records.length > 0" class="table-responsive">
                 <table class="table table-striped mb-0 align-middle">
-                  <thead class="">
-                    <tr class="text-center">
+                  <thead>
+                    <tr class="text-start">
                       <th class="th-custom">日期</th>
                       <th class="th-custom">訂單編號</th>
                       <th class="th-custom">付款內容</th>
@@ -169,17 +168,22 @@
                       <td class="td-custom">{{ item.paymentMethod }}</td>
                       <td class="td-custom">
                         <a
+                          v-if="item.invoiceUrl"
                           :href="item.invoiceUrl"
                           target="_blank"
                           class="text-decoration-none"
                         >
                           檢視
                         </a>
+                        <span v-else>無</span>
                       </td>
                       <td class="td-custom">NT$ {{ item.price }}</td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              <div v-else class="text-center py-4">
+                <p class="text-muted mb-0">尚無已付款的訂閱記錄</p>
               </div>
             </div>
           </div>
@@ -262,89 +266,112 @@ async function fetchSubscriptions(page = 1) {
         params: { page }
       }
     )
-    // 呼叫取得課程類別API並存放
-    courseType.value = await getCourseType(token)
-    console.log(res.data)
+
     if (res.data.status) {
+      // 先濾出已付款的記錄
+      const paidRecords = res.data.data.filter(item => item.is_paid === true)
+      console.log('已付款記錄:', paidRecords)
       // 你要的欄位映射
-      records.value = res.data.data.map(item => ({
+      records.value = paidRecords.map(item => ({
         id: item.id,
-        date: item.purchased_at,
+        date: item.created_at,
         orderNumber: item.order_number,
         plan: item.plan,
         period: item.period,
-        paymentMethod: item.payment_method,
+        paymentMethod: item.payment_method || '免費試用',
         invoiceUrl: item.invoice_image_url,
         price: item.price,
         nextPayment: item.next_payment,
         endAt: item.end_at,
-        tradeNo: item.merchant_trade_no
+        tradeNo: item.merchant_trade_no,
+        isRenewal: item.is_renewal,
+        isPaid: item.is_paid
       }))
       // 更新後端回傳的 meta
       meta.value = res.data.meta
       // 同步本地 currentPage
       currentPage.value = res.data.meta.page
     }
+    console.log(records.value)
+
+    if (records.value.length > 0 && records.value[0].plan?.includes('試用')) {
+      courseType.value = []
+    } else {
+      // 呼叫取得課程類別API並存放
+      courseType.value = await getCourseType(token)
+    }
   } catch (err) {
     console.error('取得訂閱紀錄失敗：', err.response?.data || err)
   }
 }
 
+const currentValidPlan = computed(() => {
+  if (records.value.length === 0) return null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // 設為當天00:00:00
+
+  // 找到第一筆未到期的已付款記錄
+  const validRecord = records.value.find(record => {
+    if (!record.isPaid) return false
+    if (!record.endAt) return false
+
+    const endDate = new Date(record.endAt)
+    endDate.setHours(23, 59, 59, 999) // 設為當天23:59:59
+
+    return endDate >= today // 當前日期 <= end_at
+  })
+
+  console.log('目前有效方案:', validRecord)
+  return validRecord
+})
+
 // 計算目前訂閱狀態
 const subscriptionStatus = computed(() => {
-  // 沒有訂閱
-  if (records.value.length === 0) {
+  const currentPlan = currentValidPlan.value
+
+  if (!currentPlan) {
     return 'no-subscription'
   }
 
-  const latestRecord = records.value[0]
+  const isTrialPlan = currentPlan.plan?.includes('試用')
 
-  if (latestRecord.plan && latestRecord.plan.includes('試用')) {
-    // 檢查試用期是否還有效
-    if (latestRecord.endAt) {
-      const endDate = new Date(latestRecord.endAt)
-      const today = new Date()
+  console.log('狀態判定:', {
+    plan: currentPlan.plan,
+    isTrialPlan,
+    isRenewal: currentPlan.isRenewal,
+    endAt: currentPlan.endAt,
+    isPaid: currentPlan.isPaid
+  })
 
-      if (endDate > today) {
-        return 'trial-active' // 試用期有效
-      } else {
-        return 'trial-expired' // 試用期已到期
-      }
-    }
-    return 'trial-active' // 預設試用期有效
+  // 試用期判定
+  if (isTrialPlan) {
+    return 'trial-active' // 因為已經確認未到期，所以是有效試用期
   }
 
-  // 有下次付款日期 → 有訂閱
-  if (latestRecord.nextPayment) {
-    return 'active'
+  // 一般訂閱判定
+  if (currentPlan.isRenewal) {
+    return 'active' // 訂閱中（自動續訂）
+  } else {
+    return 'cancelled-but-valid' // 已取消但還在有效期內
   }
-
-  // 沒有下次付款日期，確認是否還在觀看期限內
-  if (latestRecord.endAt) {
-    const endDate = new Date(latestRecord.endAt)
-    const today = new Date()
-
-    if (endDate > today) {
-      return 'cancelled-but-valid' // 已取消但還在觀看期限內
-    } else {
-      return 'expired' // 完全到期
-    }
-  }
-
-  return 'expired' // 預設為到期
 })
 
 // 取得可觀看課程類別API
 async function getCourseType(token) {
-  const res = await axios.get(
-    'https://sportify.zeabur.app/api/v1/users/course-type',
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
+  try {
+    const res = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/course-type',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
-    }
-  )
-  return res.data.data
+    )
+    return res.data.data
+  } catch (error) {
+    console.error('取得課程類別失敗:', error)
+  }
 }
 
 // 6. 切頁函式

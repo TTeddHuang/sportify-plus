@@ -1,25 +1,28 @@
 <script setup>
 import { ref, computed } from 'vue'
 import draggable from 'vuedraggable'
-import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from 'uuid'
+import { UpChunk } from '@mux/upchunk'
+import axios from 'axios'
 
-/* ---------- state ---------- */
 const chapters = ref([])
 const isDragging = ref(false)
 const draggedItem = ref(null)
 
-/* ---------- computed ---------- */
+const emit = defineEmits(['course-id-received'])
+
+const uploadControllers = ref(new Map())
+
 const totalSections = computed(() =>
   chapters.value.reduce((total, chapter) => total + chapter.sections.length, 0)
 )
 
-/* ---------- helpers ---------- */
 const addChapter = () =>
   chapters.value.push({
-    id: nanoid(),
-    title: '新章節',
+    id: uuidv4(),
     collapsed: false,
-    sections: []
+    sections: [],
+    title: '新章節'
   })
 
 const addSection = chapter => {
@@ -27,40 +30,133 @@ const addSection = chapter => {
     chapter.collapsed = false
   }
   chapter.sections.push({
-    id: nanoid(),
-    title: '新小節',
+    id: uuidv4(),
     file: null,
     fileName: '',
-    fileSize: 0
+    fileSize: 0,
+    title: '新小節'
   })
 }
 
-const onFileChange = (section, file) => {
-  if (file) {
-    section.file = file
-    section.fileName = file.name
-    section.fileSize = file.size
-    console.log('檔案已選取:', file.name)
-  } else {
+const onFileChange = async (section, file) => {
+  if (!file) {
     section.file = null
     section.fileName = ''
     section.fileSize = 0
+    return
   }
-  saveOrder()
+
+  // 檔案類型驗證
+  const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm']
+  if (!allowedTypes.includes(file.type)) {
+    alert('請選擇支援的影片格式 (MP4, MOV, WebM)')
+    return
+  }
+
+  // 檔案大小限制 4GB
+  const maxSize = 4 * 1024 * 1024 * 1024
+  if (file.size > maxSize) {
+    alert('檔案大小不能超過 4GB')
+    return
+  }
+
+  section.file = file
+  section.fileName = file.name
+  section.fileSize = file.size
+  section.uploading = true
+  section.uploadProgress = 0
+
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('請先登入')
+    }
+    const uploadData = {
+      subChapterId: section.id,
+      extension: file.type.split('/').pop(),
+      size: section.fileSize
+    }
+
+    const { data } = await axios.post(
+      'https://sportify.zeabur.app/api/v1/mux/upload-url',
+      uploadData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+
+    // 將 course_id 傳出去
+    if (data.course_id) {
+      emit('course-id-received', data.course_id)
+    }
+
+    const url = data.url
+    if (!url) {
+      throw new Error('無法獲取上傳 URL')
+    }
+
+    console.log(data)
+    console.log(uploadData)
+
+    const upload = UpChunk.createUpload({
+      endpoint: url,
+      file,
+      chunkSize: 30720,
+      attempts: 5,
+      delayBeforeAttempt: 0.5,
+      maxFileSize: 4194304,
+      dynamicChunkSize: true
+    })
+
+    uploadControllers.value.set(section.id, upload)
+
+    upload.on('error', err => {
+      console.error('上傳錯誤:', err.detail)
+      section.uploading = false
+      section.uploadProgress = 0
+      uploadControllers.value.delete(section.id)
+      alert('上傳失敗，請重試')
+    })
+    upload.on('progress', progress => {
+      console.log('上傳進度:', progress.detail)
+      section.uploadProgress = progress.detail
+    })
+    upload.on('success', () => {
+      console.log('上傳成功')
+      section.uploading = false
+      section.uploadProgress = 100
+      uploadControllers.value.delete(section.id)
+    })
+  } catch (error) {
+    console.error('上傳失敗:', error)
+    section.uploading = false
+    section.uploadProgress = 0
+    uploadControllers.value.delete(section.id)
+  }
 }
 
-// ✅ 檢查檔案是否存在
+const cancelUpload = section => {
+  const upload = uploadControllers.value.get(section.id)
+  if (upload) {
+    upload.abort() // 中斷上傳
+    uploadControllers.value.delete(section.id)
+  }
+
+  section.uploading = false
+  section.uploadProgress = 0
+  section.file = null
+  section.fileName = ''
+  section.fileSize = 0
+}
+
+// 檢查檔案是否存在
 const hasFile = section => {
   return section.file && section.fileName
 }
 
-const saveOrder = () => {
-  console.log('新排序', JSON.parse(JSON.stringify(chapters.value)))
-  // 可以在這裡呼叫 API 保存
-  // await saveChaptersOrder(chapters.value)
-}
-
-// ✅ 新增：處理 Enter 鍵事件
+// 處理 Enter 鍵事件
 const handleKeydown = event => {
   if (event.key === 'Enter') {
     event.preventDefault() // 阻止預設行為
@@ -70,17 +166,53 @@ const handleKeydown = event => {
 
 // 刪除功能
 const removeChapter = index => {
-  if (confirm('確定要刪除這個章節嗎？')) {
-    chapters.value.splice(index, 1)
-    saveOrder()
+  const chapter = chapters.value[index]
+
+  // 檢查是否有正在上傳的檔案
+  const uploadingSections = chapter.sections.filter(
+    section => section.uploading
+  )
+
+  if (uploadingSections.length > 0) {
+    const confirmMessage = `此章節有 ${uploadingSections.length} 個檔案正在上傳中，確定要刪除嗎？`
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    // 取消所有上傳
+    uploadingSections.forEach(section => {
+      const upload = uploadControllers.value.get(section.id)
+      if (upload) {
+        upload.abort()
+        uploadControllers.value.delete(section.id)
+      }
+    })
+  } else if (!confirm('確定要刪除這個章節嗎？')) {
+    return
   }
+
+  chapters.value.splice(index, 1)
 }
 
 const removeSection = (chapter, sectionIndex) => {
-  if (confirm('確定要刪除這個小節嗎？')) {
-    chapter.sections.splice(sectionIndex, 1)
-    saveOrder()
+  const section = chapter.sections[sectionIndex]
+
+  if (section.uploading) {
+    if (!confirm('此小節正在上傳中，確定要刪除嗎？')) {
+      return
+    }
+
+    // 取消上傳
+    const upload = uploadControllers.value.get(section.id)
+    if (upload) {
+      upload.abort()
+      uploadControllers.value.delete(section.id)
+    }
+  } else if (!confirm('確定要刪除這個小節嗎？')) {
+    return
   }
+
+  chapter.sections.splice(sectionIndex, 1)
 }
 
 // 拖曳狀態管理
@@ -104,7 +236,6 @@ const removeFile = section => {
   section.file = null
   section.fileName = ''
   section.fileSize = 0
-  saveOrder()
 }
 
 // ✅ 格式化檔案大小
@@ -115,6 +246,10 @@ const formatFileSize = bytes => {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
+
+defineExpose({
+  chapters
+})
 </script>
 
 <template>
@@ -138,7 +273,6 @@ const formatFileSize = bytes => {
       :class="{ 'is-dragging': isDragging }"
       @start="onDragStart"
       @end="onDragEnd"
-      @change="saveOrder"
     >
       <template #item="{ element: chapter, index: chapterIndex }">
         <div
@@ -155,7 +289,6 @@ const formatFileSize = bytes => {
               v-model="chapter.title"
               class="chapter-title"
               placeholder="大章節名稱"
-              @blur="saveOrder"
               @keydown="handleKeydown"
             />
             <div class="chapter-actions">
@@ -194,7 +327,6 @@ const formatFileSize = bytes => {
               animation="180"
               @start="onDragStart"
               @end="onDragEnd"
-              @change="saveOrder"
             >
               <template #item="{ element: section, index: sectionIndex }">
                 <div class="section-item">
@@ -205,17 +337,35 @@ const formatFileSize = bytes => {
                     v-model="section.title"
                     class="section-title"
                     placeholder="小章節名稱"
-                    @blur="saveOrder"
                     @keydown="handleKeydown"
                   />
-                  <!-- ✅ 檔案處理區域 -->
+                  <!-- 檔案處理區域 -->
                   <div class="file-section">
-                    <!-- 如果沒有檔案，顯示上傳按鈕 -->
-                    <div v-if="!hasFile(section)" class="file-upload">
+                    <!-- 如果正在上傳，顯示進度條 -->
+                    <div v-if="section.uploading" class="upload-progress">
+                      <progress
+                        :value="section.uploadProgress"
+                        max="100"
+                        class="progress-element"
+                      ></progress>
+                      <span class="progress-text"
+                        >{{ Math.round(section.uploadProgress) }}%</span
+                      >
+                      <button
+                        class="icon-btn danger small cancel-btn"
+                        title="取消上傳"
+                        @click.prevent="cancelUpload(section)"
+                      >
+                        <span class="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
+
+                    <!-- 如果沒有檔案且未上傳中，顯示上傳按鈕 -->
+                    <div v-else-if="!hasFile(section)" class="file-upload">
                       <input
                         :id="`file-${section.id}`"
                         type="file"
-                        accept="video/*"
+                        accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
                         class="file-input"
                         @change="onFileChange(section, $event.target.files[0])"
                       />
@@ -518,5 +668,71 @@ button.primary:hover {
 
 .icon-btn.small .material-symbols-outlined {
   font-size: 14px;
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.progress-element {
+  flex: 1;
+  height: 8px;
+  border: none;
+  border-radius: 4px;
+  background: #e0e0e0;
+
+  /* WebKit 瀏覽器樣式 */
+  &::-webkit-progress-bar {
+    background: #e0e0e0;
+    border-radius: 4px;
+  }
+
+  &::-webkit-progress-value {
+    background: linear-gradient(90deg, #007acc 0%, #0056b3 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  /* Firefox 樣式 */
+  &::-moz-progress-bar {
+    background: linear-gradient(90deg, #007acc 0%, #0056b3 100%);
+    border-radius: 4px;
+  }
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #666;
+  min-width: 40px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.cancel-btn {
+  margin-left: 4px;
+  background: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.cancel-btn:hover {
+  background: #cc0000;
+}
+
+.cancel-btn .material-symbols-outlined {
+  font-size: 12px;
 }
 </style>
