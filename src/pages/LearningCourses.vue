@@ -38,237 +38,261 @@
       <!-- 右側主區塊：你的專屬教練群 -->
       <div class="p-lg-8 px-5 py-8 w-100" style="max-width: 1056px">
         <h2 class="fs-lg-4 mb-lg-8 mb-6">你的專屬教練群</h2>
-        <div class="scrollable-btn-wrapper position-relative">
-          <div
-            class="scrollable-btn-group d-flex flex-row align-items-center mb-lg-8 mb-6"
-            @scroll="onScroll"
-          >
-            <!-- 運動類別按鍵 -->
-            <div
-              class="btn-group types-btn-group gap-3"
-              role="group"
-              aria-label="Basic outlined button group"
+        <div v-if="!hasValidSubscription" class="text-center py-8">
+          <div class="mb-6">
+            <i class="bi bi-play-circle display-1 text-primary-400 mb-4"></i>
+            <h3 class="mb-4 text-primary-600">開始您的學習之旅</h3>
+            <p class="text-grey-600 mb-6 fs-5">
+              您目前沒有有效的訂閱方案，無法觀看課程內容。<br />
+              立即訂閱，解鎖所有專業課程！
+            </p>
+            <router-link
+              to="/users/subscription"
+              class="btn btn-primary-600 btn-lg px-5 py-3 text-decoration-none"
             >
-              <button
-                href="#"
-                class="btn btn-outline-grey-400"
-                :class="{ active: !currentType && !isFavoriteOnly }"
-                @click="
-                  () => {
-                    currentType = ''
-                    isFavoriteOnly = false
-                    currentPage = 1
-                  }
-                "
-              >
-                所有課程
-              </button>
-              <button
-                href="#"
-                class="btn btn-outline-grey-400"
-                :class="{ active: isFavoriteOnly }"
-                @click="
-                  () => {
-                    isFavoriteOnly = !isFavoriteOnly
-                    currentType = ''
-                    currentPage = 1
-                  }
-                "
-              >
-                已收藏
-              </button>
-              <button
-                v-for="type in uniqueCourseTypes"
-                :key="type"
-                href="#"
-                class="btn btn-outline-grey-400"
-                :class="{ active: currentType === type && !isFavoriteOnly }"
-                @click="
-                  () => {
-                    currentType = type
-                    isFavoriteOnly = false
-                    currentPage = 1
-                  }
-                "
-              >
-                {{ type }}
-              </button>
-            </div>
-            <!-- 排序按鍵 -->
-          </div>
-          <div v-if="!hasScrolled && isOverflowing" class="scroll-hint"></div>
-        </div>
-
-        <div class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6">
-          <div
-            v-for="course in pagedCourses"
-            :key="course.course_id"
-            class="mb-4 course-card"
-          >
-            <div class="card h-100 rounded-4 p-5 position-relative">
-              <div class="img-wrapper position-relative">
-                <div class="img-decorate">
-                  <span class="badge bg-primary-100 fs-9 text-grey-700">{{
-                    course.course_type
-                  }}</span>
-                  <i
-                    :class="course.isFavorited ? 'bi-heart-fill' : 'bi-heart'"
-                    class="bi heart"
-                    @click="toggleFavorite(course)"
-                  ></i>
-                </div>
-
-                <img
-                  :src="course.course_image_url || learningCourseImg1"
-                  class="card-img-top mb-5 rounded-3"
-                  :alt="course.name"
-                  style="object-fit: cover; height: 160px"
-                />
-                <div class="card-body p-0">
-                  <h5 class="card-title fs-7 mb-2 fw-bold">
-                    {{ course.coach_name }}
-                  </h5>
-                  <p class="card-text mb-2 fs-7">
-                    {{ course.coach_title }}
-                  </p>
-
-                  <router-link
-                    :to="{
-                      name: 'VideoCourses',
-                      params: { courseId: course.course_id }
-                    }"
-                  >
-                    <a href="#" class="btn btn-primary-600 w-100 mb-2"
-                      >點擊上課</a
-                    >
-                  </router-link>
-
-                  <a
-                    href="#"
-                    class="btn btn-outline-grey-400 w-100"
-                    data-bs-toggle="modal"
-                    data-bs-target="#ratingModal"
-                    @click.prevent="openRatingModal(course)"
-                  >
-                    {{ course.isRated ? '查看評分' : '為此課程評分' }}
-                  </a>
-                </div>
-              </div>
-            </div>
+              立即訂閱
+            </router-link>
           </div>
         </div>
-        <!-- 評分 Modal -->
-        <div
-          id="ratingModal"
-          ref="modalRef"
-          class="modal fade"
-          tabindex="-1"
-          aria-labelledby="ratingModalLabel"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog custom-modal-width">
-            <div class="modal-content rounded-4 p-5 bg-grey-000">
-              <div class="modal-header border-bottom text-grey-900 p-0 pb-3">
-                <h5
-                  id="ratingModalLabel"
-                  class="modal-title fw-bold text-primary-900"
-                >
-                  評分
-                </h5>
+        <div v-else-if="hasValidSubscription">
+          <div class="scrollable-btn-wrapper position-relative">
+            <div
+              class="scrollable-btn-group d-flex flex-row align-items-center mb-lg-8 mb-6"
+              @scroll="onScroll"
+            >
+              <!-- 運動類別按鍵 -->
+              <div
+                class="btn-group types-btn-group gap-3"
+                role="group"
+                aria-label="Basic outlined button group"
+              >
                 <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
+                  href="#"
+                  class="btn btn-outline-grey-400"
+                  :class="{ active: !currentType && !isFavoriteOnly }"
+                  @click="
+                    () => {
+                      currentType = ''
+                      isFavoriteOnly = false
+                      currentPage = 1
+                    }
+                  "
+                >
+                  所有課程
+                </button>
+                <button
+                  href="#"
+                  class="btn btn-outline-grey-400"
+                  :class="{ active: isFavoriteOnly }"
+                  @click="
+                    () => {
+                      isFavoriteOnly = !isFavoriteOnly
+                      currentType = ''
+                      currentPage = 1
+                    }
+                  "
+                >
+                  已收藏
+                </button>
+                <button
+                  v-for="type in uniqueCourseTypes"
+                  :key="type"
+                  href="#"
+                  class="btn btn-outline-grey-400"
+                  :class="{ active: currentType === type && !isFavoriteOnly }"
+                  @click="
+                    () => {
+                      currentType = type
+                      isFavoriteOnly = false
+                      currentPage = 1
+                    }
+                  "
+                >
+                  {{ type }}
+                </button>
               </div>
-              <div class="modal-body p-0 mb-6">
-                <!-- 評分顯示 -->
-                <div class="d-flex justify-content-center my-6 gap-6">
-                  <i
-                    v-for="i in 5"
-                    :key="i"
-                    class="bi"
-                    :class="
-                      i <= rating
-                        ? 'bi-star-fill text-warning'
-                        : 'bi-star text-grey-400'
-                    "
-                    style="font-size: 32px; cursor: pointer"
-                    @click="isEditing && (rating = i)"
-                  ></i>
-                </div>
-                <!-- 評語輸入 or 顯示 -->
-                <div v-if="isEditing">
-                  <textarea
-                    v-model="comment"
-                    class="form-control bg-grey-000 text-grey-500"
-                    rows="4"
-                    placeholder="請分享你的課程心得"
-                    maxlength="100"
-                  ></textarea>
-                  <div class="text-end mt-1 fs-8 text-grey-500">
-                    {{ comment.length }}/100
+              <!-- 排序按鍵 -->
+            </div>
+            <div v-if="!hasScrolled && isOverflowing" class="scroll-hint"></div>
+          </div>
+
+          <div class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6">
+            <div
+              v-for="course in pagedCourses"
+              :key="course.course_id"
+              class="mb-4 course-card"
+            >
+              <div class="card h-100 rounded-4 p-5 position-relative">
+                <div class="img-wrapper position-relative">
+                  <div class="img-decorate">
+                    <span class="badge bg-primary-100 fs-9 text-grey-700">{{
+                      course.course_type
+                    }}</span>
+                    <i
+                      :class="course.isFavorited ? 'bi-heart-fill' : 'bi-heart'"
+                      class="bi heart"
+                      @click="toggleFavorite(course)"
+                    ></i>
+                  </div>
+
+                  <img
+                    :src="course.course_image_url || learningCourseImg1"
+                    class="card-img-top mb-5 rounded-3"
+                    :alt="course.name"
+                    style="object-fit: cover; height: 160px"
+                  />
+                  <div class="card-body p-0">
+                    <h5 class="card-title fs-7 mb-2 fw-bold">
+                      {{ course.coach_name }}
+                    </h5>
+                    <p class="card-text mb-2 fs-7">
+                      {{ course.coach_title }}
+                    </p>
+
+                    <router-link
+                      :to="{
+                        name: 'VideoCourses',
+                        params: { courseId: course.course_id }
+                      }"
+                    >
+                      <a href="#" class="btn btn-primary-600 w-100 mb-2"
+                        >點擊上課</a
+                      >
+                    </router-link>
+
+                    <a
+                      href="#"
+                      class="btn btn-outline-grey-400 w-100"
+                      data-bs-toggle="modal"
+                      data-bs-target="#ratingModal"
+                      @click.prevent="openRatingModal(course)"
+                    >
+                      {{ course.isRated ? '查看評分' : '為此課程評分' }}
+                    </a>
                   </div>
                 </div>
-                <div v-else>
-                  <p class="text-grey-700">{{ comment }}</p>
-                </div>
-              </div>
-              <div class="modal-footer border-0 p-0">
-                <template v-if="isEditing">
-                  <button
-                    type="button"
-                    class="btn btn-primary w-100"
-                    :disabled="!rating || !comment"
-                    @click="submitRating"
-                  >
-                    送出
-                  </button>
-                </template>
-                <template v-else>
-                  <button
-                    type="button"
-                    class="btn btn-primary-600 w-100"
-                    @click="isEditing = true"
-                  >
-                    編輯
-                  </button>
-                </template>
               </div>
             </div>
           </div>
+          <!-- 評分 Modal -->
+          <div
+            id="ratingModal"
+            ref="modalRef"
+            class="modal fade"
+            tabindex="-1"
+            aria-labelledby="ratingModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog custom-modal-width">
+              <div class="modal-content rounded-4 p-5 bg-grey-000">
+                <div class="modal-header border-bottom text-grey-900 p-0 pb-3">
+                  <h5
+                    id="ratingModalLabel"
+                    class="modal-title fw-bold text-primary-900"
+                  >
+                    評分
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div class="modal-body p-0 mb-6">
+                  <!-- 評分顯示 -->
+                  <div class="d-flex justify-content-center my-6 gap-6">
+                    <i
+                      v-for="i in 5"
+                      :key="i"
+                      class="bi"
+                      :class="
+                        i <= rating
+                          ? 'bi-star-fill text-warning'
+                          : 'bi-star text-grey-400'
+                      "
+                      style="font-size: 32px; cursor: pointer"
+                      @click="isEditing && (rating = i)"
+                    ></i>
+                  </div>
+                  <!-- 評語輸入 or 顯示 -->
+                  <div v-if="isEditing">
+                    <textarea
+                      v-model="comment"
+                      class="form-control bg-grey-000 text-grey-500"
+                      rows="4"
+                      placeholder="請分享你的課程心得"
+                      maxlength="100"
+                    ></textarea>
+                    <div class="text-end mt-1 fs-8 text-grey-500">
+                      {{ comment.length }}/100
+                    </div>
+                  </div>
+                  <div v-else>
+                    <p class="text-grey-700">{{ comment }}</p>
+                  </div>
+                </div>
+                <div class="modal-footer border-0 p-0">
+                  <template v-if="isEditing">
+                    <button
+                      type="button"
+                      class="btn btn-primary w-100"
+                      :disabled="!rating || !comment"
+                      @click="submitRating"
+                    >
+                      送出
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      type="button"
+                      class="btn btn-primary-600 w-100"
+                      @click="isEditing = true"
+                    >
+                      編輯
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="totalPages > 1" class="mt-11">
+            <nav class="d-flex justify-content-center" style="padding-top: 4px">
+              <ul class="pagination mb-0">
+                <li
+                  class="page-item"
+                  :class="{ disabled: currentPage === 1 }"
+                  @click="changePage(currentPage - 1)"
+                >
+                  <a class="page-link me-lg-11">上一頁</a>
+                </li>
+
+                <li
+                  v-for="page in totalPages"
+                  :key="page"
+                  class="page-item mx-2"
+                  :class="{ active: page === currentPage }"
+                  @click="changePage(page)"
+                >
+                  <a class="page-link">{{ page }}</a>
+                </li>
+
+                <li
+                  class="page-item"
+                  :class="{ disabled: currentPage === totalPages }"
+                  @click="changePage(currentPage + 1)"
+                >
+                  <a class="page-link ms-lg-11">下一頁</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
-        <div class="mt-11">
-          <nav class="d-flex justify-content-center" style="padding-top: 4px">
-            <ul class="pagination mb-0">
-              <li
-                class="page-item"
-                :class="{ disabled: currentPage === 1 }"
-                @click="changePage(currentPage - 1)"
-              >
-                <a class="page-link me-lg-11">上一頁</a>
-              </li>
-
-              <li
-                v-for="page in totalPages"
-                :key="page"
-                class="page-item mx-2"
-                :class="{ active: page === currentPage }"
-                @click="changePage(page)"
-              >
-                <a class="page-link">{{ page }}</a>
-              </li>
-
-              <li
-                class="page-item"
-                :class="{ disabled: currentPage === totalPages }"
-                @click="changePage(currentPage + 1)"
-              >
-                <a class="page-link ms-lg-11">下一頁</a>
-              </li>
-            </ul>
-          </nav>
+        <div v-else class="text-center py-8">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-grey-600">載入中...</p>
         </div>
       </div>
     </div>
@@ -297,6 +321,8 @@ const selectedCourse = ref(null)
 const isEditing = ref(false)
 
 const courses = ref([])
+const isLoading = ref(true)
+const hasValidSubscription = ref(false)
 
 const uniqueCourseTypes = computed(() => {
   const types = courses.value.map(c => c.course_type)
@@ -389,8 +415,15 @@ const fetchUserCourses = async token => {
       isRated: course.isRated || false,
       isFavorited: course.isFavorited || false
     }))
+
+    hasValidSubscription.value = true
+    console.log('載入課程成功，有有效訂閱')
   } catch (err) {
     console.error('載入課程失敗:', err)
+
+    courses.value = []
+    hasValidSubscription.value = false
+    console.log('載入課程失敗，沒有有效訂閱')
   }
 }
 
@@ -406,11 +439,15 @@ onMounted(async () => {
     return
   }
 
+  isLoading.value = true
+
   await fetchUserCourses(token)
 
   for (const course of courses.value) {
     await fetchUserRatingByCourseId(course)
   }
+  
+  isLoading.value = false
 })
 
 onBeforeUnmount(() => {
@@ -666,6 +703,16 @@ function changePage(page) {
 
   // 可加上閃爍動畫讓它被注意到
   animation: pulse-hint 1.5s ease-in-out infinite;
+}
+
+// 無訂閱狀態的樣式
+.display-1 {
+  font-size: 4rem;
+}
+
+.btn-lg {
+  font-size: 1.125rem;
+  padding: 0.75rem 1.5rem;
 }
 
 @keyframes pulse-hint {

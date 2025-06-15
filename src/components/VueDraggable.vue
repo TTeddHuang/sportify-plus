@@ -9,6 +9,8 @@ const chapters = ref([])
 const isDragging = ref(false)
 const draggedItem = ref(null)
 
+const emit = defineEmits(['course-id-received'])
+
 const uploadControllers = ref(new Map())
 
 const totalSections = computed(() =>
@@ -84,6 +86,12 @@ const onFileChange = async (section, file) => {
         }
       }
     )
+
+    // 將 course_id 傳出去
+    if (data.course_id) {
+      emit('course-id-received', data.course_id)
+    }
+
     const url = data.url
     if (!url) {
       throw new Error('無法獲取上傳 URL')
@@ -120,7 +128,6 @@ const onFileChange = async (section, file) => {
       section.uploading = false
       section.uploadProgress = 100
       uploadControllers.value.delete(section.id)
-      saveOrder()
     })
   } catch (error) {
     console.error('上傳失敗:', error)
@@ -142,19 +149,11 @@ const cancelUpload = section => {
   section.file = null
   section.fileName = ''
   section.fileSize = 0
-
-  saveOrder()
 }
 
 // 檢查檔案是否存在
 const hasFile = section => {
   return section.file && section.fileName
-}
-
-const saveOrder = () => {
-  // console.log('新排序', JSON.parse(JSON.stringify(chapters.value)))
-  // 可以在這裡呼叫 API 保存
-  // await saveChaptersOrder(chapters.value)
 }
 
 // 處理 Enter 鍵事件
@@ -193,7 +192,6 @@ const removeChapter = index => {
   }
 
   chapters.value.splice(index, 1)
-  saveOrder()
 }
 
 const removeSection = (chapter, sectionIndex) => {
@@ -215,7 +213,6 @@ const removeSection = (chapter, sectionIndex) => {
   }
 
   chapter.sections.splice(sectionIndex, 1)
-  saveOrder()
 }
 
 // 拖曳狀態管理
@@ -239,7 +236,6 @@ const removeFile = section => {
   section.file = null
   section.fileName = ''
   section.fileSize = 0
-  saveOrder()
 }
 
 // ✅ 格式化檔案大小
@@ -277,7 +273,6 @@ defineExpose({
       :class="{ 'is-dragging': isDragging }"
       @start="onDragStart"
       @end="onDragEnd"
-      @change="saveOrder"
     >
       <template #item="{ element: chapter, index: chapterIndex }">
         <div
@@ -294,7 +289,6 @@ defineExpose({
               v-model="chapter.title"
               class="chapter-title"
               placeholder="大章節名稱"
-              @blur="saveOrder"
               @keydown="handleKeydown"
             />
             <div class="chapter-actions">
@@ -333,7 +327,6 @@ defineExpose({
               animation="180"
               @start="onDragStart"
               @end="onDragEnd"
-              @change="saveOrder"
             >
               <template #item="{ element: section, index: sectionIndex }">
                 <div class="section-item">
@@ -344,7 +337,6 @@ defineExpose({
                     v-model="section.title"
                     class="section-title"
                     placeholder="小章節名稱"
-                    @blur="saveOrder"
                     @keydown="handleKeydown"
                   />
                   <!-- 檔案處理區域 -->
