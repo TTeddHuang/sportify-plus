@@ -29,9 +29,9 @@
                   <div class="d-flex align-items-center justify-content-center">
                     <i
                       v-if="lesson.isFinished"
-                      class="bi bi-check-circle-fill text-success fs-5 ms-2"
+                      class="bi bi-check-circle-fill text-success fs-5"
                     ></i>
-                    <i v-else class="bi bi-circle text-secondary fs-5 ms-2"></i>
+                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
                     <p class="text-secondary mb-0 fs-9 ms-1">
                       {{
                         lesson.length !== '未提供'
@@ -47,9 +47,20 @@
             </ul>
           </div>
         </div>
+
         <!-- 右側主區塊：你的專屬教練群 -->
         <div class="p-lg-8 p-2 py-6 w-100" style="max-width: 1056px">
-          <h3 class="mb-lg-8 mb-6">{{ currentLesson.name }}</h3>
+          <h3 class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
+          <!-- 992px以下出現章節按鈕 -->
+          <button
+            class="btn btn-primary-600 d-lg-none mb-3"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#lessonDrawer"
+            aria-controls="lessonDrawer"
+          >
+            <i class="bi bi-list me-1"></i> 章節
+          </button>
           <!-- 播放影片 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
@@ -462,6 +473,63 @@
             </div>
           </div>
         </div>
+        <div
+          id="lessonDrawer"
+          class="offcanvas offcanvas-start d-lg-none"
+          tabindex="-1"
+          aria-labelledby="lessonDrawerLabel"
+        >
+          <div class="offcanvas-header">
+            <h5 id="lessonDrawerLabel" class="mb-0 fs-6">
+              {{ courseName }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close bg-white lesson-close btn-close-white"
+              data-bs-dismiss="offcanvas"
+            ></button>
+          </div>
+
+          <div class="offcanvas-body p-0">
+            <!-- 章節清單：直接複用你現成的 li -->
+            <ul class="list-group list-group-flush">
+              <!-- 每個 li 代表一天的 Lesson -->
+              <li
+                v-for="(lesson, idx) in lessons"
+                :key="idx"
+                :class="{
+                  finished: lesson.isFinished,
+                  watching: lesson.isCurrentWatching
+                }"
+                class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                style="padding: 0.75rem 1rem"
+                @click="selectLesson(lesson)"
+              >
+                <div class="d-flex flex-column text-center w-100">
+                  <p class="fs-9 mb-1" style="height: 42px">
+                    {{ lesson.name }}
+                  </p>
+                  <div class="d-flex align-items-center justify-content-center">
+                    <i
+                      v-if="lesson.isFinished"
+                      class="bi bi-check-circle-fill text-success fs-5"
+                    ></i>
+                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                    <p class="text-secondary mb-0 fs-9 ms-1">
+                      {{
+                        lesson.length !== '未提供'
+                          ? lesson.length + ' 分鐘'
+                          : '未提供'
+                      }}
+                      分鐘
+                    </p>
+                  </div>
+                </div>
+                <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -763,5 +831,25 @@ onMounted(() => {
   @media (max-width: 992px) {
     max-width: 100%;
   }
+}
+.offcanvas-start {
+  top: 72px; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
+  height: calc(100% - 56px);
+  border-top: 1px solid #ccc;
+  box-shadow: 0 4px 12 px rgba(0, 0, 0, 0.1);
+  width: 55%;
+  text-align: center;
+  .list-group-item {
+    cursor: pointer;
+  }
+}
+.offcanvas .nav-link {
+  text-align: center;
+}
+
+/* 列表 hover 效果沿用既有變數 */
+.offcanvas .list-group-item:hover {
+  background: $primary-600;
+  cursor: pointer;
 }
 </style>

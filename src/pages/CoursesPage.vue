@@ -320,6 +320,9 @@ watch([currentPage, currentType, currentSort], () => {
     inset 0px 0px 0px 1px $primary-000;
   padding: 24px;
   background: rgba(252, 252, 252, 0.1);
+  @media (max-width: 576px) {
+    min-width: 100%;
+  }
 }
 
 .badge {
