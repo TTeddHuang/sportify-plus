@@ -8,7 +8,7 @@ const route = useRoute()
 
 <template>
   <NavBar />
-  <router-view />
+  <router-view :key="$route.fullPath" />
   <Footer v-if="!route.meta.hideFooter" />
 </template>
 

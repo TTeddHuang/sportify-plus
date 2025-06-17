@@ -12,7 +12,7 @@
   background-image: url('../assets/images/Vector-2.png');
   background-position: center;
   height: 172px;
-  max-width: 1920px;
+  width: 100%;
 }
 .wave-wrapper {
   width: 100%;

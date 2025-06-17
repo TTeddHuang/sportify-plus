@@ -194,7 +194,7 @@
                 <li
                   class="page-item"
                   :class="{ disabled: currentPage === 1 }"
-                  @click="changePage(currentPage - 1)"
+                  @click.prevent="changePage(currentPage - 1)"
                 >
                   <a class="page-link me-lg-11"
                     ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
@@ -207,7 +207,7 @@
                   :key="page"
                   class="page-item mx-2"
                   :class="{ active: page === currentPage }"
-                  @click="changePage(page)"
+                  @click.prevent="changePage(page)"
                 >
                   <a class="page-link">{{ page }}</a>
                 </li>
@@ -479,6 +479,7 @@ async function unsubscribe(MerchantTradeNo) {
   color: $primary-900;
   background: $primary-000;
   font-size: 20px;
+  text-align: center;
 }
 .td-custom {
   color: $primary-900;
