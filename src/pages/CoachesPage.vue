@@ -10,7 +10,7 @@
           aria-label="Basic outlined button group"
         >
           <button
-            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
             :class="{ active: currentType === '' }"
             @click="((currentType = ''), (currentPage = 1))"
           >
@@ -19,7 +19,7 @@
           <button
             v-for="skill in skills"
             :key="skill.skill_id"
-            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
             :class="{ active: currentType === skill.skill_id }"
             @click="((currentType = skill.skill_id), (currentPage = 1))"
           >
@@ -59,7 +59,7 @@
         > -->
         <!-- API缺少照片URL，先用random user API 擋一下 -->
         <img
-          :src="`https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 100)}.jpg`"
+          :src="coach.coach_profile_image_url"
           class="card-img-top"
           alt="card-img-top"
         />
@@ -182,8 +182,8 @@ watch([currentPage, currentType], () => {
 
 <style scoped lang="scss">
 .container {
-  padding: 0;
-  max-width: 1296px;
+  // padding: 0;
+  // max-width: 1296px;
   @media (max-width: 992px) {
     padding: 0 24px;
   }
@@ -266,7 +266,8 @@ watch([currentPage, currentType], () => {
 }
 
 .card {
-  max-width: 405.3px;
+  width: 405.3px;
+  max-width: 100%;
   min-width: 327px;
   height: 550px;
   border: 0px;
@@ -276,6 +277,9 @@ watch([currentPage, currentType], () => {
     inset 0px 0px 0px 1px $primary-000;
   padding: 24px;
   background: rgba(252, 252, 252, 0.1);
+  @media (max-width: 576px) {
+    min-width: 100%;
+  }
 }
 
 .badge {

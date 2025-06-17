@@ -92,7 +92,16 @@ const routes = [
   // 管理者後台，需登入，需管理者身分
   {
     path: '/admin/courses',
+    name: 'AdminCourses',
     component: AdminCourses,
+    meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
+  },
+  {
+    /* 新增：帶 courseId 參數（/admin/courses/123） */
+    path: '/admin/courses/:courseId',
+    name: 'AdminCourseDetail', // ← 新名字
+    component: AdminCourses, // 同一隻元件
+    props: true, // 可選：讓 courseId 自動成為 prop
     meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
   },
   {

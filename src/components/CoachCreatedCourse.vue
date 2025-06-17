@@ -1,5 +1,3 @@
-這段程式碼中，我想要將"查看更多"的按鈕，可以引導到相對應的課程資訊
-/sportify-plus/courses/:courseId/details
 <template>
   <div class="position-relative swiper-wrapper-with-nav">
     <swiper
@@ -70,10 +68,10 @@
               <div class="card-link text-center py-1">
                 <router-link
                   :to="{
-                    name: 'CourseDetails', // 與 router.js 裡的 name 相同
+                    name: 'CourseDetails',
                     params: { courseId: course.course_id }
                   }"
-                  class="text-grey-000 btn"
+                  class="text-grey-000 text-decoration-none"
                 >
                   查看更多
                 </router-link>
@@ -97,7 +95,8 @@ import axios from 'axios'
 import defaultCourseImg from '@/assets/images/weight-command.png'
 
 const route = useRoute()
-const courseId = route.params.courseId
+const coachId = route.params.coachId
+const courses = ref([])
 
 let swiperInstance = null
 
@@ -115,12 +114,11 @@ onMounted(() => {
     window.removeEventListener('resize', handleResize)
   })
 })
-const courses = ref([])
 
-const fetchRecommendedCourses = async () => {
+const fetchCourses = async () => {
   try {
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/recommend`
+      `https://sportify.zeabur.app/api/v1/courses/${coachId}`
     )
     courses.value = res.data.data.map(item => ({
       course_id: item.course_id,
@@ -142,7 +140,7 @@ const fetchRecommendedCourses = async () => {
 }
 
 onMounted(() => {
-  fetchRecommendedCourses()
+  fetchCourses()
 })
 </script>
 

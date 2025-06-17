@@ -29,20 +29,17 @@
           </div>
 
           <!-- 課程圖片與介紹 -->
-          <div class="gy-4 d-lg-flex mb-lg-12 mb-6">
-            <div class="">
+          <div class="row gy-4 mb-lg-12 mb-6">
+            <div class="col-12 col-lg-4">
               <img
                 :src="courseDetail.course.image_url"
                 :alt="courseDetail.course.name"
-                class="course-image rounded-3 d-block mb-5 mb-lg-0"
-                width="320px"
-                height="320px"
+                class="course-image rounded-3 d-block mb-5 mb-lg-0 img-fluid"
               />
             </div>
-            <div>
+            <div class="col-12 col-lg-8">
               <div
-                class="p-lg-8 p-5 rounded-4 border border-primary-000 ms-lg-12 h-100"
-                style="background-color: rgba(255, 255, 255, 0.05)"
+                class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100 info-card"
               >
                 <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
                 <div>
@@ -429,9 +426,12 @@
           <h3 class="mb-lg-8">你可能會喜歡</h3>
           <CourseCarousel />
           <div class="text-center mb-lg-12 mb-8">
-            <button class="btn border-grey-400 py-3 px-5 fs-6">
+            <router-link
+              to="/courses"
+              class="btn border-grey-400 py-3 px-5 fs-6 text-decoration-none"
+            >
               瀏覽更多課程
-            </button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -564,6 +564,17 @@ onMounted(() => {
     width: 100%;
     height: 200px;
     object-position: top;
+  }
+}
+.info-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 40px;
+  border-radius: 16px;
+  border: 1px solid $primary-000;
+  width: 100%;
+  max-width: 100%;
+  @media (max-width: 992px) {
+    padding: 24px;
   }
 }
 

@@ -217,50 +217,48 @@
                 ></button>
               </div>
               <div class="modal-body">
-                <div class="row">
+                <div class="row d-flex flex-column-reverse flex-lg-row">
                   <!-- 左半：文字與課程資訊 (占 8/12) -->
                   <div class="col-lg-8 d-flex flex-column">
-                    <div class="d-flex">
+                    <div class="d-lg-flex">
                       <div
-                        class="mb-3 d-flex flex-column gap-3"
-                        style="width: 60%"
+                        class="mb-3 d-flex flex-column gap-3 mobile-custom-60"
                       >
-                        <div class="me-4">
-                          <strong>會員編號：</strong
+                        <div class="me-lg-4">
+                          <strong>會員編號：<br class="d-xl-none" /></strong
                           ><span>{{ selectedUser?.id }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>會員名稱：</strong
                           ><span>{{ selectedUser?.name }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>Email：</strong
                           ><span>{{ selectedUser?.email }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>訂閱期間：</strong
                           ><span>{{ selectedUser?.period || '—' }}</span>
                         </div>
                       </div>
                       <div
-                        class="mb-3 d-flex flex-column gap-3"
-                        style="width: 40%"
+                        class="mb-lg-3 mb-5 d-flex flex-column gap-3 mobile-custom-40"
                       >
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>目前方案：</strong
                           ><span>{{ selectedUser?.plan || '未訂閱' }}</span>
                         </div>
 
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>註冊時間：</strong
                           ><span>{{ selectedUser?.createdAt }}</span>
                         </div>
 
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>所選課程：</strong
                           ><span>{{ displayCourses }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>下次付款日：</strong
                           ><span>{{ selectedUser?.next_payment || '—' }}</span>
                         </div>
@@ -268,11 +266,11 @@
                     </div>
                   </div>
 
-                  <!-- 右半：教練頭像 (占 4/12) -->
-                  <div class="col-lg-4 text-center mt-5">
+                  <div class="col-lg-4 text-center">
                     <img
+                      :src="selectedUser?.profile_image_url"
                       alt="會員頭像"
-                      class="rounded-circle mb-2"
+                      class="rounded-circle mb-lg-0 mb-5"
                       style="width: 240px; height: 240px; object-fit: cover"
                     />
                   </div>
@@ -314,9 +312,7 @@
                             <td class="td-custom">NT$ {{ r.price }}</td>
                           </tr>
                           <tr v-if="records.length === 0">
-                            <td colspan="7" class="text-center text-muted">
-                              無訂閱紀錄
-                            </td>
+                            <td colspan="7" class="text-center">無訂閱紀錄</td>
                           </tr>
                         </tbody>
                       </table>
@@ -335,7 +331,9 @@
                       @click="changeModalPage(currentModalPage - 1)"
                     >
                       <a class="page-link me-lg-11 me-5 text-grey-700"
-                        >上一頁</a
+                        ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                        <!-- lg 以上顯示文字 -->
+                        <span class="d-none d-lg-inline">上一頁</span></a
                       >
                     </li>
                     <li
@@ -355,7 +353,8 @@
                       @click="changeModalPage(currentModalPage + 1)"
                     >
                       <a class="page-link ms-lg-11 ms-5 text-grey-700"
-                        >下一頁</a
+                        ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                        <span class="d-none d-lg-inline">下一頁</span></a
                       >
                     </li>
                   </ul>
@@ -725,6 +724,7 @@ function openDetailModal(user) {
   background: $primary-000;
   font-size: 20px;
   text-align: center;
+  white-space: nowrap;
   @media (max-width: 992px) {
     font-size: 16px;
   }
@@ -734,6 +734,7 @@ function openDetailModal(user) {
   background: $primary-000;
   font-size: 14px;
   text-align: center;
+  white-space: nowrap;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
@@ -754,9 +755,21 @@ textarea::placeholder {
     min-width: 900px;
   }
 }
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .side-nav {
     display: none;
+  }
+}
+.mobile-custom-60 {
+  width: 60%;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.mobile-custom-40 {
+  width: 40%;
+  @media (max-width: 992px) {
+    width: 100%;
   }
 }
 </style>

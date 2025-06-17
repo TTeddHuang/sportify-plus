@@ -289,7 +289,11 @@
                       :class="{ disabled: currentRatingPage === 1 }"
                       @click="changeRatingPage(currentRatingPage - 1)"
                     >
-                      <a class="page-link me-12">上一頁</a>
+                      <a class="page-link me-12"
+                        ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                        <!-- lg 以上顯示文字 -->
+                        <span class="d-none d-lg-inline">上一頁</span></a
+                      >
                     </li>
 
                     <li
@@ -309,7 +313,10 @@
                       }"
                       @click="changeRatingPage(currentRatingPage + 1)"
                     >
-                      <a class="page-link ms-12">下一頁</a>
+                      <a class="page-link ms-12"
+                        ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                        <span class="d-none d-lg-inline">下一頁</span></a
+                      >
                     </li>
                   </ul>
                 </nav>
@@ -342,49 +349,47 @@
               </div>
               <!-- --- Modal 主體 --- -->
               <div class="modal-body">
-                <div class="row">
+                <div class="d-flex flex-column-reverse flex-lg-row">
                   <!-- 左半：文字與課程資訊 (占 8/12) -->
-                  <div class="col-lg-8 d-flex flex-column">
-                    <div class="d-flex">
+                  <div class="col-lg-8 d-flex flex-column flex-fill">
+                    <div class="d-lg-flex">
                       <div
-                        class="mb-3 d-flex flex-column gap-3"
-                        style="width: 60%"
+                        class="mb-3 d-flex flex-column gap-3 mobile-custom-60"
                       >
-                        <div class="me-4">
-                          <strong>課程代號：</strong
+                        <div class="me-lg-4">
+                          <strong>課程代號：<br class="d-xl-none" /></strong
                           ><span>{{ selectedDetail.id }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>教練名稱：</strong
                           ><span>{{ selectedDetail.coach.name }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>課程名稱：</strong
                           ><span>{{ selectedDetail.name }}</span>
                         </div>
                       </div>
                       <div
-                        class="mb-3 d-flex flex-column gap-3"
-                        style="width: 40%"
+                        class="mb-lg-3 mb-5 d-flex flex-column gap-3 mobile-custom-40"
                       >
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>課程狀態：</strong
                           ><span>{{ selectedDetail.status }}</span>
                         </div>
 
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>上架時間：</strong
                           ><span>{{ selectedDetail.publishedAt }}</span>
                         </div>
-                        <div class="me-4">
+                        <div class="me-lg-4">
                           <strong>課程類別：</strong
                           ><span>{{ selectedDetail.category }}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div class="mb-3">
-                      <p class="fw-bold mb-3">課程介紹：</p>
+                    <div class="mb-lg-3 mb-5">
+                      <p class="fw-bold mb-lg-3 mb-2">課程介紹：</p>
                       <div
                         class="border rounded p-3"
                         style="background-color: #f8f9fa"
@@ -392,8 +397,8 @@
                         {{ selectedDetail.description }}
                       </div>
                     </div>
-                    <div class="mb-3">
-                      <p class="fw-bold">課程照片：</p>
+                    <div class="mb-lg-3 mb-5">
+                      <p class="mb-2 fw-bold">課程照片：</p>
                       <img
                         :src="selectedDetail.image_url"
                         alt="課程照片"
@@ -403,11 +408,11 @@
                   </div>
 
                   <!-- 右半：教練頭像 (占 4/12) -->
-                  <div class="col-lg-4 text-center mt-5">
+                  <div class="col-lg-4 text-center">
                     <img
                       :src="selectedDetail.coach.profile_image_url"
                       alt="教練頭像"
-                      class="rounded-circle mb-2"
+                      class="rounded-circle mb-5"
                       style="width: 240px; height: 240px; object-fit: cover"
                     />
                   </div>
@@ -415,8 +420,8 @@
 
                 <!-- 下面可以再加「審核建議」之類的表單欄位 -->
 
-                <div class="mb-3">
-                  <p class="fw-bold">課程影片：</p>
+                <div class="mb-lg-3 mb-5">
+                  <p class="fw-bold mb-2">課程影片：</p>
                   <div id="courseVideoAccordion" class="accordion">
                     <div
                       v-for="(chap, idx) in selectedDetail.chapters"
@@ -481,7 +486,7 @@
                   </template>
                   <!-- 其餘狀況（剛打開、或點了「編輯」後）都顯示「審核建議 + 通過/未通過」 -->
                   <template v-else>
-                    <div class="mt-4">
+                    <div class="mt-4 mb-lg-3 mb-2">
                       <p class="fw-bold">審核建議：</p>
                       <textarea
                         v-model="selectedDetail.reviewComment"
@@ -600,7 +605,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -609,6 +614,17 @@ const route = useRoute()
 
 // 目前是否處於「編輯模式」的旗標
 const isEditing = ref(false)
+
+// 取得courseId方便教練跳轉
+function openFromRoute() {
+  const id = route.params.courseId // ← 不用 as string
+  if (id) {
+    nextTick(() => openDetailModal(id)) // ← 這裡也拿掉 as
+    // router.replace({ name: 'AdminCourses' })  // ← 若要導回乾淨網址可加
+  }
+}
+onMounted(openFromRoute)
+watch(() => route.params.courseId, openFromRoute)
 
 //
 // === 身分驗證：只有 role === 'ADMIN' 才能繼續進入此頁面 ===
@@ -1149,6 +1165,7 @@ onMounted(async () => {
   background: $primary-000;
   font-size: 20px;
   text-align: center;
+  white-space: nowrap;
   @media (max-width: 992px) {
     font-size: 16px;
   }
@@ -1158,6 +1175,7 @@ onMounted(async () => {
   background: $primary-000;
   font-size: 14px;
   text-align: center;
+  white-space: nowrap;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
@@ -1176,12 +1194,24 @@ textarea::placeholder {
 }
 @media (max-width: 900px) {
   .wide-table {
-    min-width: 900px;
+    min-width: 200px;
   }
 }
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .side-nav {
     display: none;
+  }
+}
+.mobile-custom-60 {
+  width: 60%;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.mobile-custom-40 {
+  width: 40%;
+  @media (max-width: 992px) {
+    width: 100%;
   }
 }
 </style>
