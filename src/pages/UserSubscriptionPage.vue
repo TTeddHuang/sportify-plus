@@ -1,11 +1,11 @@
 <!-- src/components/SubscriptionSelector.vue -->
 <template>
-  <section class="subscription-plans mt-lg-10">
+  <section class="subscription-plans mt-lg-10 mt-7">
     <div class="container">
-      <h4 v-if="userInfo?.hasTrial || !userInfo" class="text-center mb-lg-5">
+      <h4 v-if="userInfo?.hasTrial || !userInfo" class="text-center mb-5">
         就差一步，改變正要開始！
       </h4>
-      <h2 class="text-center mb-lg-10">
+      <h2 class="text-center mb-lg-10 mb-7">
         {{
           userInfo?.hasTrial || !userInfo
             ? '我們的訂閱方案'
@@ -14,7 +14,7 @@
       </h2>
 
       <!-- 方案卡片 -->
-      <div class="row gx-5 gy-4">
+      <div class="row gx-5 gy-4 px-2">
         <div v-for="plan in plans" :key="plan.key" class="col-lg-4">
           <div
             class="card h-100 rounded-4 border border-primary-000"
@@ -60,7 +60,7 @@
       <!-- 目前選擇顯示 -->
       <div
         v-if="userInfo && !userInfo?.hasTrial"
-        class="text-center my-lg-12 fs-lg-4"
+        class="text-center my-lg-12 my-7 fs-lg-4"
       >
         您目前選擇
         <strong class="text-primary">

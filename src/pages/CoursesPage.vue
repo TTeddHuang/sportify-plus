@@ -1,18 +1,18 @@
 <template>
   <div class="container mb-lg-12 mb-8">
     <h1 class="fs-2 primary-000 my-lg-10 my-8">課程分類</h1>
-    <div class="d-xl-flex flex-row justify-content-between">
+    <div class="d-xxl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
 
       <div class="types-btn-wrapper gap-1">
         <div
-          class="btn-group types-btn-group gap-1 mb-xl-0 mb-5 d-flex flex-lg-wrap"
+          class="btn-group types-btn-group gap-1 mb-xxl-3 mb-5 d-flex"
           role="group"
           aria-label="Basic outlined button group"
         >
           <button
             href="#"
-            class="btn btn-outline-primary flex-shrink-0 text-nowrap"
+            class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
             :class="{ active: currentType === '' }"
             @click="((currentType = ''), (currentPage = 1))"
           >
@@ -50,7 +50,7 @@
       </div>
 
       <!-- 排序按鍵 -->
-      <div class="d-flex gap-1 align-items-center sort-btn-group">
+      <div class="d-flex gap-1 align-items-center sort-btn-group mb-xxl-3 mb-5">
         <span>排序：</span>
         <button
           type="button"
@@ -226,8 +226,8 @@ watch([currentPage, currentType, currentSort], () => {
 
 <style scoped lang="scss">
 .container {
-  padding: 0;
-  max-width: 1296px;
+  // padding: 0;
+  // max-width: 1296px;
   @media (max-width: 992px) {
     padding: 0 24px;
   }
@@ -310,7 +310,8 @@ watch([currentPage, currentType, currentSort], () => {
 }
 
 .card {
-  max-width: 405.3px;
+  width: 405.3px;
+  max-width: 100%;
   min-width: 327px;
   height: 550px;
   border: 0px;
@@ -320,6 +321,9 @@ watch([currentPage, currentType, currentSort], () => {
     inset 0px 0px 0px 1px $primary-000;
   padding: 24px;
   background: rgba(252, 252, 252, 0.1);
+  @media (max-width: 576px) {
+    min-width: 100%;
+  }
 }
 
 .badge {
