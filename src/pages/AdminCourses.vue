@@ -138,7 +138,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="course in filteredCourses" :key="course.id">
+                  <tr v-for="course in paginatedCourses" :key="course.id">
                     <td class="td-custom">
                       {{ course.category }}
                     </td>
@@ -687,15 +687,6 @@ const selectedDetail = ref({
   chapters: []
 })
 
-const pagination = ref({
-  total: 0,
-  page: 1,
-  limit: 20,
-  total_pages: 1,
-  has_next: false,
-  has_previous: false
-})
-
 const loading = ref(false)
 const error = ref(null)
 
@@ -721,9 +712,21 @@ const instructorOptions = computed(() => {
 // 狀態選項固定三項（全部/上架中/待審核）
 const statusOptions = ['全部狀態', '上架中', '待審核']
 
+const pageSize = 20
+
 // 由 pagination.value 計算出目前課程頁碼與總頁數
-const currentCoursePage = computed(() => pagination.value.page)
-const totalCoursePages = computed(() => pagination.value.total_pages)
+// const currentCoursePage = computed(() => pagination.value.page)
+// const totalCoursePages = computed(() => pagination.value.total_pages)
+const currentCoursePage = ref(1)
+
+const totalCoursePages = computed(() =>
+  Math.max(Math.ceil(filteredCourses.value.length / pageSize), 1)
+)
+
+const paginatedCourses = computed(() => {
+  const start = (currentCoursePage.value - 1) * pageSize
+  return filteredCourses.value.slice(start, start + pageSize)
+})
 
 function formatDateWithoutLib(isoString) {
   if (!isoString) return ''
@@ -732,34 +735,47 @@ function formatDateWithoutLib(isoString) {
   return `${datePart} ${timePart}`
 }
 
-async function fetchCourses() {
+/**
+ * 從 /admin/courses 把所有資料拉下來（後端固定每頁 20 筆）
+ * 1. 先打 page=1 拿到 total
+ * 2. 之後逐頁抓，直到收到「足夠的唯一 id 數量」為止
+ *    - 後端 page=2 會重送 page=1，但 page=3 又會送剩下 4 筆
+ *    - 所以用 Set 去重，再看總量是否到了就結束
+ */
+async function fetchAllCourses() {
   loading.value = true
   error.value = null
+  courses.value = []
 
   try {
     const token = localStorage.getItem('token')
-    // 不帶任何參數，因為後端不接受 page/limit
-    const res = await axios.get(
+
+    /* ❶ 先抓 page=1 */
+    const { data: first } = await axios.get(
       'https://sportify.zeabur.app/api/v1/admin/courses',
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: { Authorization: `Bearer ${token}` }, params: { page: 1 } }
     )
 
-    if (res.data.status) {
-      courses.value = res.data.data
-      if (res.data.pagination) {
-        const p = res.data.pagination
-        pagination.value.page = p.page
-        pagination.value.limit = p.limit
-        pagination.value.total = p.total
-        pagination.value.total_pages = p.total_pages
-        pagination.value.has_next = p.has_next
-        pagination.value.has_previous = p.has_previous
-      }
-    } else {
-      error.value = res.data.message || '取得課程資料失敗'
+    // 塞進陣列
+    courses.value.push(...first.data)
+
+    /* ❷ 根據 meta.total_pages，再把 2~n 頁補齊 */
+    const totalPages = first.pagination.total_pages // ← 2
+    const requests = []
+
+    for (let p = 2; p <= totalPages; p++) {
+      requests.push(
+        axios.get('https://sportify.zeabur.app/api/v1/admin/courses', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: p }
+        })
+      )
     }
+
+    const results = await Promise.all(requests)
+    results.forEach(res => courses.value.push(...res.data.data))
+
+    /* 現在 courses.value 應該就是 24 筆，且不會重複 */
   } catch (err) {
     console.error('課程列表載入失敗:', err.response?.data || err)
     error.value = err.response?.data?.message || '伺服器錯誤，請稍後再試'
@@ -769,10 +785,12 @@ async function fetchCourses() {
 }
 
 function changeCoursePage(page) {
-  if (page < 1 || page > pagination.value.total_pages) return
-  // 後端一次就回傳所有資料，不需要重新帶參數
-  fetchCourses()
+  if (page < 1 || page > totalCoursePages.value) return
+  currentCoursePage.value = page
 }
+watch([selectedCategory, selectedInstructor, selectedStatus], () => {
+  currentCoursePage.value = 1
+})
 
 // 審核成功／失敗後都要關掉 Modal
 function closeDetailModal() {
@@ -803,7 +821,7 @@ async function approveReview() {
     closeDetailModal()
     alert('課程已標記為「上架中」')
     // 如果需要重新載入列表，可呼叫 fetchCourses() 或 refresh 資料
-    await fetchCourses()
+    await fetchAllCourses()
     // 不一定要立刻還原 edit flag（通常關 Modal 就沒差），
     // 但若 modal 留著，也可再把 isEditing 變 false
     isEditing.value = false
@@ -831,16 +849,13 @@ async function rejectReview() {
     )
     closeDetailModal()
     alert('課程未通過，已退回給教練更新')
-    fetchCourses()
+    fetchAllCourses()
     isEditing.value = false
   } catch (err) {
     console.error('拒絕審核失敗：', err.response?.data || err)
     alert(err.response?.data?.message || '審核拒絕失敗，請稍後再試')
   }
 }
-onMounted(() => {
-  fetchCourses()
-})
 
 //
 
@@ -1087,7 +1102,7 @@ async function confirmDelete() {
 onMounted(async () => {
   const isAdmin = await checkAdmin()
   if (isAdmin) {
-    fetchCourses()
+    fetchAllCourses()
   }
 })
 </script>
