@@ -13,9 +13,7 @@
       </div>
       <div class="col-lg-6">
         <h2 class="mb-5">忘記密碼</h2>
-        <p class="fs-5">
-          輸入註冊帳號所使用的Email信箱，我們將發送一組密碼給您。
-        </p>
+        <p class="fs-5">輸入註冊帳號所使用的Email信箱，我們將發送連結給您。</p>
         <form @submit.prevent="handleForgotPassword">
           <div class="mb-3">
             <label class="form-label fs-5">Email</label>
@@ -24,6 +22,7 @@
               type="email"
               class="form-control"
               required
+              :disabled="isLoading"
               @blur="validateEmail"
             />
             <p v-if="emailError" class="text-danger mt-1">
@@ -33,9 +32,9 @@
 
           <button
             class="btn btn-primary-600 btn-lg custom-btn mt-5"
-            :disabled="emailError"
+            :disabled="emailError || isLoading"
           >
-            發送重設連結
+            {{ isLoading ? '發送中...' : '發送重設連結' }}
           </button>
         </form>
 
@@ -63,9 +62,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const email = ref('')
 const emailError = ref(false)
+const isLoading = ref(false)
 const router = useRouter()
 
 function validateEmail() {
@@ -78,14 +79,22 @@ async function handleForgotPassword() {
   validateEmail()
   if (emailError.value) return
 
+  isLoading.value = true
+
   try {
-    // 模擬 API 呼叫（你可以替換成正式 API）
-    console.log(`模擬發送密碼重設連結到: ${email.value}`)
+    await axios.post(
+      'https://sportify.zeabur.app/api/v1/auth/forgot-password',
+      {
+        email: email.value
+      }
+    )
     alert('已發送密碼重設連結至您的 Email，請查看信箱。')
     router.push('/login')
   } catch (error) {
     console.error(error)
     alert('無法發送密碼重設信，請稍後再試。')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
