@@ -127,12 +127,12 @@ function formatChaptersData() {
 
   return chapters.map((chapter, chapterIndex) => ({
     chapter_number: chapterIndex + 1,
-    chapter_title: chapter.title || `第 ${chapterIndex + 1} 章`,
+    chapter_title: chapter.title,
     sub_chapter: chapter.sections.map((section, sectionIndex) => ({
       subchapter_id: section.id,
       sub_chapter_number: sectionIndex + 1,
-      subtitle: section.title || `第 ${sectionIndex + 1} 節`,
-      filename: section.fileName || ''
+      subtitle: section.title,
+      filename: section.fileName
     }))
   }))
 }
