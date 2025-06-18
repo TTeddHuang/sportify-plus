@@ -304,6 +304,7 @@
                         v-model="isVerified"
                         class="form-check-input m-0"
                         type="checkbox"
+                        @change="updateVerifyStatus()"
                       />
                       <label
                         class="form-check-label mt-2 fw-bold text-center"
@@ -483,6 +484,8 @@ async function checkAdmin() {
     return false
   }
 }
+// 確認是否審核通過
+const isVerified = ref(false)
 
 // -----------------------------------------------
 // === 教練列表相關狀態（把所有頁都拉下來） ===
@@ -644,11 +647,35 @@ async function fetchCoachDetail(coachId) {
     }
     // 注意：把 coachDetails 塞到 selectedCoach
     selectedCoach.value = res.data.data.coachDetails
+    isVerified.value = res.data.coachDetails.is_verified
     // 顯示 Modal
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
   }
 }
+
+watch(
+  () => selectedCoach.value?.is_verified,
+  val => {
+    if (val !== undefined) isVerified.value = val
+  }
+)
+async function updateVerifyStatus() {
+  try {
+    const token = localStorage.getItem('token')
+    await axios.patch(
+      `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/verify`,
+      { is_verified: isVerified.value },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    // 若後端回傳成功訊息，可在此顯示 Toast 或 Swal
+  } catch (err) {
+    console.error('更新審核狀態失敗', err)
+    // 失敗時把開關還原
+    isVerified.value = !isVerified.value
+  }
+}
+
 const courses = ref([])
 const selectedCategory = ref('全部課程')
 const selectedInstructor = ref('全部講師')
