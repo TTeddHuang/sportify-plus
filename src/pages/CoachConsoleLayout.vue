@@ -40,7 +40,7 @@
         </ul>
       </div>
     </div>
-    <router-view class="col-9"></router-view>
+    <router-view class="col-9 p-0"></router-view>
   </div>
 </template>
 
