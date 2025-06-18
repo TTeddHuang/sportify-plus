@@ -299,7 +299,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 // import { useRouter } from 'vue-router'
-import { user } from '@/store/user'
+import { user, initUser } from '@/store/user'
 
 // const router = useRouter()
 const inputState = ref('readOnly')
@@ -701,7 +701,8 @@ const loadCoachProfile = async () => {
 }
 
 onMounted(async () => {
-  loadCoachProfile()
+  await initUser()
+  await loadCoachProfile()
 })
 </script>
 
