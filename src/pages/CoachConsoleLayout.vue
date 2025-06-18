@@ -29,18 +29,18 @@
               課程資料
             </router-link>
           </li>
-          <li
+          <!-- <li
             class="list-group-item"
             :class="{ active: route.name === 'CoachEarnings' }"
           >
             <router-link :to="{ name: 'CoachEarnings' }" class="nav-link">
               教練收益
             </router-link>
-          </li>
+          </li> -->
         </ul>
       </div>
     </div>
-    <router-view class="col-9 p-0"></router-view>
+    <router-view class="col-12 col-lg-9 p-0"></router-view>
   </div>
 </template>
 
@@ -60,10 +60,13 @@ const route = useRoute()
 .side-nav {
   border-left: 1px solid $primary-100;
   border-right: 1px solid $primary-100;
+  padding: 0;
 }
 
-.side-nav {
-  padding: 0;
+@media (max-width: 1199.98px) {
+  .side-nav {
+    display: none;
+  }
 }
 
 .divider {

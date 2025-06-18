@@ -81,119 +81,160 @@
       aria-hidden="true"
     >
       <div class="modal-dialog modal-xl">
-        <div class="modal-content bg-grey-000">
-          <div class="modal-header border-0">
-            <h5 id="editCourseModalLabel" class="modal-title text-primary-900">
-              編輯課程
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body p-5">
-            <form @submit.prevent="updateCourse">
-              <div class="mb-5">
-                <label for="editName" class="form-label">課程名稱</label>
-                <input
-                  id="editName"
-                  v-model.trim="editForm.name"
-                  type="text"
-                  class="form-control"
-                  placeholder="請輸入課程名稱"
-                  required
-                />
-              </div>
+        <div class="modal-content bg-transparent">
+          <div class="modal-body p-0">
+            <div class="p-lg-8 px-2 py-8 w-100">
+              <h2 class="fs-lg-4 mb-lg-8 mb-6">編輯課程</h2>
 
-              <div class="mb-5">
-                <label for="editIntro" class="form-label">課程介紹</label>
-                <textarea
-                  id="editIntro"
-                  v-model="editForm.intro"
-                  class="form-control"
-                  rows="5"
-                  placeholder="請輸入課程介紹"
-                  required
-                ></textarea>
-              </div>
+              <div class="card-wrapper"></div>
+              <div class="card-content p-5 mb-5">
+                <form class="container">
+                  <div class="mb-5">
+                    <label for="editName" class="form-label fw-bold"
+                      >課程名稱</label
+                    >
+                    <input
+                      id="editName"
+                      v-model.trim="editForm.name"
+                      type="text"
+                      class="form-control"
+                      placeholder="請輸入課程名稱"
+                      required
+                    />
+                  </div>
 
-              <div class="mb-5">
-                <label for="editCategory" class="form-label">課程類別</label>
-                <select
-                  id="editCategory"
-                  v-model="editForm.category"
-                  class="form-select"
-                  required
-                >
-                  <option disabled value="">請選擇類別</option>
-                  <option
-                    v-for="category in categories"
-                    :key="category"
-                    :value="category"
-                  >
-                    {{ category }}
-                  </option>
-                </select>
-              </div>
+                  <div class="mb-5">
+                    <label for="editIntro" class="form-label fw-bold"
+                      >課程介紹</label
+                    >
+                    <textarea
+                      id="editIntro"
+                      v-model="editForm.intro"
+                      class="form-control"
+                      rows="5"
+                      placeholder="請輸入課程介紹"
+                      required
+                    ></textarea>
+                  </div>
 
-              <div class="mb-5">
-                <label for="editPhoto" class="form-label">更新封面照片</label>
-                <input
-                  id="editPhoto"
-                  type="file"
-                  class="form-control"
-                  accept="image/*"
-                  :disabled="isUploadingThumbnail"
-                  @change="selectImg"
-                />
-                <div v-if="isUploadingThumbnail" class="mt-2 text-primary">
-                  <span
-                    class="spinner-border spinner-border-sm me-2"
-                    role="status"
-                  ></span>
-                  封面照片上傳中...
-                </div>
-                <img
-                  v-if="editPreviewURL || editForm.currentImageUrl"
-                  :src="editPreviewURL || editForm.currentImageUrl"
-                  alt="照片預覽"
-                  class="mt-3 img-preview"
-                />
-              </div>
+                  <div class="mb-5">
+                    <label for="editCategory" class="form-label fw-bold"
+                      >課程類別</label
+                    >
+                    <select
+                      id="editCategory"
+                      v-model="editForm.category"
+                      class="form-select"
+                      required
+                    >
+                      <option disabled value="">請選擇類別</option>
+                      <option
+                        v-for="category in categories"
+                        :key="category"
+                        :value="category"
+                      >
+                        {{ category }}
+                      </option>
+                    </select>
+                  </div>
 
-              <div class="mb-5">
-                <label class="form-label">課程影片管理</label>
-                <draggable
-                  ref="editDraggableRef"
-                  :initial-data="editForm.chapters"
-                  @course-id-received="handleCourseIdReceived"
-                ></draggable>
+                  <div class="mb-5">
+                    <label class="form-label fw-bold">更新封面照片</label>
+                    <div class="d-flex flex-column gap-3">
+                      <!-- 隱藏的檔案輸入框 -->
+                      <input
+                        ref="fileInput"
+                        type="file"
+                        class="d-none"
+                        accept="image/*"
+                        @change="selectImg"
+                      />
+
+                      <!-- 自訂樣式的上傳按鈕 -->
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        :disabled="isUploadingThumbnail"
+                        @click="triggerFileSelect"
+                      >
+                        <i
+                          v-if="!isUploadingThumbnail"
+                          class="bi bi-cloud-upload me-2"
+                        ></i>
+                        <span
+                          v-if="isUploadingThumbnail"
+                          class="spinner-border spinner-border-sm me-2"
+                          role="status"
+                        ></span>
+                        {{
+                          isUploadingThumbnail ? '上傳中...' : '更新封面照片'
+                        }}
+                      </button>
+
+                      <!-- 上傳進度提示 -->
+                      <div
+                        v-if="isUploadingThumbnail"
+                        class="text-primary-600 small"
+                      >
+                        <i class="bi bi-info-circle me-1"></i>
+                        正在上傳封面照片，請稍候...
+                      </div>
+
+                      <!-- 圖片預覽 -->
+                      <div
+                        v-if="editPreviewURL || editForm.currentImageUrl"
+                        class="mt-2"
+                      >
+                        <img
+                          :src="editPreviewURL || editForm.currentImageUrl"
+                          alt="照片預覽"
+                          class="img-preview rounded"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-5">
+                    <label class="form-label fw-bold">課程影片管理</label>
+                    <div class="upload-section">
+                      <draggable
+                        ref="editDraggableRef"
+                        :initial-data="editForm.chapters"
+                        @course-id-received="handleCourseIdReceived"
+                      ></draggable>
+                    </div>
+                  </div>
+
+                  <!-- 操作按鈕區 -->
+                  <div class="text-center mt-8">
+                    <div class="d-flex justify-content-center gap-4">
+                      <button
+                        type="button"
+                        class="btn btn-primary-600 px-5 py-3"
+                        :disabled="isSubmitting"
+                        @click="updateCourse"
+                      >
+                        <span
+                          v-if="isSubmitting"
+                          class="spinner-border spinner-border-sm me-2"
+                        ></span>
+                        <i v-else class="bi bi-check-circle me-2"></i>
+                        {{ isSubmitting ? '更新中...' : '確定修改' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-grey-400 px-5 py-3"
+                        :disabled="isSubmitting"
+                        data-bs-dismiss="modal"
+                      >
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消修改
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-          <div class="modal-footer border-0 justify-content-center">
-            <button
-              type="button"
-              class="btn btn-grey-400 me-3"
-              data-bs-dismiss="modal"
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary-600"
-              :disabled="isSubmitting"
-              @click="updateCourse"
-            >
-              <span
-                v-if="isSubmitting"
-                class="spinner-border spinner-border-sm me-2"
-                role="status"
-              ></span>
-              {{ isSubmitting ? '更新中...' : '更新課程' }}
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -441,6 +482,7 @@ async function updateCourse() {
     )
     console.log('editForm', editForm.value)
     console.log('courseData', courseData)
+    console.log(response.data)
     if (response.data.status) {
       alert('課程更新成功！')
 
@@ -564,5 +606,132 @@ onMounted(async () => await getCourses())
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+}
+
+// Modal 內的樣式 - 與 CoachNewCourse 保持一致
+.modal-content {
+  border: none;
+  border-radius: 0;
+}
+
+.card-wrapper {
+  background-color: $primary-600;
+  border-radius: 15px 15px 0 0;
+  height: 50px;
+}
+
+.card-content {
+  border-radius: 15px;
+  background-color: $primary-000;
+  margin-top: -38px;
+  color: $grey-700;
+  border: 1px solid rgba(236, 239, 253, 1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+}
+
+.form-control,
+.form-select {
+  background-color: $grey-000;
+  border-color: $primary-700;
+  color: $grey-700;
+
+  &:disabled {
+    background-color: $grey-200;
+    border-color: $grey-300;
+    color: $grey-500;
+  }
+
+  &::placeholder {
+    color: $grey-500;
+  }
+
+  &:focus {
+    border-color: $primary-600;
+    box-shadow: 0 0 0 0.2rem rgba(62, 91, 238, 0.25);
+  }
+}
+
+.form-label {
+  color: $grey-700;
+  font-size: 0.875rem;
+}
+
+.img-preview {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: cover;
+  border: 1px solid $grey-300;
+}
+
+.upload-section {
+  padding: 20px;
+  border: 1px dashed $primary-700;
+  border-radius: 8px;
+  background-color: rgba(252, 252, 252, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary-600;
+    background-color: rgba(236, 239, 253, 0.1);
+  }
+}
+
+.btn-primary-600 {
+  background-color: $primary-600;
+  border-color: $primary-600;
+  color: $primary-000;
+
+  &:hover {
+    background-color: $primary-700;
+    border-color: $primary-700;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.btn-grey-400 {
+  background-color: $grey-400;
+  border-color: $grey-400;
+  color: $primary-000;
+
+  &:hover {
+    background-color: darken($grey-400, 10%);
+    border-color: darken($grey-400, 10%);
+  }
+}
+
+.btn-outline-primary {
+  border-color: $primary-600;
+  color: $primary-600;
+  background-color: transparent;
+
+  &:hover {
+    background-color: $primary-600;
+    border-color: $primary-600;
+    color: $primary-000;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.text-primary-600 {
+  color: $primary-600;
+}
+
+// 響應式設計
+@media (max-width: 768px) {
+  .img-preview {
+    max-width: 150px;
+    max-height: 150px;
+  }
+
+  .container {
+    padding: 0;
+  }
 }
 </style>
