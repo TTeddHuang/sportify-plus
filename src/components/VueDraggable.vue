@@ -50,7 +50,6 @@ watch(
 
         return chapterData
       })
-
     } else {
       chapters.value = []
     }
@@ -308,7 +307,11 @@ defineExpose({
         總計: {{ chapters.length }} 章節 / {{ totalSections }} 小節
       </div>
       <div class="actions">
-        <button class="primary" @click.prevent="addChapter">＋ 新增章節</button>
+        <button class="btn btn-primary-600" @click.prevent="addChapter">
+          <i class="bi bi-plus-circle me-2"></i>
+          <span class="d-none d-md-inline">新增章節</span>
+          <span class="d-md-none">章節</span>
+        </button>
       </div>
     </div>
 
@@ -341,6 +344,7 @@ defineExpose({
             />
             <div class="chapter-actions">
               <button
+                v-show="!chapter.collapsed"
                 class="icon-btn"
                 title="新增小節"
                 @click.prevent="addSection(chapter)"
@@ -348,6 +352,7 @@ defineExpose({
                 <span class="material-symbols-outlined"> add </span>
               </button>
               <button
+                v-show="!chapter.collapsed"
                 class="icon-btn danger"
                 title="刪除章節"
                 @click.prevent="removeChapter(chapterIndex)"
@@ -419,7 +424,8 @@ defineExpose({
                       />
                       <label :for="`file-${section.id}`" class="file-label">
                         <span class="material-symbols-outlined">upload</span>
-                        選擇影片
+                        <span class="d-none d-sm-inline">選擇影片</span>
+                        <span class="d-sm-none">選擇</span>
                       </label>
                     </div>
 
@@ -427,7 +433,7 @@ defineExpose({
                     <div v-else class="file-info">
                       <div class="file-details">
                         <span class="file-name">{{ section.fileName }}</span>
-                        <span class="file-size">{{
+                        <span class="file-size d-none d-sm-block">{{
                           formatFileSize(section.fileSize)
                         }}</span>
                       </div>
@@ -453,7 +459,8 @@ defineExpose({
 
             <!-- 空狀態提示 -->
             <div v-if="chapter.sections.length === 0" class="empty-sections">
-              <p>尚無小節，點擊上方 ＋ 新增</p>
+              <p class="d-none d-md-block">尚無小節，點擊上方 ＋ 新增</p>
+              <p class="d-md-none">點擊 ＋ 新增小節</p>
             </div>
           </div>
         </div>
@@ -462,13 +469,23 @@ defineExpose({
 
     <!-- 空狀態 -->
     <div v-if="chapters.length === 0" class="empty-state">
-      <h3>尚未建立章節</h3>
-      <p>點擊「新增章節」開始建立您的課程</p>
+      <h3 class="d-none d-md-block">尚未建立章節</h3>
+      <h5 class="d-md-none">尚未建立章節</h5>
+      <p class="d-none d-md-block">點擊「新增章節」開始建立您的課程</p>
+      <p class="d-md-none small">點擊「新增章節」開始建立</p>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+.draggable-container {
+  width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 0;
+  }
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -477,11 +494,20 @@ defineExpose({
   padding: 12px;
   background: #f5f5f5;
   border-radius: 8px;
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    margin-bottom: 16px;
+  }
 }
 
 .stats {
   color: #666;
   font-size: 14px;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
 }
 
 .actions {
@@ -495,6 +521,11 @@ defineExpose({
   margin-bottom: 12px;
   background: #fff;
   transition: all 0.2s ease;
+
+  @media (max-width: 768px) {
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
 }
 
 .chapter-card:hover {
@@ -509,6 +540,15 @@ defineExpose({
 
 .chapter-card.collapsed {
   opacity: 0.7;
+
+  .chapter-title {
+    opacity: 0.8;
+    font-style: italic;
+  }
+
+  .chapter-header {
+    background: #f0f0f0;
+  }
 }
 
 .chapter-header {
@@ -518,6 +558,16 @@ defineExpose({
   gap: 12px;
   background: #fafafa;
   border-bottom: 1px solid #e0e0e0;
+
+  @media (max-width: 991px) {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    gap: 8px;
+  }
 }
 
 .chapter-title {
@@ -526,15 +576,36 @@ defineExpose({
   background: transparent;
   font-weight: 600;
   font-size: 16px;
+
+  @media (max-width: 991px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 }
 
 .chapter-actions {
   display: flex;
   gap: 4px;
+
+  @media (max-width: 991px) {
+    gap: 2px;
+    flex-shrink: 0; // 防止按鈕區域被壓縮
+  }
+
+  @media (max-width: 768px) {
+    gap: 2px;
+  }
 }
 
 .sections-container {
   padding: 8px 0;
+
+  @media (max-width: 768px) {
+    padding: 4px 0;
+  }
 }
 
 .section-item {
@@ -543,6 +614,23 @@ defineExpose({
   gap: 12px;
   padding: 8px 24px;
   border-bottom: 1px solid #f0f0f0;
+
+  @media (max-width: 991px) {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px 16px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 576px) {
+    padding: 4px 8px;
+    gap: 6px;
+  }
 }
 
 .section-item:last-child {
@@ -559,6 +647,16 @@ defineExpose({
   background: transparent;
   padding: 4px 8px;
   border-radius: 4px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    min-width: 120px;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 12px;
+    min-width: 100px;
+  }
 }
 
 .section-title:focus {
@@ -572,6 +670,11 @@ defineExpose({
   font-size: 16px;
   color: #999;
   padding: 4px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    padding: 2px;
+  }
 }
 
 .handle:hover {
@@ -589,6 +692,15 @@ defineExpose({
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 14px;
+
+  @media (max-width: 768px) {
+    padding: 2px 6px;
+    font-size: 12px;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
 }
 
 .icon-btn:hover {
@@ -605,48 +717,83 @@ defineExpose({
   color: white;
 }
 
-.file-info {
-  font-size: 12px;
-  color: #666;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .empty-sections {
   text-align: center;
   padding: 20px;
   color: #999;
   font-style: italic;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    font-size: 14px;
+  }
 }
 
 .empty-state {
   text-align: center;
   padding: 40px 20px;
   color: #666;
+
+  @media (max-width: 768px) {
+    padding: 20px 12px;
+  }
 }
 
 .is-dragging {
   opacity: 0.8;
 }
 
-button.primary {
-  background: #007acc;
-  color: white;
+.btn-primary-600 {
+  background-color: $primary-600;
+  border-color: $primary-600;
+  color: $primary-000;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-}
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
 
-button.primary:hover {
-  background: #005a9e;
+  &:hover {
+    background-color: $primary-700;
+    border-color: $primary-700;
+    color: $primary-000;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 }
 
 /* ✅ 檔案處理樣式 */
 .file-section {
   min-width: 200px;
+
+  @media (max-width: 991px) {
+    width: 100%;
+    min-width: auto;
+    order: 3;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 768px) {
+    min-width: 150px;
+  }
+
+  @media (max-width: 576px) {
+    min-width: 120px;
+    width: 100%;
+    order: 3;
+    margin-top: 8px;
+  }
 }
 
 .file-upload {
@@ -669,6 +816,18 @@ button.primary:hover {
   font-size: 12px;
   color: #666;
   transition: all 0.2s ease;
+
+  @media (max-width: 768px) {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 3px 6px;
+    font-size: 10px;
+    justify-content: center;
+  }
 }
 
 .file-label:hover {
@@ -686,6 +845,17 @@ button.primary:hover {
   border: 1px solid #4caf50;
   border-radius: 4px;
   min-width: 180px;
+
+  @media (max-width: 768px) {
+    padding: 4px 8px;
+    gap: 6px;
+    min-width: 140px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 3px 6px;
+    min-width: 100px;
+  }
 }
 
 .file-details {
@@ -701,21 +871,42 @@ button.primary:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 10px;
+  }
 }
 
 .file-size {
   display: block;
   font-size: 10px;
   color: #4caf50;
+
+  @media (max-width: 768px) {
+    font-size: 9px;
+  }
 }
 
 .icon-btn.small {
   padding: 2px 4px;
   font-size: 12px;
+
+  @media (max-width: 768px) {
+    padding: 1px 3px;
+    font-size: 10px;
+  }
 }
 
 .icon-btn.small .material-symbols-outlined {
   font-size: 14px;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
 }
 
 .upload-progress {
@@ -727,6 +918,23 @@ button.primary:hover {
   border: 1px solid #e9ecef;
   border-radius: 4px;
   min-width: 200px;
+
+  @media (max-width: 991px) {
+    min-width: 160px;
+    padding: 5px 10px;
+    gap: 6px;
+  }
+  @media (max-width: 768px) {
+    padding: 4px 8px;
+    gap: 6px;
+    min-width: 150px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 3px 6px;
+    min-width: 120px;
+    gap: 4px;
+  }
 }
 
 .progress-element {
@@ -735,6 +943,10 @@ button.primary:hover {
   border: none;
   border-radius: 4px;
   background: #e0e0e0;
+
+  @media (max-width: 768px) {
+    height: 6px;
+  }
 
   /* WebKit 瀏覽器樣式 */
   &::-webkit-progress-bar {
@@ -761,6 +973,21 @@ button.primary:hover {
   min-width: 40px;
   text-align: right;
   font-weight: 500;
+
+  @media (max-width: 991px) {
+    font-size: 11px;
+    min-width: 35px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    min-width: 30px;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 9px;
+    min-width: 25px;
+  }
 }
 
 .cancel-btn {
@@ -774,6 +1001,17 @@ button.primary:hover {
   align-items: center;
   justify-content: center;
   padding: 0;
+
+  @media (max-width: 768px) {
+    width: 18px;
+    height: 18px;
+    margin-left: 2px;
+  }
+
+  @media (max-width: 576px) {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .cancel-btn:hover {
@@ -782,5 +1020,63 @@ button.primary:hover {
 
 .cancel-btn .material-symbols-outlined {
   font-size: 12px;
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 9px;
+  }
+}
+
+// 手機版特殊調整
+@media (max-width: 991px) {
+  .section-item {
+    .section-handle {
+      order: 0;
+    }
+
+    .section-title {
+      order: 1;
+      flex: 1;
+      font-size: 14px;
+      min-width: 150px;
+    }
+
+    .file-section {
+      order: 2;
+      width: calc(100% - 80px);
+    }
+
+    .icon-btn:not(.small) {
+      order: 3;
+      margin-left: auto;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .section-item {
+    .section-title {
+      order: 1;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .section-handle {
+      order: 0;
+    }
+
+    .file-section {
+      order: 2;
+      width: calc(100% - 60px);
+    }
+
+    .icon-btn:not(.small) {
+      order: 4;
+      margin-left: auto;
+    }
+  }
 }
 </style>
