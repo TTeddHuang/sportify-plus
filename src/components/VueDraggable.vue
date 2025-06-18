@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { v4 as uuidv4 } from 'uuid'
 import { UpChunk } from '@mux/upchunk'
@@ -9,9 +9,54 @@ const chapters = ref([])
 const isDragging = ref(false)
 const draggedItem = ref(null)
 
+const props = defineProps({
+  initialData: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const emit = defineEmits(['course-id-received'])
 
 const uploadControllers = ref(new Map())
+
+watch(
+  () => props.initialData,
+  newData => {
+    console.log('VueDraggable 接收到的 initialData:', newData)
+
+    if (newData && newData.length > 0) {
+      // 轉換後端資料格式為前端格式
+      chapters.value = newData.map((chapter, chapterIndex) => {
+        // 處理章節資料
+        const chapterData = {
+          id: uuidv4(),
+          title: chapter.chapter_title,
+          collapsed: false,
+          sections: []
+        }
+
+        // 處理小節資料
+        let sectionsSource = []
+        sectionsSource = chapter.sub_chapter
+
+        chapterData.sections = sectionsSource.map((section, sectionIndex) => ({
+          id: section.subchapter_id,
+          title: section.subtitle,
+          fileName: section.filename,
+          uploading: false,
+          uploadProgress: 100
+        }))
+
+        return chapterData
+      })
+
+    } else {
+      chapters.value = []
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 const totalSections = computed(() =>
   chapters.value.reduce((total, chapter) => total + chapter.sections.length, 0)
@@ -153,7 +198,10 @@ const cancelUpload = section => {
 
 // 檢查檔案是否存在
 const hasFile = section => {
-  return section.file && section.fileName
+  return (
+    (section.file && section.fileName) ||
+    (section.fileName && section.uploadProgress === 100)
+  )
 }
 
 // 處理 Enter 鍵事件
