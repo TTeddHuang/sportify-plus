@@ -52,6 +52,7 @@
         <div class="p-lg-8 p-2 py-6 w-100" style="max-width: 1056px">
           <h3 class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
           <!-- 992px以下出現章節按鈕 -->
+
           <button
             class="btn btn-primary-600 d-lg-none mb-3"
             type="button"
@@ -71,12 +72,18 @@
                 src="@/assets/images/video1.png"
                 class="rounded-2 video-cover"
               />
+              <HlsPlayer
+                v-if="videoSrc"
+                :src="videoSrc"
+                :poster="courseDetail.course.image_url"
+              />
               <video
-                v-else
-                :src="currentLesson.video_url"
-                class="rounded-2"
+                v-if="videoSrc"
+                :src="videoSrc"
                 controls
-              ></video>
+                style="width: 100%; max-height: 400px; display: block"
+              />
+
               <div class="play-icon position-absolute">
                 <i class="bi bi-play-circle-fill"></i>
               </div>
@@ -109,7 +116,7 @@
           <!-- 課程圖片與介紹 -->
           <div class="gy-4 d-lg-flex mb-lg-12 mb-6">
             <div
-              class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100"
+              class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100 w-100"
               style="background-color: rgba(255, 255, 255, 0.05)"
             >
               <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
@@ -539,6 +546,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import HlsPlayer from '@/components/HlsPlayer.vue'
+
+const videoSrc = computed(() => {
+  if (currentLesson.value?.video_url) {
+    return currentLesson.value.video_url
+  }
+  // 如果 sidebar 每個 lesson 沒帶 video_url，就用 courses/details 回來的
+  return courseDetail.value?.course?.video_url || ''
+})
 
 // 1. 先準備要放 sidebar 資料的 ref
 const courseName = ref('') // ← 這裡用來存 sidebar 回傳的 courseName
@@ -613,9 +629,9 @@ onMounted(async () => {
   }
 })
 
-function selectLesson(lesson) {
-  currentLesson.value = lesson
-}
+// function selectLesson(lesson) {
+//   currentLesson.value = lesson
+// }
 
 function toggle(idx) {
   openIndexes.value[idx] = !openIndexes.value[idx]
@@ -661,6 +677,25 @@ async function fetchRatings(courseId) {
     userRatings.value = res.data.data
   } catch (error) {
     console.error('評價載入失敗', error)
+  }
+}
+
+async function selectLesson(lesson) {
+  currentLesson.value = lesson
+
+  // 如果 lesson 裡沒有 video_url，就向後端要
+  if (!lesson.video_url) {
+    try {
+      const token = localStorage.getItem('token')
+      const { data } = await axios.get(
+        `https://sportify.zeabur.app/api/v1/courses/${courseId}/lessons/${lesson.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      // 把回來的 video_url 塞進 lesson，避免下一次再 call
+      lesson.video_url = data.data.video_url
+    } catch (e) {
+      console.error('取得 lesson 影片失敗', e)
+    }
   }
 }
 
