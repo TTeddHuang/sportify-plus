@@ -1,297 +1,380 @@
 <template>
-  <div class="form-panel p-8">
-    <form class="container" @submit.prevent="handleSubmit">
-      <div class="mb-3 row">
-        <div class="col-8 text-center mt-8">
-          <div
-            class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
-          >
-            <img
-              :src="profileImageFile"
-              alt="個人照片"
-              class="object-fit-cover"
-            />
-          </div>
-          <span
-            class="mt-6 fs-9"
-            :class="
-              coachProfile.is_verified
-                ? 'badge bg-primary'
-                : 'badge bg-notification'
-            "
-          >
-            {{ coachProfile.is_verified ? '已通過審核' : '資料待審核' }}
-          </span>
-          <div v-if="inputState === 'inEdit'" class="mt-8 text-center">
-            <input
-              ref="avatarInput"
-              type="file"
-              accept="image/*"
-              style="display: none"
-              @change="handleFileSelect($event, 'coachAvatar')"
-            />
-            <button
-              type="button"
-              class="btn btn-primary-600"
-              :disabled="isUploading"
-              @click="triggerAvatarSelect"
-            >
-              {{ isUploading ? '上傳中...' : '選擇照片' }}
-            </button>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="mb-3">
-            <label for="coachName" class="form-label">教練名稱</label>
-            <input
-              id="coachName"
-              v-model.trim="coachProfile.nickname"
-              type="text"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="name" class="form-label">真實姓名</label>
-            <input
-              id="name"
-              v-model.trim="coachProfile.realname"
-              type="text"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="birthDay" class="form-label">出生年月日</label>
-            <input
-              id="birthDay"
-              v-model.trim="coachProfile.birthday"
-              type="text"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="idNum" class="form-label">身分證字號</label>
-            <input
-              id="idNum"
-              v-model.trim="coachProfile.id_number"
-              type="text"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-          <div class="mb-3">
-            <label for="tel" class="form-label">手機</label>
-            <input
-              id="tel"
-              v-model.trim="coachProfile.phone_number"
-              type="tel"
-              class="form-control"
-              :disabled="inputState === 'readOnly'"
-            />
-          </div>
-        </div>
-      </div>
-      <div class="mb-3">
-        <label for="bankCode" class="form-label">銀行代號</label>
-        <input
-          id="bankCode"
-          v-model.trim="coachProfile.bank_code"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="bankAccount" class="form-label">銀行帳號</label>
-        <input
-          id="bankAccount"
-          v-model.trim="coachProfile.bank_account"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="title" class="form-label">稱號</label>
-        <input
-          id="title"
-          v-model.trim="coachProfile.job_title"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="specialtyIntro" class="form-label">專長類別</label>
-        <input
-          id="specialtyIntro"
-          v-model="skills"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="category" class="form-label">專長介紹</label>
-        <input
-          id="category"
-          v-model.trim="coachProfile.skill_description"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="years" class="form-label">教學經驗(年)</label>
-        <input
-          id="years"
-          v-model.trim="coachProfile.experience_years"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="experience" class="form-label">學經歷與得獎經歷</label>
-        <textarea
-          id="experience"
-          v-model="coachProfile.experience"
-          class="form-control"
-          rows="3"
-          :disabled="inputState === 'readOnly'"
-        ></textarea>
-      </div>
-      <div class="mb-3">
-        <label for="hobby" class="form-label">興趣</label>
-        <input
-          id="hobby"
-          v-model.trim="coachProfile.hobby"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="motto" class="form-label">座右銘</label>
-        <input
-          id="motto"
-          v-model.trim="coachProfile.motto"
-          type="text"
-          class="form-control"
-          :disabled="inputState === 'readOnly'"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="aboutMe" class="form-label">自我介紹</label>
-        <textarea
-          id="aboutMe"
-          v-model="coachProfile.about_me"
-          class="form-control"
-          rows="5"
-          :disabled="inputState === 'readOnly'"
-        ></textarea>
-      </div>
-      <div class="mb-3">
-        <label for="bankbook" class="form-label">上傳存摺封面(單張)</label>
-        <input
-          id="bankbook"
-          type="file"
-          class="form-control"
-          accept="image/*"
-          :disabled="inputState === 'readOnly' || isBankBookloading"
-          @change="handleFileSelect($event, 'bankbook')"
-        />
-        <img :src="bankBookFile" class="mt-3 img-preview" />
-      </div>
-      <div class="mb-3">
-        <label for="licensePhoto" class="form-label">證照與資格證上傳</label>
+  <div class="p-lg-8 px-2 py-8">
+    <h2 class="fs-lg-4 mb-lg-8 mb-6">教練個人資料</h2>
 
-        <!-- 現有證照列表 -->
-        <div v-if="coachLicenses.length > 0" class="mt-3">
-          <div class="row">
+    <div class="card-wrapper"></div>
+    <div class="card-content p-5 mb-5">
+      <form @submit.prevent="handleSubmit">
+        <!-- 頭像與基本資訊區塊 -->
+        <div class="row mb-lg-8 mb-6">
+          <!-- 頭像區域 -->
+          <div class="col-12 col-lg-4 text-center mb-5 mb-lg-0">
             <div
-              v-for="(license, index) in coachLicenses"
-              :key="license.file_public_id || index"
-              class="col-md-6 mb-3"
+              class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto mb-4"
             >
-              <div class="card">
-                <div class="card-body">
-                  <div class="position-relative mb-2">
-                    <img :src="license.file_url" class="img-preview w-100" />
-                    <button
-                      v-if="inputState === 'inEdit'"
-                      type="button"
-                      class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
-                      @click="removeLicense(index)"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div class="mb-2">
-                    <label class="form-label small">證照名稱</label>
-                    <input
-                      v-model="license.filename"
-                      type="text"
-                      class="form-control form-control-sm"
-                      placeholder="請輸入證照名稱"
-                      :disabled="inputState === 'readOnly' || !license.file_url"
-                    />
-                  </div>
-                </div>
+              <img
+                :src="profileImageFile"
+                alt="個人照片"
+                class="object-fit-cover"
+              />
+            </div>
+
+            <!-- 審核狀態標籤 -->
+            <div class="mb-4">
+              <span
+                class="badge fs-8 px-3 py-2"
+                :class="
+                  coachProfile.is_verified ? 'badge-approved' : 'badge-pending'
+                "
+              >
+                {{ coachProfile.is_verified ? '已通過審核' : '資料待審核' }}
+              </span>
+            </div>
+
+            <!-- 編輯模式時的上傳按鈕 -->
+            <div v-if="inputState === 'inEdit'">
+              <input
+                ref="avatarInput"
+                type="file"
+                accept="image/*"
+                style="display: none"
+                @change="handleFileSelect($event, 'coachAvatar')"
+              />
+              <button
+                type="button"
+                class="btn btn-primary-600"
+                :disabled="isUploading"
+                @click="triggerAvatarSelect"
+              >
+                {{ isUploading ? '上傳中...' : '選擇照片' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 基本資料表單 -->
+          <div class="col-12 col-lg-8">
+            <div class="row">
+              <div class="col-12 col-md-6 mb-4">
+                <label for="coachName" class="form-label fw-bold"
+                  >教練名稱</label
+                >
+                <input
+                  id="coachName"
+                  v-model.trim="coachProfile.nickname"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="col-12 col-md-6 mb-4">
+                <label for="name" class="form-label fw-bold">真實姓名</label>
+                <input
+                  id="name"
+                  v-model.trim="coachProfile.realname"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="col-12 col-md-6 mb-4">
+                <label for="birthDay" class="form-label fw-bold"
+                  >出生年月日</label
+                >
+                <input
+                  id="birthDay"
+                  v-model.trim="coachProfile.birthday"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="col-12 col-md-6 mb-4">
+                <label for="idNum" class="form-label fw-bold">身分證字號</label>
+                <input
+                  id="idNum"
+                  v-model.trim="coachProfile.id_number"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="col-12 col-md-6 mb-4">
+                <label for="tel" class="form-label fw-bold">手機</label>
+                <input
+                  id="tel"
+                  v-model.trim="coachProfile.phone_number"
+                  type="tel"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
+              </div>
+              <div class="col-12 col-md-6 mb-4">
+                <label for="title" class="form-label fw-bold">稱號</label>
+                <input
+                  id="title"
+                  v-model.trim="coachProfile.job_title"
+                  type="text"
+                  class="form-control"
+                  :disabled="inputState === 'readOnly'"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 新增證照按鈕（編輯模式時顯示） -->
-        <div v-if="inputState === 'inEdit'" class="mt-3">
-          <input
-            ref="licenseInput"
-            type="file"
-            class="form-control"
-            accept="image/*"
-            style="display: none"
-            @change="handleFileSelect($event, 'license')"
-          />
-          <button
-            type="button"
-            class="btn btn-outline-primary"
-            :disabled="isLicenseloading"
-            @click="triggerLicenseSelect"
-          >
-            {{ isLicenseloading ? '上傳中...' : '+ 新增證照' }}
-          </button>
-        </div>
-      </div>
+        <hr class="divider mb-lg-6 mb-4" />
 
-      <div v-if="inputState === 'readOnly'" class="my-5 text-center">
-        <button type="button" class="btn btn-primary-600" @click="toEdit">
-          編輯個人資料
-        </button>
-      </div>
-      <div
-        v-else-if="inputState === 'inEdit'"
-        class="my-5 text-center d-flex justify-content-evenly"
-      >
-        <button
-          type="submit"
-          class="btn btn-primary-600"
-          :disabled="isSubmitting"
-        >
-          {{ isSubmitting ? '儲存中...' : '確定修改' }}
-        </button>
-        <button
-          type="button"
-          class="btn btn-notification"
-          :disabled="isSubmitting"
-          @click="cancelEdit"
-        >
-          取消修改
-        </button>
-      </div>
-    </form>
+        <!-- 銀行資訊區塊 -->
+        <div class="mb-lg-6 mb-5">
+          <h4 class="fs-5 fw-bold mb-4 text-primary-900">銀行資訊</h4>
+          <div class="row">
+            <div class="col-12 col-md-6 mb-4">
+              <label for="bankCode" class="form-label fw-bold">銀行代號</label>
+              <input
+                id="bankCode"
+                v-model.trim="coachProfile.bank_code"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+              <label for="bankAccount" class="form-label fw-bold"
+                >銀行帳號</label
+              >
+              <input
+                id="bankAccount"
+                v-model.trim="coachProfile.bank_account"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider mb-lg-6 mb-4" />
+
+        <!-- 專業資訊區塊 -->
+        <div class="mb-lg-6 mb-5">
+          <h4 class="fs-5 fw-bold mb-4 text-primary-900">專業資訊</h4>
+          <div class="row">
+            <div class="col-12 col-md-6 mb-4">
+              <label for="specialtyIntro" class="form-label fw-bold"
+                >專長類別</label
+              >
+              <input
+                id="specialtyIntro"
+                v-model="skills"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+              <label for="years" class="form-label fw-bold">教學經驗(年)</label>
+              <input
+                id="years"
+                v-model.trim="coachProfile.experience_years"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+            <div class="col-12 mb-4">
+              <label for="category" class="form-label fw-bold">專長介紹</label>
+              <input
+                id="category"
+                v-model.trim="coachProfile.skill_description"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider mb-lg-6 mb-4" />
+
+        <!-- 個人資訊區塊 -->
+        <div class="mb-lg-6 mb-5">
+          <h4 class="fs-5 fw-bold mb-4 text-primary-900">個人資訊</h4>
+          <div class="row">
+            <div class="col-12 mb-4">
+              <label for="experience" class="form-label fw-bold"
+                >學經歷與得獎經歷</label
+              >
+              <textarea
+                id="experience"
+                v-model="coachProfile.experience"
+                class="form-control"
+                rows="4"
+                :disabled="inputState === 'readOnly'"
+              ></textarea>
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+              <label for="hobby" class="form-label fw-bold">興趣</label>
+              <input
+                id="hobby"
+                v-model.trim="coachProfile.hobby"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+              <label for="motto" class="form-label fw-bold">座右銘</label>
+              <input
+                id="motto"
+                v-model.trim="coachProfile.motto"
+                type="text"
+                class="form-control"
+                :disabled="inputState === 'readOnly'"
+              />
+            </div>
+            <div class="col-12 mb-4">
+              <label for="aboutMe" class="form-label fw-bold">自我介紹</label>
+              <textarea
+                id="aboutMe"
+                v-model="coachProfile.about_me"
+                class="form-control"
+                rows="5"
+                :disabled="inputState === 'readOnly'"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider mb-lg-6 mb-4" />
+
+        <!-- 檔案上傳區塊 -->
+        <div class="mb-lg-6 mb-5">
+          <h4 class="fs-5 fw-bold mb-4 text-primary-900">相關文件</h4>
+
+          <!-- 存摺封面上傳 -->
+          <div class="mb-5">
+            <label for="bankbook" class="form-label fw-bold">存摺封面</label>
+            <input
+              id="bankbook"
+              type="file"
+              class="form-control"
+              accept="image/*"
+              :disabled="inputState === 'readOnly' || isBankBookloading"
+              @change="handleFileSelect($event, 'bankbook')"
+            />
+            <div v-if="bankBookFile" class="mt-3">
+              <img :src="bankBookFile" class="img-preview rounded" />
+            </div>
+          </div>
+
+          <!-- 證照上傳 -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">證照與資格證明</label>
+
+            <!-- 現有證照列表 -->
+            <div v-if="coachLicenses.length > 0" class="mt-3">
+              <div class="row">
+                <div
+                  v-for="(license, index) in coachLicenses"
+                  :key="license.file_public_id || index"
+                  class="col-md-6 col-lg-4 mb-3"
+                >
+                  <div class="license-card">
+                    <div class="position-relative mb-3">
+                      <img
+                        :src="license.file_url"
+                        class="license-image w-100 rounded"
+                      />
+                      <button
+                        v-if="inputState === 'inEdit'"
+                        type="button"
+                        class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2"
+                        @click="removeLicense(index)"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                    <div>
+                      <label class="form-label small fw-bold">證照名稱</label>
+                      <input
+                        v-model="license.filename"
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="請輸入證照名稱"
+                        :disabled="
+                          inputState === 'readOnly' || !license.file_url
+                        "
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 新增證照按鈕 -->
+            <div v-if="inputState === 'inEdit'" class="mt-3">
+              <input
+                ref="licenseInput"
+                type="file"
+                class="form-control"
+                accept="image/*"
+                style="display: none"
+                @change="handleFileSelect($event, 'license')"
+              />
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                :disabled="isLicenseloading"
+                @click="triggerLicenseSelect"
+              >
+                <i class="bi bi-plus-circle me-2"></i>
+                {{ isLicenseloading ? '上傳中...' : '新增證照' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作按鈕區 -->
+        <div class="text-center pt-4">
+          <div v-if="inputState === 'readOnly'">
+            <button
+              type="button"
+              class="btn btn-primary-600 px-5 py-3"
+              @click="toEdit"
+            >
+              <i class="bi bi-pencil me-2"></i>
+              編輯個人資料
+            </button>
+          </div>
+          <div
+            v-else-if="inputState === 'inEdit'"
+            class="d-flex justify-content-center gap-4"
+          >
+            <button
+              type="submit"
+              class="btn btn-primary-600 px-5 py-3"
+              :disabled="isSubmitting"
+            >
+              <span
+                v-if="isSubmitting"
+                class="spinner-border spinner-border-sm me-2"
+              ></span>
+              <i v-else class="bi bi-check-circle me-2"></i>
+              {{ isSubmitting ? '儲存中...' : '確定修改' }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-grey-400 px-5 py-3"
+              :disabled="isSubmitting"
+              @click="cancelEdit"
+            >
+              <i class="bi bi-x-circle me-2"></i>
+              取消修改
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -706,35 +789,160 @@ onMounted(async () => {
 })
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+@import '@/assets/styles/all.scss';
+
+.card-wrapper {
+  background-color: $primary-600;
+  border-radius: 15px 15px 0 0;
+  height: 50px;
+}
+
+.card-content {
+  border-radius: 15px;
+  background-color: $primary-000;
+  margin-top: -38px;
+  color: $grey-700;
+  border: 1px solid rgba(236, 239, 253, 1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+}
+
+.divider {
+  opacity: 1;
+  border: 0;
+  border-top: 1px solid $primary-000;
+}
+
 .form-control {
   background-color: $grey-000;
   border-color: $primary-700;
   color: $grey-700;
+
   &:disabled {
     background-color: $grey-200;
     border-color: $grey-300;
     color: $grey-500;
   }
+
   &::placeholder {
     color: $grey-500;
   }
+
+  &:focus {
+    border-color: $primary-600;
+    box-shadow: 0 0 0 0.2rem rgba(62, 91, 238, 0.25);
+  }
+}
+
+.form-label {
+  color: $grey-700;
+  font-size: 0.875rem;
 }
 
 .profile-avatar {
-  width: 300px;
+  width: 200px;
+  border: 3px solid $primary-600;
 }
 
 .img-preview {
   max-width: 200px;
-  border-radius: 4px;
+  max-height: 200px;
+  object-fit: cover;
+  border: 1px solid $grey-300;
 }
 
-.position-relative {
-  position: relative;
+.license-card {
+  border: 1px solid rgba(236, 239, 253, 1);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: rgba(252, 252, 252, 0.1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary-600;
+    box-shadow: 0 2px 8px rgba(62, 91, 238, 0.25);
+  }
 }
 
-.position-absolute {
-  position: absolute;
+.license-image {
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid $grey-300;
+}
+
+.btn-primary-600 {
+  background-color: $primary-600;
+  border-color: $primary-600;
+  color: $primary-000;
+
+  &:hover {
+    background-color: $primary-700;
+    border-color: $primary-700;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.btn-grey-400 {
+  background-color: $grey-400;
+  border-color: $grey-400;
+  color: $primary-000;
+
+  &:hover {
+    background-color: darken($grey-400, 10%);
+    border-color: darken($grey-400, 10%);
+  }
+}
+
+.btn-outline-primary {
+  border-color: $primary-600;
+  color: $primary-600;
+
+  &:hover {
+    background-color: $primary-600;
+    border-color: $primary-600;
+    color: $primary-000;
+  }
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 100px;
+  border: 1px solid $primary-400;
+  line-height: 150%;
+  font-weight: 600;
+
+  &.badge-approved {
+    background-color: $success;
+    color: $primary-000;
+  }
+
+  &.badge-pending {
+    background-color: $notification;
+    color: $primary-000;
+  }
+}
+
+.text-primary-900 {
+  color: $primary-900;
+}
+
+// 響應式設計
+@media (max-width: 768px) {
+  .profile-avatar {
+    width: 150px;
+  }
+
+  .img-preview {
+    max-width: 150px;
+  }
+
+  .license-image {
+    height: 100px;
+  }
 }
 </style>

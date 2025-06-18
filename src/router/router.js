@@ -4,6 +4,7 @@ import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 import ProfilePage from '@/pages/ProfilePage.vue'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.vue'
+import ResetPasswordPage from '@/pages/ResetPasswordPage.vue'
 import CoachRegisterPage from '@/pages/CoachRegisterPage.vue'
 import UserSubscriptionPage from '@/pages/UserSubscriptionPage.vue'
 import BecomeCoachPage from '@/pages/BecomeCoachPage.vue'
@@ -32,6 +33,11 @@ const routes = [
   { path: '/users/signup', component: RegisterPage },
 
   { path: '/forgot-password', component: ForgotPasswordPage },
+  {
+    path: '/api/v1/auth/reset-password',
+    name: 'ResetPassword',
+    component: ResetPasswordPage
+  },
   { path: '/coaches/signup', component: CoachRegisterPage },
   { path: '/users/subscription', component: UserSubscriptionPage },
   { path: '/become-coach', component: BecomeCoachPage },
