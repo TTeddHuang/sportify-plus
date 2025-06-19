@@ -37,7 +37,7 @@
 
       <!-- 右側主區塊 -->
       <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
-        <h2 class="fs-lg-4 mb-lg-8 mb-6">你的專屬教練群</h2>
+        <h2 class="fs-lg-4">你的專屬教練群</h2>
 
         <!-- 無訂閱狀態 -->
         <div v-if="!hasValidSubscription" class="text-center py-8">
@@ -61,8 +61,9 @@
         <div v-else>
           <!-- 課程類型按鈕 -->
           <div ref="scrollWrapper" class="scrollable-btn-wrapper">
+            <!-- 加寬上下區塊，讓滑動更容易 -->
             <div
-              class="scrollable-btn-group d-flex flex-row align-items-center mb-lg-8 mb-6"
+              class="scrollable-btn-group d-flex flex-row align-items-center my-lg-8 my-6"
               @scroll="onScroll"
             >
               <div
@@ -572,6 +573,7 @@ const submitRating = async () => {
   const modalEl = document.getElementById('ratingModal')
   if (modalEl) {
     const modal =
+      // eslint-disable-next-line no-undef
       bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
   }
@@ -625,6 +627,7 @@ const openRatingModal = async course => {
     const modalEl = document.getElementById('ratingModal')
     if (modalEl) {
       modalInstance.value =
+        // eslint-disable-next-line no-undef
         bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
       modalInstance.value.show()
     }
