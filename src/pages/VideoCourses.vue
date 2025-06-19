@@ -33,12 +33,7 @@
                     ></i>
                     <i v-else class="bi bi-circle text-secondary fs-5"></i>
                     <p class="text-secondary mb-0 fs-9 ms-1">
-                      {{
-                        lesson.length !== '未提供'
-                          ? lesson.length + ' 分鐘'
-                          : '未提供'
-                      }}
-                      分鐘
+                      {{ lesson.length }}
                     </p>
                   </div>
                 </div>
@@ -67,26 +62,16 @@
             <div class="media-block position-relative d-block">
               <!-- 假設後端有提供一個 video_url，這裡就用 currentLesson.video_url -->
               <!-- 下面只是示意，實際要看你的資料有哪些欄位 -->
-              <img
-                v-if="!currentLesson.video_url"
-                src="@/assets/images/video1.png"
-                class="rounded-2 video-cover"
-              />
               <HlsPlayer
                 v-if="videoSrc"
                 :src="videoSrc"
                 :poster="courseDetail.course.image_url"
               />
-              <video
-                v-if="videoSrc"
-                :src="videoSrc"
-                controls
-                style="width: 100%; max-height: 400px; display: block"
+              <img
+                v-else
+                :src="courseDetail.course.image_url"
+                class="rounded-2 video-cover w-100"
               />
-
-              <div class="play-icon position-absolute">
-                <i class="bi bi-play-circle-fill"></i>
-              </div>
             </div>
           </div>
           <!-- 課程標題與統計 -->
@@ -548,30 +533,16 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import HlsPlayer from '@/components/HlsPlayer.vue'
 
-const videoSrc = computed(() => {
-  if (currentLesson.value?.video_url) {
-    return currentLesson.value.video_url
-  }
-  // 如果 sidebar 每個 lesson 沒帶 video_url，就用 courses/details 回來的
-  return courseDetail.value?.course?.video_url || ''
-})
+const route = useRoute()
 
 // 1. 先準備要放 sidebar 資料的 ref
 const courseName = ref('') // ← 這裡用來存 sidebar 回傳的 courseName
 const lessons = ref([]) // ← 這裡用來存 sidebar 回傳的 chapter 陣列
-
-// currentLesson 存「當下被選到的章節物件」
-const currentLesson = ref({
-  // 先放個預設值，避免 template 一開始就錯
-  name: '',
-  length: '',
-  isFinished: false,
-  isCurrentWatching: false
-})
-
-const route = useRoute()
 const courseId = route.params.courseId
 const courseDetail = ref(null)
+const currentLesson = ref({})
+const selectedChapId = ref('')
+
 const openIndexes = ref([])
 const userRatings = ref({
   paginatedData: [],
@@ -587,51 +558,80 @@ const userRatings = ref({
   }
 })
 
-// API 資料載入後再初始化 openIndexes
+const videoSrc = computed(
+  () =>
+    currentLesson.value?.video_url ||
+    courseDetail.value?.course?.video_url ||
+    ''
+)
+
+async function fetchSidebar(id, token) {
+  const { data } = await axios.get(
+    `https://sportify.zeabur.app/api/v1/users/courses/${id}/sidebar`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  return data.data // { courseName, chapter:[...] }
+}
+
+async function fetchDetails(id, token) {
+  // 不帶 chapterId；後端會回「預設章節」的影片與 course info
+  const { data } = await axios.get(
+    `https://sportify.zeabur.app/api/v1/users/courses/${id}/details`,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  )
+  return data.data // 真正 payload
+}
 
 onMounted(async () => {
   try {
-    const token = localStorage.getItem('token') // ← 確保你已經登入並且 token 在 localStorage
-    const sidebarRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/users/courses/${courseId}/sidebar`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}` // ← 把 token 加到 Authorization header
-        }
-      }
-    )
-    lessons.value = sidebarRes.data.data.chapter
-    // 初始化 currentLesson：優先找出 isCurrentWatching 為 true 的
-    const watching = lessons.value.find(item => item.isCurrentWatching)
-    if (watching) {
-      currentLesson.value = watching
-    } else if (lessons.value.length > 0) {
-      // 如果沒有人標註 isCurrentWatching，就用第一筆當預設
-      currentLesson.value = lessons.value[0]
-    }
+    const token = localStorage.getItem('token')
 
-    courseName.value = sidebarRes.data.data.courseName // ← 塞回傳的 courseName
-    lessons.value = sidebarRes.data.data.chapter // ← 塞回傳的章節陣列
+    /* ① sidebar ------------------------------------------------ */
+    const sb = await fetchSidebar(courseId, token)
+    courseName.value = sb.courseName
+    lessons.value = sb.chapter.map(ch => ({
+      id: '', //  後端暫時沒有，留空字串
+      chapterId: '',
+      name: ch.name,
+      length: ch.length || '未提供',
+      isFinished: ch.isFinished,
+      isCurrentWatching: ch.isCurrentWatching,
+      video_url: '' // 稍後 details 統一塞進來
+    }))
 
-    const detailRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`
-    )
-    courseDetail.value = detailRes.data.data
+    /* ② 預設選第一章 & 取細節 ------------------------------- */
+    const first = lessons.value[0]
+    if (!first) return
+    currentLesson.value = first
+    selectedChapId.value = first.chapterId
 
-    openIndexes.value = courseDetail.value.chapters.map(() => false)
+    const detail = await fetchDetails(courseId, token)
+    courseDetail.value = detail
+    // 把影片塞回 lesson，避免下次再 call
+    first.video_url = detail.course.video_url
+    lessons.value.forEach(l => (l.video_url = detail.course.video_url))
 
-    const ratingsRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
-    )
-    userRatings.value = ratingsRes.data.data
-  } catch (err) {
-    console.error('載入資料失敗', err)
+    openIndexes.value = detail.chapters.map(() => false)
+
+    currentLesson.value =
+      lessons.value.find(l => l.isCurrentWatching) || lessons.value[0]
+
+    openIndexes.value = detail.chapters.map(() => false)
+
+    /* ③ ratings（如需） -------------------------------------- */
+    await fetchRatings(courseId)
+  } catch (e) {
+    console.error('載入資料失敗', e)
   }
 })
 
-// function selectLesson(lesson) {
-//   currentLesson.value = lesson
-// }
+/* ---------- 切換章節 ---------- */
+function selectLesson(lesson) {
+  // ★ 目前只切 local 狀態，不再呼叫 details
+  currentLesson.value = lesson
+}
 
 function toggle(idx) {
   openIndexes.value[idx] = !openIndexes.value[idx]
@@ -677,25 +677,6 @@ async function fetchRatings(courseId) {
     userRatings.value = res.data.data
   } catch (error) {
     console.error('評價載入失敗', error)
-  }
-}
-
-async function selectLesson(lesson) {
-  currentLesson.value = lesson
-
-  // 如果 lesson 裡沒有 video_url，就向後端要
-  if (!lesson.video_url) {
-    try {
-      const token = localStorage.getItem('token')
-      const { data } = await axios.get(
-        `https://sportify.zeabur.app/api/v1/courses/${courseId}/lessons/${lesson.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      // 把回來的 video_url 塞進 lesson，避免下一次再 call
-      lesson.video_url = data.data.video_url
-    } catch (e) {
-      console.error('取得 lesson 影片失敗', e)
-    }
   }
 }
 
