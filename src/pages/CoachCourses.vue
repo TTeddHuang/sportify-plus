@@ -280,6 +280,11 @@ const isSubmitting = ref(false)
 const isUploadingThumbnail = ref(false)
 const thumbnailUrl = ref('')
 const thumbnailPublicId = ref('')
+const fileInput = ref(null)
+
+const triggerFileSelect = () => {
+  fileInput.value?.click()
+}
 
 async function getCourses() {
   try {
