@@ -125,7 +125,7 @@ const onFileChange = async (section, file) => {
       size: section.fileSize
     }
 
-    if (props.courseId) {
+    if (props.courseId != null) {
       uploadData.courseId = props.courseId
     }
 
