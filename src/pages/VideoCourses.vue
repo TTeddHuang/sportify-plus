@@ -64,6 +64,7 @@
               <!-- 下面只是示意，實際要看你的資料有哪些欄位 -->
               <HlsPlayer
                 v-if="videoSrc"
+                :key="currentLesson.chapterId"
                 :src="videoSrc"
                 :poster="courseDetail.course.image_url"
               />
@@ -573,12 +574,13 @@ async function fetchSidebar(id, token) {
   return data.data // { courseName, chapter:[...] }
 }
 
-async function fetchDetails(id, token) {
+async function fetchDetails(id, chapterId, token) {
   // 不帶 chapterId；後端會回「預設章節」的影片與 course info
   const { data } = await axios.get(
     `https://sportify.zeabur.app/api/v1/users/courses/${id}/details`,
     {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      params: { chapterId }
     }
   )
   return data.data // 真正 payload
@@ -592,8 +594,8 @@ onMounted(async () => {
     const sb = await fetchSidebar(courseId, token)
     courseName.value = sb.courseName
     lessons.value = sb.chapter.map(ch => ({
-      id: '', //  後端暫時沒有，留空字串
-      chapterId: '',
+      id: ch.chapterId,
+      chapterId: ch.chapterId,
       name: ch.name,
       length: ch.length || '未提供',
       isFinished: ch.isFinished,
@@ -602,16 +604,17 @@ onMounted(async () => {
     }))
 
     /* ② 預設選第一章 & 取細節 ------------------------------- */
-    const first = lessons.value[0]
+    const first =
+      lessons.value.find(l => l.isCurrentWatching) || lessons.value[0]
     if (!first) return
+    first.isCurrentWatching = true
     currentLesson.value = first
     selectedChapId.value = first.chapterId
 
-    const detail = await fetchDetails(courseId, token)
+    const detail = await fetchDetails(courseId, first.chapterId, token)
     courseDetail.value = detail
     // 把影片塞回 lesson，避免下次再 call
     first.video_url = detail.course.video_url
-    lessons.value.forEach(l => (l.video_url = detail.course.video_url))
 
     openIndexes.value = detail.chapters.map(() => false)
 
@@ -627,10 +630,28 @@ onMounted(async () => {
   }
 })
 
-/* ---------- 切換章節 ---------- */
-function selectLesson(lesson) {
+async function selectLesson(lesson) {
+  lessons.value.forEach(l => {
+    l.isCurrentWatching = l.chapterId === lesson.chapterId
+  })
+
+  currentLesson.value = lesson
+  selectedChapId.value = lesson.chapterId
+
   // ★ 目前只切 local 狀態，不再呼叫 details
   currentLesson.value = lesson
+  if (!lesson.video_url) {
+    try {
+      const token = localStorage.getItem('token')
+      const detail = await fetchDetails(courseId, lesson.chapterId, token)
+
+      courseDetail.value = detail
+      lesson.video_url = detail.course.video_url // 快取影片
+      openIndexes.value = detail.chapters.map(() => false) // 同步章節介紹
+    } catch (e) {
+      console.error('載入章節影片失敗', e)
+    }
+  }
 }
 
 function toggle(idx) {
@@ -757,6 +778,10 @@ onMounted(() => {
     border-radius: 4px;
     color: $primary-100;
   }
+}
+.list-group-item.watching {
+  background: $primary-600;
+  color: $primary-000;
 }
 
 /* List item hover 效果（可以自行調整） */

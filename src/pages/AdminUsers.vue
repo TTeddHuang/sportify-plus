@@ -83,7 +83,7 @@
               <input
                 v-model="searchKeyword"
                 type="text"
-                class="form-control ps-2 border-start-0"
+                class="form-control ps-2"
                 placeholder="搜尋會員名稱..."
                 aria-label="Search"
                 aria-describedby="basic-addon1"
