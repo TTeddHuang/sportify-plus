@@ -458,6 +458,11 @@ watch([currentPage, currentType, currentSort], () => {
   color: $primary-100;
   background-color: $primary-700;
 }
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+}
+
 .page-item {
   @media (max-width: 992px) {
     margin: 0 5px;

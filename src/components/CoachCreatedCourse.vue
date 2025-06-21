@@ -71,7 +71,7 @@
                     name: 'CourseDetails',
                     params: { courseId: course.course_id }
                   }"
-                  class="text-grey-000 text-decoration-none"
+                  class="text-grey-000 text-decoration-none stretched-link"
                 >
                   查看更多
                 </router-link>

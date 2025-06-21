@@ -354,6 +354,10 @@ async function submit() {
   }
   try {
     const token = localStorage.getItem('token')
+    if (!token) {
+      alert('請先登入學員帳號')
+      return
+    }
     await axios
       .post('https://sportify.zeabur.app/api/v1/users/subscription', payload, {
         headers: {
