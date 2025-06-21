@@ -647,6 +647,7 @@ async function fetchCoachDetail(coachId) {
     if (!res.data.status) {
       throw new Error(res.data.message || '讀取失敗')
     }
+
     const detail = res.data.data.coachDetails
 
     selectedCoach.value = detail
@@ -656,7 +657,6 @@ async function fetchCoachDetail(coachId) {
     console.error('fetchCoachDetail 錯誤', err)
   }
 }
-
 watch(
   () => selectedCoach.value?.is_verified,
   val => {
