@@ -52,7 +52,7 @@ const menuItems = computed(() => {
       { to: '/coach/courses/new', label: '建立新課程', icon: 'bi-plus-circle' },
       { to: '/coach/courses', label: '我的課程資料', icon: 'bi-collection' },
       { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' },
-      { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
+      // { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
     ]
   } else if (isUser.value) {
     return [
@@ -65,7 +65,7 @@ const menuItems = computed(() => {
       { to: '/admin/courses', label: '課程管理' },
       { to: '/admin/users', label: '會員管理' },
       { to: '/admin/coaches', label: '教練管理' },
-      { to: '/admin/reports', label: '報表管理' }
+      // { to: '/admin/reports', label: '報表管理' }
     ]
   }
   return []
@@ -251,7 +251,6 @@ function handleLogout() {
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/styles/all.scss';
 
 .offcanvas {
   background-color: $grey-000; // 白色背景

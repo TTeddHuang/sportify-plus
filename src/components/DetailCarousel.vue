@@ -157,8 +157,6 @@ const onSwiper = swiper => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/all.scss';
-
 /* 保持箭頭外露，但隱藏多餘 slide */
 ::v-deep(.swiper-slide) {
   width: 100%;
