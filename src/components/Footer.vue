@@ -1,7 +1,8 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 </script>
 
 <template>
@@ -9,13 +10,14 @@ const route = useRoute()
     <div class="mb-6">
       <div class="container text-center">
         <!-- Logo -->
-        <img
-          src="@/assets/images/logo-s.png"
-          alt="Logo"
-          class="mb-4 mb-7"
-          style="height: 50px"
-        />
-
+        <router-link to="/">
+          <img
+            src="@/assets/images/logo-s.png"
+            alt="Logo"
+            class="mb-4 mb-7"
+            style="height: 50px"
+          />
+        </router-link>
         <!-- 導覽連結 -->
         <div class="d-flex justify-content-center gap-4 mb-3 flex-wrap">
           <router-link to="/about" class="px-1 py-2">關於我們</router-link>

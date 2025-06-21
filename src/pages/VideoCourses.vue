@@ -529,7 +529,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import HlsPlayer from '@/components/HlsPlayer.vue'
@@ -602,6 +602,7 @@ onMounted(async () => {
       isCurrentWatching: ch.isCurrentWatching,
       video_url: '' // 稍後 details 統一塞進來
     }))
+    mergeLocalFinishedState()
 
     /* ② 預設選第一章 & 取細節 ------------------------------- */
     const first =
@@ -701,8 +702,83 @@ async function fetchRatings(courseId) {
   }
 }
 
+const LS_KEY = `VIDEO_PROGRESS_${courseId}`
+
+function loadLocalProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+function saveLocalProgress(chapterId, seconds) {
+  const data = loadLocalProgress()
+  data[chapterId] = { is_completed: true, watched_seconds: seconds }
+  localStorage.setItem(LS_KEY, JSON.stringify(data))
+}
+
+/* 進入頁面時，把本地完成狀態 merge 進 lessons */
+function mergeLocalFinishedState() {
+  const local = loadLocalProgress()
+  lessons.value.forEach(l => {
+    if (local[l.chapterId]?.is_completed) l.isFinished = true
+  })
+}
+
+function initVideoProgressListener() {
+  const video = document.querySelector('.media-block video')
+  if (!video) return
+
+  video.removeEventListener('timeupdate', handleTimeupdate)
+  video.removeEventListener('ended', handleEnded)
+
+  video.addEventListener('timeupdate', handleTimeupdate)
+  video.addEventListener('ended', handleEnded)
+}
+
+function handleTimeupdate(e) {
+  const v = e.target
+  if (!v.duration) return
+  const ratio = v.currentTime / v.duration
+  if (ratio >= 0.9) finishCurrentLesson(v) // 90 %
+}
+function handleEnded(e) {
+  finishCurrentLesson(e.target)
+} // 影片播完
+
+async function finishCurrentLesson(videoEl) {
+  const lesson = currentLesson.value
+  if (!lesson || lesson.isFinished) return
+
+  // ① 立即更新前端 & localStorage
+  lesson.isFinished = true
+  saveLocalProgress(lesson.chapterId, Math.floor(videoEl.duration))
+
+  // ② 告訴後端
+  try {
+    const token = localStorage.getItem('token')
+    await axios.post(
+      'https://sportify.zeabur.app/api/v1/users/view-progress',
+      {
+        sub_chapter_id: lesson.chapterId,
+        watched_seconds: Math.floor(videoEl.duration),
+        is_completed: true
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+  } catch (err) {
+    console.warn('送觀看進度失敗，稍後重送', err)
+    /* ➜ 進階：也可以把失敗的 payload 暫存，下次打開時再補送 */
+  }
+}
+
 onMounted(() => {
   fetchRatings(courseId)
+})
+watch(videoSrc, async () => {
+  // NEW
+  await nextTick() // 等 DOM 重新渲染
+  initVideoProgressListener()
 })
 </script>
 

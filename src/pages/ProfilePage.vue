@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="d-flex">
+    <div class="d-flex justify-content-center">
       <div class="learning-center row container">
         <div class="side-nav col-xl-3 d-xl-block d-none">
           <div class="px-3 py-5">
@@ -32,18 +32,32 @@
             </ul>
           </div>
         </div>
+
         <div class="col-xl-9 p-lg-8 px-2 py-8" style="max-width: 1056px">
           <h2 class="fs-lg-4 mb-lg-8 mb-6">個人資料</h2>
-          <div class="profile-group row">
+
+          <div class="card-wrapper"></div>
+          <div class="profile-group row card-content">
             <div class="col-12 col-md-6 text-center">
               <div
                 class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto"
               >
                 <img
+                  v-if="userAvatar"
                   :src="userAvatar"
                   alt="個人照片"
-                  class="object-fit-cover"
+                  class="object-fit-cover w-100 h-100"
+                  @error="handleAvatarError"
                 />
+                <div
+                  v-else
+                  class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary-600"
+                >
+                  <i
+                    class="bi bi-person-fill text-white"
+                    style="font-size: 200px"
+                  ></i>
+                </div>
               </div>
               <div v-if="inputState === 'inEdit'" class="mt-3">
                 <input
@@ -64,7 +78,7 @@
             </div>
             <div class="col-12 col-md-6">
               <div class="mb-3">
-                <label class="form-label">會員名</label>
+                <label class="form-label fs-lg-5 fs-7 fw-bold">會員名稱</label>
                 <input
                   v-model="userName"
                   type="text"
@@ -73,7 +87,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label class="form-label">Email</label>
+                <label class="form-label fs-lg-5 fs-7 fw-bold">Email</label>
                 <input
                   v-model="userEmail"
                   type="email"
@@ -83,7 +97,9 @@
               </div>
               <div v-if="inputState === 'inEdit'">
                 <div class="mb-3">
-                  <label class="form-label">目前密碼</label>
+                  <label class="form-label fs-lg-5 fs-7 fw-bold"
+                    >目前密碼</label
+                  >
                   <input
                     v-model="userOldPwd"
                     type="password"
@@ -92,7 +108,7 @@
                   />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">新密碼</label>
+                  <label class="form-label fs-lg-5 fs-7 fw-bold">新密碼</label>
                   <input
                     v-model="userNewPwd"
                     type="password"
@@ -102,7 +118,9 @@
                   />
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">再輸入一次新密碼</label>
+                  <label class="form-label fs-lg-5 fs-7 fw-bold"
+                    >再輸入一次新密碼</label
+                  >
                   <input
                     v-model="userCheckPwd"
                     type="password"
@@ -442,14 +460,19 @@ const confirmEdit = async () => {
 
 .user-profile {
   padding: 40px;
-  .profile-group {
-    margin-top: 40px;
-  }
+
   .profile-avatar {
     width: 300px;
   }
   @media (max-width: 992px) {
     padding: 40px 12px;
+  }
+}
+.profile-group {
+  margin-top: 40px;
+  padding: 24px;
+  @media (max-width: 992px) {
+    padding: 12px;
   }
 }
 // input的樣式，可以考慮放到全域
@@ -488,5 +511,22 @@ const confirmEdit = async () => {
   .side-nav {
     display: none;
   }
+}
+.card-wrapper {
+  background-color: $primary-600;
+  border-radius: 15px 15px 0 0;
+  height: 50px;
+
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+}
+
+.card-content {
+  border-radius: 15px;
+  background-color: $primary-000;
+  margin-top: -38px;
+  color: $grey-700;
+  border: 1px solid rgba(236, 239, 253, 1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
 }
 </style>
