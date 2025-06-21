@@ -196,7 +196,7 @@
           aria-hidden="true"
         >
           <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-700 p-5">
+            <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
                   會員詳細資訊
@@ -218,19 +218,27 @@
                       >
                         <div class="me-lg-4">
                           <strong>會員編號：<br class="d-xl-none" /></strong
-                          ><span>{{ selectedUser?.id }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.id
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>會員名稱：</strong
-                          ><span>{{ selectedUser?.name }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.name
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>Email：</strong
-                          ><span>{{ selectedUser?.email }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.email
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>訂閱期間：</strong
-                          ><span>{{ selectedUser?.period || '—' }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.period || '—'
+                          }}</span>
                         </div>
                       </div>
                       <div
@@ -238,33 +246,54 @@
                       >
                         <div class="me-lg-4">
                           <strong>目前方案：</strong
-                          ><span>{{ selectedUser?.plan || '未訂閱' }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.plan || '未訂閱'
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>註冊時間：</strong
-                          ><span>{{ selectedUser?.createdAt }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.createdAt
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>所選課程：</strong
-                          ><span>{{ displayCourses }}</span>
+                          ><span class="des-custom">{{ displayCourses }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>下次付款日：</strong
-                          ><span>{{ selectedUser?.next_payment || '—' }}</span>
+                          ><span class="des-custom">{{
+                            selectedUser?.next_payment || '—'
+                          }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div class="col-lg-4 text-center">
+                    <!-- 有頭像就顯示照片 -->
                     <img
-                      :src="selectedUser?.profile_image_url"
+                      v-if="selectedUser?.profile_image_url"
+                      :src="selectedUser.profile_image_url"
                       alt="會員頭像"
                       class="rounded-circle mb-lg-0 mb-5"
                       style="width: 240px; height: 240px; object-fit: cover"
                     />
+
+                    <!-- 沒圖片：顯示預設人像 + primary-600 底色 -->
+                    <div
+                      v-else
+                      class="d-flex align-items-center justify-content-center rounded-circle bg-primary-500 mb-lg-0 mb-5 mx-auto"
+                      style="width: 240px; height: 240px"
+                      aria-label="預設頭像"
+                    >
+                      <i
+                        class="bi bi-person-fill text-white"
+                        style="font-size: 120px"
+                      ></i>
+                    </div>
                   </div>
                 </div>
                 <p class="fs-6 fw-bold">訂閱紀錄</p>
@@ -698,7 +727,17 @@ function openDetailModal(user) {
   opacity: 0.4;
   cursor: not-allowed;
 }
-
+.des-custom {
+  margin-top: 8px;
+  background-color: $grey-000;
+  border: 1px solid $primary-700;
+  color: $grey-700;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background-clip: padding-box;
+  border-radius: 6px;
+}
 .card-wrapper {
   background-color: $primary-600;
   border-radius: 15px 15px 0 0;
@@ -706,10 +745,11 @@ function openDetailModal(user) {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $primary-000;
+  background-color: $grey-000;
   margin-top: -38px;
   padding: 24px;
   color: black;
+  border: 1px solid $primary-600;
 }
 .th-custom {
   color: $primary-900;
