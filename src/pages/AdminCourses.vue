@@ -326,7 +326,7 @@
           aria-hidden="true"
         >
           <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-700 p-5">
+            <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <!-- --- Modal 標頭 --- -->
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
@@ -350,15 +350,21 @@
                       >
                         <div class="me-lg-4">
                           <strong>課程代號：<br class="d-xl-none" /></strong
-                          ><span>{{ selectedDetail.id }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.id
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教練名稱：</strong
-                          ><span>{{ selectedDetail.coach.name }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.coach.name
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>課程名稱：</strong
-                          ><span>{{ selectedDetail.name }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.name
+                          }}</span>
                         </div>
                       </div>
                       <div
@@ -366,16 +372,22 @@
                       >
                         <div class="me-lg-4">
                           <strong>課程狀態：</strong
-                          ><span>{{ selectedDetail.status }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.status
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>上架時間：</strong
-                          ><span>{{ selectedDetail.publishedAt }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.publishedAt
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>課程類別：</strong
-                          ><span>{{ selectedDetail.category }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.category
+                          }}</span>
                         </div>
                       </div>
                     </div>
@@ -383,7 +395,7 @@
                     <div class="mb-lg-3 mb-5">
                       <p class="fw-bold mb-lg-3 mb-2">課程介紹：</p>
                       <div
-                        class="border rounded p-3"
+                        class="border rounded p-3 bg-grey-000 border-primary-700 me-lg-4"
                         style="background-color: #f8f9fa"
                       >
                         {{ selectedDetail.description }}
@@ -394,7 +406,7 @@
                       <img
                         :src="selectedDetail.image_url"
                         alt="課程照片"
-                        class="img-fluid rounded w-100"
+                        class="img-fluid rounded course-photo"
                       />
                     </div>
                   </div>
@@ -414,18 +426,21 @@
 
                 <div class="mb-lg-3 mb-5">
                   <p class="fw-bold mb-2">課程影片：</p>
-                  <div id="courseVideoAccordion" class="accordion">
+                  <div
+                    id="courseVideoAccordion"
+                    class="accordion border-primary-600"
+                  >
                     <div
                       v-for="(chap, idx) in selectedDetail.chapters"
                       :key="idx"
-                      class="accordion-item bg-primary-000 text-grey-700"
+                      class="accordion-item bg-grey-000 text-grey-700 border-primary-600"
                     >
                       <h2
                         :id="`headingChap${idx}`"
                         class="accordion-header text-grey-700"
                       >
                         <button
-                          class="accordion-button collapsed bg-primary-000 text-grey-700"
+                          class="accordion-button collapsed bg-grey-000 text-grey-700"
                           type="button"
                           data-bs-toggle="collapse"
                           :data-bs-target="`#collapseChap${idx}`"
@@ -441,7 +456,9 @@
                         :aria-labelledby="`headingChap${idx}`"
                         data-bs-parent="#courseVideoAccordion"
                       >
-                        <div class="accordion-body">
+                        <div
+                          class="accordion-body border-top border-primary-600"
+                        >
                           <ul class="mb-0 list-unstyled">
                             <li v-for="(sub, i) in chap.subtitles" :key="i">
                               {{ sub }}
@@ -461,7 +478,7 @@
                       <!-- 按下後切換到編輯模式 -->
                       <button
                         type="button"
-                        class="btn btn-primary text-grey-700"
+                        class="btn btn-primary-600"
                         @click="enableEdit"
                       >
                         編輯
@@ -469,7 +486,7 @@
                       <!-- 直接關閉 Modal -->
                       <button
                         type="button"
-                        class="btn btn-grey-400 ms-lg-3 text-grey-700"
+                        class="btn btn-grey-400 ms-lg-3"
                         @click="closeDetailModal"
                       >
                         確定
@@ -482,7 +499,7 @@
                       <p class="fw-bold">審核建議：</p>
                       <textarea
                         v-model="selectedDetail.reviewComment"
-                        class="form-control bg-grey-000 text-grey-700"
+                        class="form-control bg-grey-000 text-grey-700 border-primary-600"
                         rows="3"
                         placeholder="輸入審核建議..."
                       ></textarea>
@@ -1220,5 +1237,21 @@ textarea::placeholder {
   @media (max-width: 992px) {
     width: 100%;
   }
+}
+.des-custom {
+  margin-top: 8px;
+  background-color: $grey-000;
+  border: 1px solid $primary-700;
+  color: $grey-700;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background-clip: padding-box;
+  border-radius: 6px;
+}
+.course-photo {
+  max-height: 250px;
+  height: auto;
+  object-fit: contain;
 }
 </style>

@@ -13,10 +13,20 @@
               class="profile-avatar ratio ratio-1x1 rounded-circle overflow-hidden mx-auto mb-4"
             >
               <img
+                v-if="profileImageFile"
                 :src="profileImageFile"
                 alt="個人照片"
                 class="object-fit-cover"
               />
+              <div
+                v-else
+                class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary-600"
+              >
+                <i
+                  class="bi bi-person-fill text-white"
+                  style="font-size: 150px"
+                ></i>
+              </div>
             </div>
 
             <!-- 審核狀態標籤 -->

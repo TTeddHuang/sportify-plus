@@ -208,7 +208,7 @@
           aria-hidden="true"
         >
           <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-700 p-5">
+            <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
                   教練詳細資訊
@@ -229,74 +229,115 @@
                       >
                         <div class="me-lg-4">
                           <strong>教練編號：<br class="d-xl-none" /></strong>
-                          {{ selectedCoach?.id }}
+                          <span class="des-custom">{{
+                            selectedCoach?.id
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教練名稱：</strong>
-                          {{ selectedCoach?.nickname }}
+                          <span class="des-custom">{{
+                            selectedCoach?.nickname
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>Email：</strong
-                          ><span>{{ selectedCoach?.email }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.email
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>手機：</strong
-                          ><span>{{ selectedCoach?.phone_number }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.phone_number
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>身分證字號：</strong
-                          ><span>{{ selectedCoach?.id_number }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.id_number
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>專長類別：</strong
-                          ><span
-                            v-for="s in selectedCoach?.skills || []"
-                            :key="s.name"
-                            class="me-1"
-                          >
-                            {{ s.name }}
-                          </span>
+                          ><template v-if="selectedCoach?.skills?.length">
+                            <span
+                              v-for="skill in selectedCoach.skills"
+                              :key="skill.name"
+                              class="des-custom mb-1"
+                            >
+                              {{ skill.name }}
+                            </span>
+                          </template>
+
+                          <!-- 無資料：放一格空框 + 提示文字 -->
+                          <span v-else class="des-custom text-muted"></span>
                         </div>
-                        <p>
-                          <strong>專長介紹：</strong>
-                          {{ selectedCoach?.skill_description }}
-                        </p>
+                        <div class="me-lg-4">
+                          <p>
+                            <strong>專長介紹：</strong
+                            ><span class="des-custom">{{
+                              selectedCoach?.skill_description
+                            }}</span>
+                          </p>
+                        </div>
                       </div>
                       <div
                         class="mb-3 d-flex flex-column gap-3 mobile-custom-40"
                       >
                         <div class="me-lg-4">
                           <strong>註冊時間：</strong
-                          ><span> {{ selectedCoach?.created_at }}</span>
+                          ><span class="des-custom">
+                            {{ selectedCoach?.created_at }}</span
+                          >
                         </div>
 
                         <div class="me-lg-4">
                           <strong>本名：</strong
-                          ><span>{{ selectedCoach?.realname }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.realname
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>出生日期：</strong
-                          ><span>{{ selectedCoach?.birthday }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.birthday
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教學經驗：</strong
-                          ><span>{{ selectedCoach?.experience_years }} 年</span>
+                          ><span class="des-custom"
+                            >{{ selectedCoach?.experience_years }} 年</span
+                          >
                         </div>
                         <div class="me-lg-4">
                           <strong>稱號：</strong
-                          ><span>{{ selectedCoach?.job_title }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.job_title
+                          }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-lg-4 text-center mb-lg-0 mb-5">
+                  <div class="col-lg-4 text-center mb-5">
                     <img
-                      :src="selectedCoach?.profile_image_url"
+                      v-if="selectedCoach?.profile_image_url"
+                      :src="selectedCoach.profile_image_url"
                       alt="教練大頭照"
                       class="rounded-circle mb-3"
                       style="width: 240px; height: 240px; object-fit: cover"
                     />
+                    <div
+                      v-else
+                      class="d-flex align-items-center justify-content-center rounded-circle bg-primary-500 mb-5 mx-auto"
+                      style="width: 240px; height: 240px"
+                      aria-label="預設頭像"
+                    >
+                      <i
+                        class="bi bi-person-fill text-white"
+                        style="font-size: 120px"
+                      ></i>
+                    </div>
                     <!-- 資格審核開關 -->
                     <div
                       class="form-check form-switch verify-switch d-flex flex-column align-items-center ps-0"
@@ -321,7 +362,7 @@
 
                 <p class="mb-3 fw-bold">自我介紹：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -330,7 +371,7 @@
                 </div>
                 <p class="mb-3 fw-bold">學經歷與得獎經歷：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -339,7 +380,7 @@
                 </div>
                 <p class="mb-3 fw-bold">感興趣的事物：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -348,7 +389,7 @@
                 </div>
                 <p class="mb-3 fw-bold">最喜歡的一段話：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -357,7 +398,7 @@
                 </div>
                 <p class="mb-3 fw-bold">座右銘：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -906,7 +947,8 @@ const coachOptions = computed(() => {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $primary-000;
+  background-color: $grey-000;
+  border: 1px solid $primary-600;
   margin-top: -38px;
   padding: 24px;
   color: black;
@@ -1001,5 +1043,17 @@ textarea::placeholder {
   @media (max-width: 992px) {
     width: 100%;
   }
+}
+.des-custom {
+  margin-top: 8px;
+  background-color: $grey-000;
+  border: 1px solid $primary-700;
+  color: $grey-700;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background-clip: padding-box;
+  border-radius: 6px;
+  height: 40px;
 }
 </style>
