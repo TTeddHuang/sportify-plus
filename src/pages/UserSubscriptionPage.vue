@@ -142,7 +142,6 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { submitEcpay } from '@/api/submitEcpay'
-// import { user } from '@/store/user'
 
 const router = useRouter()
 
@@ -185,9 +184,8 @@ onMounted(async () => {
     console.log('auth/me 回傳:', userRes.data)
 
     userInfo.value = userRes.data.data
-    console.log(userInfo.value)
   } catch (err) {
-    console.error('取得使用者資料失敗', err)
+    console.error('取得使用者資料失敗')
   }
 })
 
@@ -264,7 +262,7 @@ onMounted(async () => {
       ])
     )
   } catch (err) {
-    console.error('載入資料失敗', err)
+    console.error('載入資料失敗')
   }
 })
 
@@ -323,10 +321,9 @@ const canSubmit = computed(() => {
 // 試用七天
 async function submitTrial() {
   try {
-    // userInfo.value.token
     const token = localStorage.getItem('token')
     if (!token) {
-      alert('請先登入')
+      alert('請先登入學員帳號')
       return
     }
 
@@ -343,9 +340,8 @@ async function submitTrial() {
       }
     )
     alert('試用成功，歡迎加入！')
-    router.push('/') // 跳轉首頁
+    router.push('/')
   } catch (err) {
-    console.error(err)
     alert('申請試用失敗')
   }
 }
@@ -374,14 +370,12 @@ async function submit() {
         submitEcpay(token, payment)
       })
   } catch (err) {
-    console.error(err)
-    alert('請先登入')
+    alert('訂閱失敗，請確認是否已有訂閱方案')
   }
 }
 </script>
 
 <style scoped lang="scss">
-/* 你的原本樣式都保留，以下示範新增的部分 */
 .plan-desc {
   /* 固定描述高度，讓卡片一致 */
   min-height: 96px;

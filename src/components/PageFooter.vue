@@ -1,9 +1,3 @@
-<script setup>
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
-</script>
-
 <template>
   <footer class="text-white py-10">
     <div class="mb-6">
