@@ -95,7 +95,7 @@ async function fetchCoaches() {
       title: item.coach_title,
       description: item.coach_about_me,
       tag: item.coach_skills?.[0]?.skill_name ?? '其他',
-      image: item.coach_image_url ?? defaultImg // 後端若還沒給圖就放預設
+      image: item.coach_profile_image_url ?? defaultImg // 後端若還沒給圖就放預設
     }))
   } catch (err) {
     console.error('教練列表載入失敗：', err)

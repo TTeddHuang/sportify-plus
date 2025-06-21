@@ -200,7 +200,6 @@
                       <draggable
                         ref="editDraggableRef"
                         :initial-data="editForm.chapters"
-                        :course-id="editForm.id"
                         @course-id-received="handleCourseIdReceived"
                       ></draggable>
                     </div>

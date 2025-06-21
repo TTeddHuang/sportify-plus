@@ -32,12 +32,22 @@
               </div>
 
               <div class="media-block position-relative">
+                <HlsPlayer
+                  v-if="item.showPlayer && item.videoSrc"
+                  :src="item.videoSrc"
+                  :poster="item.videoCover"
+                  style="height: 600px; max-height: 100%"
+                />
                 <img
+                  v-else
                   :src="item.videoCover"
-                  :alt="`${item.title} 預覽`"
                   class="video-cover rounded"
                 />
-                <div class="play-icon position-absolute">
+                <div
+                  v-if="!item.showPlayer"
+                  class="play-icon position-absolute"
+                  @click.stop="playThis(item)"
+                >
                   <i class="bi bi-play-circle-fill"></i>
                 </div>
               </div>
@@ -59,34 +69,80 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import HlsPlayer from '@/components/HlsPlayer.vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import axios from 'axios'
+
+async function getPlayUrlBySkill(skill) {
+  if (!skill) return ''
+
+  const { data } = await axios.get(
+    'https://sportify.zeabur.app/api/v1/courses/get-play-url',
+    { params: { skill } }
+  )
+
+  if (!data.status) throw new Error(data.message || 'API error')
+
+  if (data.data === null) {
+    console.warn(`[get-play-url] 「${skill}」沒有播放 ID`)
+    return ''
+  }
+
+  return data.data
+}
+
+onMounted(async () => {
+  await Promise.all(
+    slides.value.map(async item => {
+      try {
+        item.videoSrc = await getPlayUrlBySkill(item.skill)
+      } catch (e) {
+        console.error(`取得 ${item.skill} 影片失敗`, e)
+      }
+    })
+  )
+})
+
+function playThis(item) {
+  if (!item.videoSrc) return
+  item.showPlayer = true
+}
 
 const slides = ref([
   {
+    skill: '皮拉提斯',
     title: '皮拉提斯',
     description:
       '皮拉提斯是一種結合核心訓練、身體控制與呼吸技巧的運動，能有效強化深層肌群，改善體態與動作協調。不僅有助於提升肌力、柔軟度與平衡感，也能舒緩壓力與疼痛，預防運動傷害。透過皮拉提斯，你能重新覺察身體，打造穩定而健康的體態。',
     image: new URL('@/assets/images/yoga.png', import.meta.url).href,
-    videoCover: new URL('@/assets/images/video1.png', import.meta.url).href
+    videoCover: new URL('@/assets/images/video1.png', import.meta.url).href,
+    videoSrc: '',
+    showPlayer: false
   },
   {
-    title: '皮拉提斯',
+    skill: '登山',
+    title: '登山',
     description:
-      '皮拉提斯是一種結合核心訓練、身體控制與呼吸技巧的運動，能有效強化深層肌群，改善體態與動作協調。不僅有助於提升肌力、柔軟度與平衡感，也能舒緩壓力與疼痛，預防運動傷害。透過皮拉提斯，你能重新覺察身體，打造穩定而健康的體態。',
+      '登山是一項結合耐力、體能與自然探索的戶外運動,能有效提升心肺功能與肌耐力，同時幫助你紓解壓力、提升身心健康。透過登山,你能與大自然緊密連結,培養專注力與意志力，並在挑戰過程中收穫自信與滿足感。',
     image: new URL('@/assets/images/about-video2.png', import.meta.url).href,
-    videoCover: new URL('@/assets/images/video2.png', import.meta.url).href
+    videoCover: new URL('@/assets/images/video2.png', import.meta.url).href,
+    videoSrc: '',
+    showPlayer: false
   },
   {
-    title: '皮拉提斯',
+    skill: '羽球',
+    title: '羽球',
     description:
-      '皮拉提斯是一種結合核心訓練、身體控制與呼吸技巧的運動，能有效強化深層肌群，改善體態與動作協調。不僅有助於提升肌力、柔軟度與平衡感，也能舒緩壓力與疼痛，預防運動傷害。透過皮拉提斯，你能重新覺察身體，打造穩定而健康的體態。',
+      '羽毛球是一項兼具速度、技巧與策略性的運動, Sportify+提供專業且系統化的羽毛球課程,從基礎握拍、步法練習到戰術策略,讓初學者或進階選手都能循序漸進地精進球技。跟著資深教練一起練習,輕鬆掌握羽毛球運動的精髓。',
     image: new URL('@/assets/images/about-video3.png', import.meta.url).href,
-    videoCover: new URL('@/assets/images/video3.png', import.meta.url).href
+    videoCover: new URL('@/assets/images/video3.png', import.meta.url).href,
+    videoSrc: '',
+    showPlayer: false
   }
 ])
 
@@ -272,6 +328,7 @@ const onSwiper = swiper => {
   }
 
   .play-icon {
+    cursor: pointer;
     position: absolute;
     top: 50%;
     left: 50%;

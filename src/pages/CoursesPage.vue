@@ -1,6 +1,10 @@
 <template>
   <div class="container mb-lg-12 mb-8">
-    <h1 class="fs-2 primary-000 my-lg-10 my-8">課程分類</h1>
+    <h1 class="fs-2 primary-000 my-lg-10 my-8">
+      {{
+        route.query.keyword ? `搜尋結果：${route.query.keyword}` : '課程分類'
+      }}
+    </h1>
     <div class="d-xxl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
 
@@ -24,7 +28,7 @@
             href="#"
             class="btn btn-outline-primary flex-shrink-0 text-nowrap"
             :class="{ active: currentType === skill.skill_id }"
-            @click="((currentType = skill.skill_id), (currentPage = 1))"
+            @click="() => handleCategoryClick(skill.skill_id)"
           >
             {{ skill.course_type }}
           </button>
@@ -38,7 +42,7 @@
           type="button"
           class="btn btn-primary"
           :class="{ active: currentSort === 'popular' }"
-          @click="((currentSort = 'popular'), (currentPage = 1))"
+          @click="() => handleSortClick('popular')"
         >
           最熱門
         </button>
@@ -55,7 +59,7 @@
     <div class="card-section d-flex flex-wrap gap-lg-8 gap-5">
       <!-- 單一卡片範本-start -->
       <div
-        v-for="course in courses"
+        v-for="course in paginatedCourses"
         :key="course.course_id"
         class="card position-relative"
       >
@@ -110,28 +114,26 @@
     </div>
     <nav aria-label="Page navigation">
       <ul class="pagination d-flex justify-content-center mb-0">
-        <li
-          class="page-item mx-lg-7"
-          :class="{ disabled: !pagination.has_previous }"
-        >
-          <a class="page-link" @click="currentPage--">
-            <!-- 小於 lg 顯示圖示 -->
-            <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+        <li class="page-item mx-lg-7" :class="{ disabled: currentPage === 1 }">
+          <a class="page-link" @click="currentPage--"
+            ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
             <!-- lg 以上顯示文字 -->
             <span class="d-none d-lg-inline">上一頁</span></a
           >
         </li>
+
         <li
-          v-for="page in pagination.total_pages"
-          :key="page + 123"
+          v-for="page in totalPages"
+          :key="page"
           class="page-item mx-lg-5"
           :class="{ active: currentPage === page }"
         >
           <a class="page-link" @click="currentPage = page">{{ page }}</a>
         </li>
+
         <li
           class="page-item mx-lg-7"
-          :class="{ disabled: !pagination.has_next }"
+          :class="{ disabled: currentPage === totalPages }"
         >
           <a class="page-link" @click="currentPage++"
             ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
@@ -148,7 +150,7 @@
 import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
 
 import axios from 'axios'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -156,7 +158,6 @@ const router = useRouter()
 
 // 技能列表
 const skills = ref([])
-const courses = ref([])
 const filters = ref({})
 const pagination = ref({})
 
@@ -164,20 +165,50 @@ const currentPage = ref(Number(route.query.page) || 1)
 const currentType = ref(route.query.skillId || '')
 const currentSort = ref(route.query.sort_by || 'popular')
 
+// 搜尋結果分頁
+const allCourses = ref([])
+const pageSize = 9
+const paginatedCourses = ref([])
+
+const totalPages = computed(() =>
+  route.query.keyword
+    ? Math.ceil(allCourses.value.length / pageSize)
+    : pagination.value.total_pages || 1
+)
+
+function paginateCourses() {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  paginatedCourses.value = allCourses.value.slice(start, end)
+}
+
 async function fetchCourses() {
-  const { data } = await axios.get(
-    `https://sportify.zeabur.app/api/v1/courses`,
-    {
-      params: {
-        page: currentPage.value,
-        skillId: currentType.value,
-        sortBy: currentSort.value
+  const keyword = route.query.keyword || ''
+
+  if (keyword) {
+    const { data } = await axios.get(
+      `https://sportify.zeabur.app/api/v1/courses/search-courses`,
+      {
+        params: { keyword }
       }
-    }
-  )
-  courses.value = data.data
-  filters.value = data.meta.filter
-  pagination.value = data.meta.pagination
+    )
+    allCourses.value = data.data || []
+    paginateCourses()
+  } else {
+    const { data } = await axios.get(
+      `https://sportify.zeabur.app/api/v1/courses`,
+      {
+        params: {
+          page: currentPage.value,
+          skillId: currentType.value,
+          sortBy: currentSort.value
+        }
+      }
+    )
+    paginatedCourses.value = data.data
+    filters.value = data.meta.filter
+    pagination.value = data.meta.pagination
+  }
 }
 
 async function fetchSkill() {
@@ -187,12 +218,58 @@ async function fetchSkill() {
   skills.value = data.data
 }
 
+function handleCategoryClick(skillId) {
+  currentType.value = skillId
+  currentPage.value = 1
+
+  router.push({
+    path: '/courses',
+    query: {
+      page: currentPage.value,
+      skillId: currentType.value,
+      sortBy: currentSort.value // ✅ 不含 keyword
+    }
+  })
+
+  fetchCourses()
+  fetchSkill()
+}
+
+function handleSortClick(sortKey) {
+  currentSort.value = sortKey
+  currentPage.value = 1
+
+  router.push({
+    path: '/courses',
+    query: {
+      page: currentPage.value,
+      skillId: currentType.value,
+      sortBy: currentSort.value // ✅ 不含 keyword
+    }
+  })
+
+  fetchCourses()
+  fetchSkill()
+}
+
 onMounted(async () => {
   await fetchCourses()
   await fetchSkill()
 })
 
+watch(
+  () => route.query.keyword,
+  () => {
+    fetchCourses()
+  }
+)
+watch(currentPage, () => {
+  if (route.query.keyword) {
+    paginateCourses()
+  }
+})
 watch([currentPage, currentType, currentSort], () => {
+  if (route.query.keyword) return
   router.push({
     path: '/courses',
     query: {

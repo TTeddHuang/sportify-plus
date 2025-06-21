@@ -1,6 +1,6 @@
 <template>
   <section class="subscription-plans py-lg-12">
-    <div class="container">
+    <div class="container px-lg-0 px-5">
       <h2 class="plans-title text-center mb-4 fs-lg-2 mb-lg-12 mb-11">
         從這裡開始，一起尋找你喜歡的運動方式！
       </h2>
