@@ -96,7 +96,7 @@
               <input
                 v-model="searchKeyword"
                 type="text"
-                class="form-control ps-2 border-start-0"
+                class="form-control ps-2"
                 placeholder="搜尋教練名稱..."
                 aria-label="Search"
                 aria-describedby="basic-addon1"
@@ -115,6 +115,7 @@
                   <th class="th-custom">教練名稱</th>
                   <th class="th-custom">瀏覽次數</th>
                   <th class="th-custom">開課類別</th>
+                  <th class="th-custom">審核</th>
                   <th class="th-custom">操作</th>
                 </tr>
               </thead>
@@ -130,6 +131,15 @@
                         ? coach.coach_skills[0].skill_name
                         : '—'
                     }}
+                  </td>
+                  <td class="td-custom">
+                    <span
+                      :class="
+                        isVerifiedRow(coach) ? 'text-success' : 'text-warning'
+                      "
+                    >
+                      {{ isVerifiedRow(coach) ? '已審核' : '未審核' }}
+                    </span>
                   </td>
                   <td class="td-custom">
                     <button
@@ -637,15 +647,16 @@ async function fetchCoachDetail(coachId) {
     if (!res.data.status) {
       throw new Error(res.data.message || '讀取失敗')
     }
-    // 注意：把 coachDetails 塞到 selectedCoach
-    selectedCoach.value = res.data.data.coachDetails
-    isVerified.value = res.data.coachDetails.is_verified
+
+    const detail = res.data.data.coachDetails
+
+    selectedCoach.value = detail
+    isVerified.value = detail.coach_is_verified
     // 顯示 Modal
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
   }
 }
-
 watch(
   () => selectedCoach.value?.is_verified,
   val => {
@@ -653,19 +664,33 @@ watch(
   }
 )
 async function updateVerifyStatus() {
+  if (!selectedCoach.value) return
   try {
     const token = localStorage.getItem('token')
+    const newStatus = isVerified.value ? 'approved' : 'rejected'
+
     await axios.patch(
-      `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/verify`,
-      { is_verified: isVerified.value },
+      `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/review`,
+      { status: newStatus },
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    // 若後端回傳成功訊息，可在此顯示 Toast 或 Swal
+
+    selectedCoach.value.is_verified = isVerified.value
+
+    /* 同步列表狀態（optional） */
+    const target = allCoaches.value.find(
+      c => c.coach_id === selectedCoach.value.id
+    )
+    if (target) target.coach_is_verified = isVerified.value
   } catch (err) {
     console.error('更新審核狀態失敗', err)
-    // 失敗時把開關還原
+    /* 失敗就把 switch 拉回原狀態 */
     isVerified.value = !isVerified.value
   }
+}
+
+function isVerifiedRow(coach) {
+  return coach.coach_is_verified === true || coach.is_verified === true
 }
 
 const courses = ref([])
@@ -811,17 +836,6 @@ const coachOptions = computed(() => {
   list.forEach(c => set.add(c.coach_name))
   return Array.from(set)
 })
-
-// openDetailModal：如果你有要開「教練詳細 Modal」的邏輯，請在這裡補上
-// -----------------------------------------
-// function openDetailModal(coachId) {
-// 這裡可自行呼叫 GET /admin/coaches/:coachId/details，
-// 然後把資料放到某個 ref，並開啟 Bootstrap Modal
-// console.log('點擊檢視教練', coachId)
-// 例如：
-// axios.get(`/api/v1/admin/coaches/${coachId}/details`, { headers: ... })
-//   .then(res => { /* 塞資料 & show Modal */ })
-// }
 </script>
 
 <style scoped lang="scss">

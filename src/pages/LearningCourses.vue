@@ -171,10 +171,10 @@
                   />
                   <div class="card-body p-0">
                     <h5 class="card-title fs-7 mb-2 fw-bold">
-                      {{ course.coach_name }}
+                      {{ course.course_name }}
                     </h5>
                     <p class="card-text mb-2 fs-7">
-                      {{ course.coach_title }}
+                      {{ course.coach_name }}
                     </p>
 
                     <router-link

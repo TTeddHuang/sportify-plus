@@ -19,12 +19,14 @@
               class="d-flex flex-lg-row flex-column align-items-center mx-auto px-lg-0 px-2"
               style="max-width: 485px; width: 100%"
               role="search"
+              @submit.prevent="handleSearch"
             >
               <div class="input-group w-100">
                 <span class="input-group-text bg-grey-000">
                   <i class="bi bi-search text-primary border border-0"></i>
                 </span>
                 <input
+                  v-model="keyword"
                   class="form-control rounded-end border-start-0 ps-0 bg-grey-000 search-input"
                   type="search"
                   placeholder="探索 Sportify+"
@@ -64,6 +66,9 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 import CategoryCarousel from '@/components/CategoryCarousel.vue'
 import DetailCarousel from '@/components/DetailCarousel.vue'
 import CoachGrid from '@/components/CoachGrid.vue'
@@ -71,6 +76,15 @@ import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 import FAQ from '@/components/FAQ.vue'
 import WaveBanner from '@/components/WaveBanner.vue'
 import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
+
+const router = useRouter()
+const keyword = ref('')
+
+// 搜尋
+const handleSearch = () => {
+  if (!keyword.value.trim()) return
+  router.push({ path: '/courses', query: { keyword: keyword.value } })
+}
 </script>
 
 <style scoped lang="scss">
