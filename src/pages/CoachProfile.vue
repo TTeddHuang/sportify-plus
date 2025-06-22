@@ -70,7 +70,7 @@
                 >
                 <input
                   id="coachName"
-                  v-model.trim="coachProfile.nickname"
+                  v-model="coachProfile.nickname"
                   type="text"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -80,7 +80,7 @@
                 <label for="name" class="form-label fw-bold">真實姓名</label>
                 <input
                   id="name"
-                  v-model.trim="coachProfile.realname"
+                  v-model="coachProfile.realname"
                   type="text"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -92,7 +92,7 @@
                 >
                 <input
                   id="birthDay"
-                  v-model.trim="coachProfile.birthday"
+                  v-model="coachProfile.birthday"
                   type="text"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -102,7 +102,7 @@
                 <label for="idNum" class="form-label fw-bold">身分證字號</label>
                 <input
                   id="idNum"
-                  v-model.trim="coachProfile.id_number"
+                  v-model="coachProfile.id_number"
                   type="text"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -112,7 +112,7 @@
                 <label for="tel" class="form-label fw-bold">手機</label>
                 <input
                   id="tel"
-                  v-model.trim="coachProfile.phone_number"
+                  v-model="coachProfile.phone_number"
                   type="tel"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -122,7 +122,7 @@
                 <label for="title" class="form-label fw-bold">稱號</label>
                 <input
                   id="title"
-                  v-model.trim="coachProfile.job_title"
+                  v-model="coachProfile.job_title"
                   type="text"
                   class="form-control"
                   :disabled="inputState === 'readOnly'"
@@ -142,7 +142,7 @@
               <label for="bankCode" class="form-label fw-bold">銀行代號</label>
               <input
                 id="bankCode"
-                v-model.trim="coachProfile.bank_code"
+                v-model="coachProfile.bank_code"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -154,7 +154,7 @@
               >
               <input
                 id="bankAccount"
-                v-model.trim="coachProfile.bank_account"
+                v-model="coachProfile.bank_account"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -185,7 +185,7 @@
               <label for="years" class="form-label fw-bold">教學經驗(年)</label>
               <input
                 id="years"
-                v-model.trim="coachProfile.experience_years"
+                v-model="coachProfile.experience_years"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -195,7 +195,7 @@
               <label for="category" class="form-label fw-bold">專長介紹</label>
               <input
                 id="category"
-                v-model.trim="coachProfile.skill_description"
+                v-model="coachProfile.skill_description"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -226,7 +226,7 @@
               <label for="hobby" class="form-label fw-bold">興趣</label>
               <input
                 id="hobby"
-                v-model.trim="coachProfile.hobby"
+                v-model="coachProfile.hobby"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -236,7 +236,7 @@
               <label for="motto" class="form-label fw-bold">座右銘</label>
               <input
                 id="motto"
-                v-model.trim="coachProfile.motto"
+                v-model="coachProfile.motto"
                 type="text"
                 class="form-control"
                 :disabled="inputState === 'readOnly'"
@@ -263,15 +263,48 @@
 
           <!-- 存摺封面上傳 -->
           <div class="mb-5">
-            <label for="bankbook" class="form-label fw-bold">存摺封面</label>
-            <input
-              id="bankbook"
-              type="file"
-              class="form-control"
-              accept="image/*"
-              :disabled="inputState === 'readOnly' || isBankBookloading"
-              @change="handleFileSelect($event, 'bankbook')"
-            />
+            <label class="form-label fw-bold">存摺封面</label>
+            <div
+              v-if="inputState === 'inEdit'"
+              class="d-flex flex-column gap-3"
+            >
+              <!-- 隱藏的檔案輸入框 -->
+              <input
+                id="bankbook"
+                type="file"
+                class="d-none"
+                accept="image/*"
+                :disabled="isBankBookloading"
+                @change="handleFileSelect($event, 'bankbook')"
+              />
+
+              <!-- 自訂樣式的上傳按鈕 -->
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                :disabled="isBankBookloading"
+                @click="$refs.bankbookInput?.click()"
+              >
+                <i
+                  v-if="!isBankBookloading"
+                  class="bi bi-cloud-upload me-2"
+                ></i>
+                <span
+                  v-if="isBankBookloading"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
+                {{ isBankBookloading ? '上傳中...' : '選擇存摺封面' }}
+              </button>
+
+              <!-- 上傳進度提示 -->
+              <div v-if="isBankBookloading" class="text-primary-600 small">
+                <i class="bi bi-info-circle me-1"></i>
+                正在上傳存摺封面，請稍候...
+              </div>
+            </div>
+
+            <!-- 圖片預覽 -->
             <div v-if="bankBookFile" class="mt-3">
               <img :src="bankBookFile" class="img-preview rounded" />
             </div>
@@ -323,23 +356,38 @@
 
             <!-- 新增證照按鈕 -->
             <div v-if="inputState === 'inEdit'" class="mt-3">
-              <input
-                ref="licenseInput"
-                type="file"
-                class="form-control"
-                accept="image/*"
-                style="display: none"
-                @change="handleFileSelect($event, 'license')"
-              />
-              <button
-                type="button"
-                class="btn btn-outline-primary"
-                :disabled="isLicenseloading"
-                @click="triggerLicenseSelect"
-              >
-                <i class="bi bi-plus-circle me-2"></i>
-                {{ isLicenseloading ? '上傳中...' : '新增證照' }}
-              </button>
+              <div class="d-flex flex-column gap-3">
+                <input
+                  ref="licenseInput"
+                  type="file"
+                  class="d-none"
+                  accept="image/*"
+                  @change="handleFileSelect($event, 'license')"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  :disabled="isLicenseloading"
+                  @click="triggerLicenseSelect"
+                >
+                  <i
+                    v-if="!isLicenseloading"
+                    class="bi bi-cloud-upload me-2"
+                  ></i>
+                  <span
+                    v-if="isLicenseloading"
+                    class="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+                  {{ isLicenseloading ? '上傳中...' : '新增證照' }}
+                </button>
+
+                <!-- 上傳進度提示 -->
+                <div v-if="isLicenseloading" class="text-primary-600 small">
+                  <i class="bi bi-info-circle me-1"></i>
+                  正在上傳證照，請稍候...
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -391,10 +439,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-// import { useRouter } from 'vue-router'
 import { user, initUser } from '@/store/user'
 
-// const router = useRouter()
 const inputState = ref('readOnly')
 const avatarInput = ref(null)
 const skills = ref(null)
@@ -423,7 +469,7 @@ const skillsDisplay = computed(() => {
   if (!coachProfile.value.skills || !Array.isArray(coachProfile.value.skills)) {
     return ''
   }
-  return coachProfile.value.skills.map(skill => skill.name).join('、')
+  return coachProfile.value.skills.map(skill => skill).join('、')
 })
 
 // 資料驗證
@@ -431,15 +477,18 @@ const validateForm = () => {
   const errors = []
 
   // 必填欄位驗證
-  if (!coachProfile.value.nickname.trim()) {
+  if (!coachProfile.value.nickname || !coachProfile.value.nickname.trim()) {
     errors.push('教練名稱不能為空')
   }
 
-  if (!coachProfile.value.realname.trim()) {
+  if (!coachProfile.value.realname || !coachProfile.value.realname.trim()) {
     errors.push('真實姓名不能為空')
   }
 
-  if (!coachProfile.value.phone_number.trim()) {
+  if (
+    !coachProfile.value.phone_number ||
+    !coachProfile.value.phone_number.trim()
+  ) {
     errors.push('手機號碼不能為空')
   }
 
@@ -706,6 +755,25 @@ const handleSubmit = async () => {
     console.error('提交失敗:', error)
     cancelEdit()
     // 錯誤原因
+    let errorMessage =
+      error.response?.data?.message || error.message || '提交失敗'
+
+    // 將 job_title 相關錯誤訊息轉換為稱號
+    if (errorMessage.includes('job_title格式錯誤，中間不可有空格')) {
+      errorMessage = errorMessage.replace(
+        'job_title格式錯誤，中間不可有空格',
+        '稱號格式錯誤，中間不可有空格'
+      )
+    } else if (
+      errorMessage.includes('bank_account請輸入字串格式，不可為空白')
+    ) {
+      errorMessage = errorMessage.replace(
+        'bank_account請輸入字串格式，不可為空白',
+        '銀行帳號，不可為空白'
+      )
+    }
+
+    alert(errorMessage)
   } finally {
     isSubmitting.value = false
   }
@@ -800,8 +868,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/all.scss';
-
 .card-wrapper {
   background-color: $primary-600;
   border-radius: 15px 15px 0 0;
@@ -823,7 +889,8 @@ onMounted(async () => {
   border-top: 1px solid $primary-000;
 }
 
-.form-control {
+.form-control,
+.form-select {
   background-color: $grey-000;
   border-color: $primary-700;
   color: $grey-700;
@@ -847,6 +914,10 @@ onMounted(async () => {
 .form-label {
   color: $grey-700;
   font-size: 0.875rem;
+}
+
+.text-primary-600 {
+  color: $primary-600;
 }
 
 .profile-avatar {
@@ -885,10 +956,12 @@ onMounted(async () => {
   background-color: $primary-600;
   border-color: $primary-600;
   color: $primary-000;
+  padding: 8px 16px;
 
   &:hover {
-    background-color: $primary-700;
-    border-color: $primary-700;
+    background-color: $primary-300;
+    border-color: $primary-300;
+    color: $primary-700;
   }
 
   &:disabled {
@@ -900,6 +973,7 @@ onMounted(async () => {
   background-color: $grey-400;
   border-color: $grey-400;
   color: $primary-000;
+  padding: 8px 16px;
 
   &:hover {
     background-color: darken($grey-400, 10%);
@@ -910,11 +984,23 @@ onMounted(async () => {
 .btn-outline-primary {
   border-color: $primary-600;
   color: $primary-600;
+  padding: 8px 16px;
 
   &:hover {
     background-color: $primary-600;
     border-color: $primary-600;
     color: $primary-000;
+  }
+}
+
+.btn-notification {
+  color: #fff0f0;
+  padding: 8px 16px;
+
+  &:hover {
+    background-color: #ff8080;
+    border-color: #ff8080;
+    color: #800000;
   }
 }
 

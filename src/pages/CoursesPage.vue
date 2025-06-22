@@ -32,24 +32,6 @@
           >
             {{ skill.course_type }}
           </button>
-
-          <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
-          <!-- <div class="dropdown">
-          <button
-            id="dropdownMenuButton"
-            class="btn btn-outline-primary dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            其他分類
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <li><a class="dropdown-item" href="#">登山</a></li>
-            <li><a class="dropdown-item" href="#">有氧</a></li>
-            <li><a class="dropdown-item" href="#">滑板</a></li>
-          </ul>
-        </div> -->
         </div>
       </div>
 
@@ -476,6 +458,11 @@ watch([currentPage, currentType, currentSort], () => {
   color: $primary-100;
   background-color: $primary-700;
 }
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+}
+
 .page-item {
   @media (max-width: 992px) {
     margin: 0 5px;
