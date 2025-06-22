@@ -36,6 +36,7 @@
                   v-if="item.showPlayer && item.videoSrc"
                   :src="item.videoSrc"
                   :poster="item.videoCover"
+                  mode="preview"
                   style="height: 600px; max-height: 100%"
                 />
                 <img
