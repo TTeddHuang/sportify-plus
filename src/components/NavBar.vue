@@ -51,7 +51,7 @@ const menuItems = computed(() => {
     return [
       { to: '/coach/courses/new', label: '建立新課程', icon: 'bi-plus-circle' },
       { to: '/coach/courses', label: '我的課程資料', icon: 'bi-collection' },
-      { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' },
+      { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' }
       // { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
     ]
   } else if (isUser.value) {
@@ -64,7 +64,7 @@ const menuItems = computed(() => {
     return [
       { to: '/admin/courses', label: '課程管理' },
       { to: '/admin/users', label: '會員管理' },
-      { to: '/admin/coaches', label: '教練管理' },
+      { to: '/admin/coaches', label: '教練管理' }
       // { to: '/admin/reports', label: '報表管理' }
     ]
   }
@@ -97,7 +97,7 @@ function handleLogout() {
           <li v-for="item in navItems" :key="item.to" class="nav-item me-3">
             <router-link
               :to="item.to"
-              class="nav-link text-primary-000"
+              class="nav-link"
               :class="{ active: route.path.startsWith(item.to) }"
               >{{ item.label }}</router-link
             >
@@ -105,7 +105,7 @@ function handleLogout() {
           <li v-if="isLogin" class="nav-item me-3">
             <router-link
               :to="centerLink"
-              class="nav-link text-primary-000"
+              class="nav-link"
               :class="{
                 active:
                   route.path.startsWith('/user') ||
@@ -119,7 +119,7 @@ function handleLogout() {
 
           <li v-if="isLogin" class="nav-item dropdown">
             <a
-              class="nav-link dropdown-toggle d-flex align-items-center text-primary-000"
+              class="nav-link dropdown-toggle d-flex align-items-center"
               href="#"
               role="button"
               data-bs-toggle="dropdown"
@@ -251,7 +251,6 @@ function handleLogout() {
 </template>
 
 <style scoped lang="scss">
-
 .offcanvas {
   background-color: $grey-000; // 白色背景
   top: 72px !important; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
@@ -292,5 +291,21 @@ function handleLogout() {
 .default-avatar {
   background-color: $primary-600;
   font-size: 14px;
+}
+
+.nav-link {
+  color: $primary-000;
+  border-radius: 4px;
+}
+
+.nav-link:hover {
+  color: $primary-700;
+  background-color: $primary-300;
+  border-radius: 4px;
+}
+
+.nav-link.active {
+  color: $primary-100;
+  background-color: $primary-700;
 }
 </style>
