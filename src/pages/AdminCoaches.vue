@@ -125,10 +125,9 @@
                   <td class="td-custom">{{ coach.coach_name }}</td>
                   <td class="td-custom">{{ coach.numbers_of_view }}</td>
                   <td class="td-custom">
-                    <!-- 把 coach.coach_skills 這個陣列裡的每個 skill_name 都顯示出來 -->
                     {{
-                      coach.coach_skills.length > 0
-                        ? coach.coach_skills[0].skill_name
+                      coach.coach_skills.length
+                        ? coach.coach_skills.map(s => s.skill_name).join('、') // ← 這裡換行顯示分隔符
                         : '—'
                     }}
                   </td>

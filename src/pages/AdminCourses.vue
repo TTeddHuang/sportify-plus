@@ -68,7 +68,7 @@
               <!--  下拉選單：選擇講師 -->
               <div class="dropdown">
                 <button
-                  id="dropdownInstructor"
+                  id="dropdownInstructors"
                   class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
                   type="button"
                   data-bs-toggle="dropdown"
@@ -704,17 +704,23 @@ const selectedCategory = ref('全部課程')
 const selectedInstructor = ref('全部講師')
 const selectedStatus = ref('全部狀態')
 
-// 把 courses 裡面所有的 category、instructor 拿出來做成「唯一值陣列」
 const categoryOptions = computed(() => {
-  // 先收集所有 category，再去重、並在最前面加入「全部課程」
+  let list = courses.value
+  if (selectedInstructor.value !== '全部講師') {
+    list = list.filter(c => c.instructor === selectedInstructor.value)
+  }
   const set = new Set()
-  courses.value.forEach(c => set.add(c.category))
+  list.forEach(c => set.add(c.category))
   return ['全部課程', ...Array.from(set)]
 })
 
 const instructorOptions = computed(() => {
+  let list = courses.value
+  if (selectedCategory.value !== '全部課程') {
+    list = list.filter(c => c.category === selectedCategory.value)
+  }
   const set = new Set()
-  courses.value.forEach(c => set.add(c.instructor))
+  list.forEach(c => set.add(c.instructor))
   return ['全部講師', ...Array.from(set)]
 })
 
@@ -799,6 +805,16 @@ function changeCoursePage(page) {
 }
 watch([selectedCategory, selectedInstructor, selectedStatus], () => {
   currentCoursePage.value = 1
+})
+watch([categoryOptions, instructorOptions], () => {
+  /* 類別被篩掉 → 跳回「全部課程」 */
+  if (!categoryOptions.value.includes(selectedCategory.value)) {
+    selectedCategory.value = '全部課程'
+  }
+  /* 講師被篩掉 → 跳回「全部講師」 */
+  if (!instructorOptions.value.includes(selectedInstructor.value)) {
+    selectedInstructor.value = '全部講師'
+  }
 })
 
 // 審核成功／失敗後都要關掉 Modal

@@ -67,6 +67,7 @@
                 :key="currentLesson.chapterId"
                 :src="videoSrc"
                 :poster="courseDetail.course.image_url"
+                :plan="memberPlan"
               />
               <img
                 v-else
@@ -534,6 +535,28 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import HlsPlayer from '@/components/HlsPlayer.vue'
 
+function pickCurrentPlan(subs) {
+  // 1. 由新到舊排
+  const sorted = [...subs].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
+  // 2. 找到第一筆尚未到期的訂閱
+  const today = Date.now()
+  const current = sorted.find(sub => new Date(sub.end_at).getTime() >= today)
+
+  // 3. 判斷方案
+  if (!current) return 'wellness'
+  const name = current.plan.toLowerCase()
+  if (name.includes('eagerness')) return 'eagerness'
+  if (name.includes('fitness')) return 'fitness'
+  return 'wellness'
+}
+
+/* ② ── 給 HlsPlayer 用的 plan 變數 ───────────────────────────── */
+const memberPlan = ref('wellness')
+
 const route = useRoute()
 
 // 1. 先準備要放 sidebar 資料的 ref
@@ -571,7 +594,7 @@ async function fetchSidebar(id, token) {
     `https://sportify.zeabur.app/api/v1/users/courses/${id}/sidebar`,
     { headers: { Authorization: `Bearer ${token}` } }
   )
-  return data.data // { courseName, chapter:[...] }
+  return data.data
 }
 
 async function fetchDetails(id, chapterId, token) {
@@ -589,20 +612,9 @@ async function fetchDetails(id, chapterId, token) {
 onMounted(async () => {
   try {
     const token = localStorage.getItem('token')
-
-    /* ① sidebar ------------------------------------------------ */
     const sb = await fetchSidebar(courseId, token)
     courseName.value = sb.courseName
-    lessons.value = sb.chapter.map(ch => ({
-      id: ch.chapterId,
-      chapterId: ch.chapterId,
-      name: ch.name,
-      length: ch.length || '未提供',
-      isFinished: ch.isFinished,
-      isCurrentWatching: ch.isCurrentWatching,
-      video_url: '' // 稍後 details 統一塞進來
-    }))
-    mergeLocalFinishedState()
+    lessons.value = sb.chapter.map(ch => ({ ...ch, isCurrentWatching: false }))
 
     /* ② 預設選第一章 & 取細節 ------------------------------- */
     const first =
@@ -638,7 +650,7 @@ async function selectLesson(lesson) {
 
   currentLesson.value = lesson
   selectedChapId.value = lesson.chapterId
-  
+
   // ★ 目前只切 local 狀態，不再呼叫 details
   currentLesson.value = lesson
   if (!lesson.video_url) {
@@ -702,29 +714,6 @@ async function fetchRatings(courseId) {
   }
 }
 
-const LS_KEY = `VIDEO_PROGRESS_${courseId}`
-
-function loadLocalProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-function saveLocalProgress(chapterId, seconds) {
-  const data = loadLocalProgress()
-  data[chapterId] = { is_completed: true, watched_seconds: seconds }
-  localStorage.setItem(LS_KEY, JSON.stringify(data))
-}
-
-/* 進入頁面時，把本地完成狀態 merge 進 lessons */
-function mergeLocalFinishedState() {
-  const local = loadLocalProgress()
-  lessons.value.forEach(l => {
-    if (local[l.chapterId]?.is_completed) l.isFinished = true
-  })
-}
-
 function initVideoProgressListener() {
   const video = document.querySelector('.media-block video')
   if (!video) return
@@ -750,11 +739,6 @@ async function finishCurrentLesson(videoEl) {
   const lesson = currentLesson.value
   if (!lesson || lesson.isFinished) return
 
-  // ① 立即更新前端 & localStorage
-  lesson.isFinished = true
-  saveLocalProgress(lesson.chapterId, Math.floor(videoEl.duration))
-
-  // ② 告訴後端
   try {
     const token = localStorage.getItem('token')
     await axios.post(
@@ -766,11 +750,29 @@ async function finishCurrentLesson(videoEl) {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
+    lesson.isFinished = true
   } catch (err) {
     console.warn('送觀看進度失敗，稍後重送', err)
     /* ➜ 進階：也可以把失敗的 payload 暫存，下次打開時再補送 */
   }
 }
+
+/* ③ ── 元件掛載時抓訂閱 + 解析 ───────────────────────────────── */
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token') || ''
+    const { data } = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/subscriptions',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    if (data.status) {
+      memberPlan.value = pickCurrentPlan(data.data)
+    }
+  } catch (err) {
+    console.error('取得訂閱失敗：', err)
+  }
+})
 
 onMounted(() => {
   fetchRatings(courseId)
