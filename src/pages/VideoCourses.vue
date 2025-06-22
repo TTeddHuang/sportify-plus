@@ -10,35 +10,44 @@
             </h3>
             <hr class="divider my-5" />
             <ul class="list-group list-group-flush">
-              <!-- 每個 li 代表一天的 Lesson -->
-              <li
-                v-for="(lesson, idx) in lessons"
-                :key="idx"
-                :class="{
-                  finished: lesson.isFinished,
-                  watching: lesson.isCurrentWatching
-                }"
-                class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                style="padding: 0.75rem 1rem"
-                @click="selectLesson(lesson)"
-              >
-                <div class="d-flex flex-column text-center w-100">
-                  <p class="fs-9 mb-1" style="height: 42px">
-                    {{ lesson.name }}
-                  </p>
-                  <div class="d-flex align-items-center justify-content-center">
-                    <i
-                      v-if="lesson.isFinished"
-                      class="bi bi-check-circle-fill text-success fs-5"
-                    ></i>
-                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                    <p class="text-secondary mb-0 fs-9 ms-1">
-                      {{ lesson.length }}
+              <template v-for="group in groupedLessons" :key="group.title">
+                <li
+                  class="list-group-title fw-bold text-center fs-7"
+                  style="padding: 0.5rem 1rem"
+                >
+                  {{ group.title }}
+                </li>
+                <li
+                  v-for="(lesson, idx) in group.items"
+                  :key="idx"
+                  :class="{
+                    finished: lesson.isFinished,
+                    watching: lesson.isCurrentWatching
+                  }"
+                  class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                  style="padding: 0.75rem 1rem"
+                  @click="selectLesson(lesson)"
+                >
+                  <div class="d-flex flex-column text-center w-100">
+                    <p class="fs-9 mb-1" style="height: 42px">
+                      {{ lesson.name }}
                     </p>
+                    <div
+                      class="d-flex align-items-center justify-content-center"
+                    >
+                      <i
+                        v-if="lesson.isFinished"
+                        class="bi bi-check-circle-fill text-success fs-5"
+                      ></i>
+                      <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                      <p class="text-secondary mb-0 fs-9 ms-1">
+                        {{ lesson.length }}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
-              </li>
+                  <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                </li>
+              </template>
             </ul>
           </div>
         </div>
@@ -488,39 +497,49 @@
             <!-- 章節清單：直接複用你現成的 li -->
             <ul class="list-group list-group-flush">
               <!-- 每個 li 代表一天的 Lesson -->
-              <li
-                v-for="(lesson, idx) in lessons"
-                :key="idx"
-                :class="{
-                  finished: lesson.isFinished,
-                  watching: lesson.isCurrentWatching
-                }"
-                class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                style="padding: 0.75rem 1rem"
-                @click="selectLesson(lesson)"
-              >
-                <div class="d-flex flex-column text-center w-100">
-                  <p class="fs-9 mb-1" style="height: 42px">
-                    {{ lesson.name }}
-                  </p>
-                  <div class="d-flex align-items-center justify-content-center">
-                    <i
-                      v-if="lesson.isFinished"
-                      class="bi bi-check-circle-fill text-success fs-5"
-                    ></i>
-                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                    <p class="text-secondary mb-0 fs-9 ms-1">
-                      {{
-                        lesson.length !== '未提供'
-                          ? lesson.length + ' 分鐘'
-                          : '未提供'
-                      }}
-                      分鐘
+              <template v-for="group in groupedLessons" :key="group.title">
+                <li
+                  class="list-group-title fw-bold text-center fs-7"
+                  style="padding: 0.5rem 1rem"
+                >
+                  {{ group.title }}
+                </li>
+                <li
+                  v-for="(lesson, idx) in group.items"
+                  :key="idx"
+                  :class="{
+                    finished: lesson.isFinished,
+                    watching: lesson.isCurrentWatching
+                  }"
+                  class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                  style="padding: 0.75rem 1rem"
+                  @click="selectLesson(lesson)"
+                >
+                  <div class="d-flex flex-column text-center w-100">
+                    <p class="fs-9 mb-1" style="height: 42px">
+                      {{ lesson.name }}
                     </p>
+                    <div
+                      class="d-flex align-items-center justify-content-center"
+                    >
+                      <i
+                        v-if="lesson.isFinished"
+                        class="bi bi-check-circle-fill text-success fs-5"
+                      ></i>
+                      <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                      <p class="text-secondary mb-0 fs-9 ms-1">
+                        {{
+                          lesson.length !== '未提供'
+                            ? lesson.length + ' 分鐘'
+                            : '未提供'
+                        }}
+                        分鐘
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
-              </li>
+                  <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                </li>
+              </template>
             </ul>
           </div>
         </div>
@@ -562,6 +581,18 @@ const route = useRoute()
 // 1. 先準備要放 sidebar 資料的 ref
 const courseName = ref('') // ← 這裡用來存 sidebar 回傳的 courseName
 const lessons = ref([]) // ← 這裡用來存 sidebar 回傳的 chapter 陣列
+const groupedLessons = computed(() => {
+  const arr = []
+  let group = null
+  lessons.value.forEach(lsn => {
+    if (!group || group.title !== lsn.title) {
+      group = { title: lsn.title, items: [] }
+      arr.push(group)
+    }
+    group.items.push(lsn)
+  })
+  return arr
+})
 const courseId = route.params.courseId
 const courseDetail = ref(null)
 const currentLesson = ref({})
@@ -856,6 +887,13 @@ watch(videoSrc, async () => {
     border-radius: 4px;
     color: $primary-100;
   }
+}
+.list-group-title {
+  border: none;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  list-style: none;
+  border-bottom: 1px solid $primary-000;
 }
 .list-group-item.watching {
   background: $primary-600;
