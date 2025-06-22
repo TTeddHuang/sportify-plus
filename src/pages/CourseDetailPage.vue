@@ -58,6 +58,7 @@
                 v-if="trailerSrc"
                 :src="trailerSrc"
                 :poster="courseDetail.course.image_url"
+                mode="preview"
               />
               <img
                 v-else

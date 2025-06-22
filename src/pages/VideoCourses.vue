@@ -67,6 +67,7 @@
                 :key="currentLesson.chapterId"
                 :src="videoSrc"
                 :poster="courseDetail.course.image_url"
+                :plan="memberPlan"
               />
               <img
                 v-else
@@ -534,6 +535,28 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import HlsPlayer from '@/components/HlsPlayer.vue'
 
+function pickCurrentPlan(subs) {
+  // 1. 由新到舊排
+  const sorted = [...subs].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
+  // 2. 找到第一筆尚未到期的訂閱
+  const today = Date.now()
+  const current = sorted.find(sub => new Date(sub.end_at).getTime() >= today)
+
+  // 3. 判斷方案
+  if (!current) return 'wellness'
+  const name = current.plan.toLowerCase()
+  if (name.includes('eagerness')) return 'eagerness'
+  if (name.includes('fitness')) return 'fitness'
+  return 'wellness'
+}
+
+/* ② ── 給 HlsPlayer 用的 plan 變數 ───────────────────────────── */
+const memberPlan = ref('wellness')
+
 const route = useRoute()
 
 // 1. 先準備要放 sidebar 資料的 ref
@@ -771,6 +794,23 @@ async function finishCurrentLesson(videoEl) {
     /* ➜ 進階：也可以把失敗的 payload 暫存，下次打開時再補送 */
   }
 }
+
+/* ③ ── 元件掛載時抓訂閱 + 解析 ───────────────────────────────── */
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token') || ''
+    const { data } = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/subscriptions',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    if (data.status) {
+      memberPlan.value = pickCurrentPlan(data.data)
+    }
+  } catch (err) {
+    console.error('取得訂閱失敗：', err)
+  }
+})
 
 onMounted(() => {
   fetchRatings(courseId)
