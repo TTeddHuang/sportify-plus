@@ -626,7 +626,7 @@ const validateForm = () => {
 const handleFileSelect = async ($event, type) => {
   const files = $event.target.files
   if (!files || files.length === 0) return
-  console.log(files)
+
   // 檔案類型驗證
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
 
@@ -678,8 +678,6 @@ const handleFileSelect = async ($event, type) => {
         filename: ''
       })
 
-      console.log(uploadResult)
-      console.log(coachLicenses.value)
       isLicenseloading.value = false
     }
 
@@ -722,7 +720,7 @@ const uploadMultipleImages = async (files, imgName, endpoint) => {
   files.forEach(file => {
     formData.append(imgName, file)
   })
-  console.log([...formData])
+
   const token = localStorage.getItem('token')
   const response = await axios.post(
     `https://sportify.zeabur.app/api/v1/coaches/${endpoint}`,
@@ -761,7 +759,6 @@ const handleSubmit = async () => {
         submitData.value.experience_years
       )
     }
-    console.log('coachProfile', coachProfile.value)
 
     if (profileImageId.value && profileImageFile.value) {
       submitData.value.profile_image_url = profileImageFile.value
@@ -778,7 +775,6 @@ const handleSubmit = async () => {
       delete submitData.value.bankbook_copy_url
       delete submitData.value.bankbook_copy_public_id
     }
-    console.log(coachLicenses.value)
 
     // 過濾證照資料：只保留 url、filename、publicId 都有值的物件
     const validLicenses = coachLicenses.value.filter(license => {
@@ -787,14 +783,8 @@ const handleSubmit = async () => {
       const hasId =
         license.file_public_id && license.file_public_id.trim() !== ''
 
-      console.log(
-        `證照驗證 - URL: ${hasUrl}, Filename: ${hasFilename}, ID: ${hasId}`
-      )
-
       return hasUrl && hasFilename && hasId
     })
-
-    console.log('有效的證照資料:', validLicenses)
 
     if (validLicenses.length > 0) {
       submitData.value.license = validLicenses
@@ -817,7 +807,6 @@ const handleSubmit = async () => {
 
     submitData.value.skill = skills.value
     submitData.value.favorite_words = '先跳過謝謝'
-    console.log('submitData', submitData.value)
 
     // 提交主要資料
     const response = await axios.patch(
@@ -963,10 +952,6 @@ const loadCoachProfile = async () => {
       delete coachProfile.value.created_at
       delete coachProfile.value.background_image_url
       delete coachProfile.value.background_image_public_id
-
-      console.log('教練資料:', coachProfile.value)
-      console.log('證照資料:', coachLicenses.value)
-      console.log('原資料:', data)
     }
   } catch (error) {
     console.error('載入教練資料失敗:', error)
