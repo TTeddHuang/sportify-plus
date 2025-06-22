@@ -46,7 +46,9 @@
             <!-- 文字區 -->
             <div class="card-body mt-5 rounded text-start p-0">
               <div class="d-flex align-items-center mb-2">
-                <h5 class="card-title fw-bold fs-lg-4">{{ coach.name }}</h5>
+                <h5 class="card-title fw-bold fs-lg-4 mb-0">
+                  {{ coach.name }}
+                </h5>
                 <span class="badge ms-2">{{ coach.tag }}</span>
               </div>
               <p class="fs-lg-6 fw-bold mb-2">{{ coach.title }}</p>
@@ -103,7 +105,6 @@ async function fetchCoaches() {
 }
 
 onMounted(fetchCoaches)
-
 </script>
 
 <style scoped lang="scss">
@@ -148,12 +149,12 @@ onMounted(fetchCoaches)
   right: -25px;
 }
 .badge {
+  padding: 4px 8px;
   border: 1px solid $primary-400;
   background-color: $primary-100;
   color: $grey-700;
   border-radius: 100px;
-  height: 29px;
-  width: 48px;
+
   line-height: 1.5;
 }
 
