@@ -449,11 +449,13 @@ const fetchAllUserCourses = async token => {
     results.forEach(r => allData.push(...r.data.data))
 
     // 最後一次性寫入 courses
-    courses.value = allData.map(c => ({
-      ...c,
-      isRated: false,
-      isFavorited: c.isFavorited || false
-    }))
+    courses.value = allData
+      .filter(c => c.is_approved) // ← 只留下審核通過
+      .map(c => ({
+        ...c,
+        isRated: false,
+        isFavorited: c.isFavorited || false
+      }))
 
     // 為每堂課補抓評分狀態
     await Promise.all(courses.value.map(c => fetchUserRatingByCourseId(c)))
