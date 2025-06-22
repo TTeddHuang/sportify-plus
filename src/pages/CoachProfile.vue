@@ -271,6 +271,7 @@
               <!-- 隱藏的檔案輸入框 -->
               <input
                 id="bankbook"
+                ref="bankbookInput"
                 type="file"
                 class="d-none"
                 accept="image/*"
@@ -730,7 +731,7 @@ const handleSubmit = async () => {
     delete submitData.value.email
 
     submitData.value.skill = skills.value
-
+    submitData.value.favorite_words = '先跳過謝謝'
     console.log('submitData', submitData.value)
 
     // 提交主要資料
@@ -784,6 +785,18 @@ const handleSubmit = async () => {
       errorMessage = errorMessage.replace(
         'experience_years請輸入數字，不可為0或小數',
         '教學經驗不可為0或小數'
+      )
+    } else if (
+      errorMessage.includes('skill_description總字數不可超過100字，或少於10字')
+    ) {
+      errorMessage = errorMessage.replace(
+        'skill_description總字數不可超過100字，或少於10字',
+        '專長介紹字數不可超過100字，或少於10字'
+      )
+    } else if (errorMessage.includes('license總字數不可超過50字，或少於5字')) {
+      errorMessage = errorMessage.replace(
+        'license總字數不可超過50字，或少於5字',
+        '執照字數不可超過50字，或少於5字'
       )
     }
 
