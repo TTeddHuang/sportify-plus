@@ -594,7 +594,7 @@ async function fetchSidebar(id, token) {
     `https://sportify.zeabur.app/api/v1/users/courses/${id}/sidebar`,
     { headers: { Authorization: `Bearer ${token}` } }
   )
-  return data.data.chapter
+  return data.data
 }
 
 async function fetchDetails(id, chapterId, token) {
@@ -612,8 +612,9 @@ async function fetchDetails(id, chapterId, token) {
 onMounted(async () => {
   try {
     const token = localStorage.getItem('token')
-    const chapterArr = await fetchSidebar(courseId, token)
-    lessons.value = chapterArr.map(ch => ({ ...ch, isCurrentWatching: false }))
+    const sb = await fetchSidebar(courseId, token)
+    courseName.value = sb.courseName
+    lessons.value = sb.chapter.map(ch => ({ ...ch, isCurrentWatching: false }))
 
     /* ② 預設選第一章 & 取細節 ------------------------------- */
     const first =
