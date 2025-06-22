@@ -18,7 +18,7 @@
             href="#"
             class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
             :class="{ active: currentType === '' }"
-            @click="((currentType = ''), (currentPage = 1))"
+            @click="handleCategoryClick('')"
           >
             所有課程
           </button>
@@ -50,7 +50,7 @@
           type="button"
           class="btn btn-primary"
           :class="{ active: currentSort === 'score' }"
-          @click="((currentSort = 'score'), (currentPage = 1))"
+          @click="() => handleSortClick('score')"
         >
           評價最高
         </button>
@@ -115,7 +115,7 @@
     <nav aria-label="Page navigation">
       <ul class="pagination d-flex justify-content-center mb-0">
         <li class="page-item mx-lg-7" :class="{ disabled: currentPage === 1 }">
-          <a class="page-link" @click="currentPage--"
+          <a class="page-link" @click="handlePageClick(currentPage - 1)"
             ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
             <!-- lg 以上顯示文字 -->
             <span class="d-none d-lg-inline">上一頁</span></a
@@ -128,14 +128,14 @@
           class="page-item mx-lg-5"
           :class="{ active: currentPage === page }"
         >
-          <a class="page-link" @click="currentPage = page">{{ page }}</a>
+          <a class="page-link" @click="handlePageClick(page)">{{ page }}</a>
         </li>
 
         <li
           class="page-item mx-lg-7"
           :class="{ disabled: currentPage === totalPages }"
         >
-          <a class="page-link" @click="currentPage++"
+          <a class="page-link" @click="handlePageClick(currentPage + 1)"
             ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
             <span class="d-none d-lg-inline">下一頁</span></a
           >
@@ -163,18 +163,63 @@ const pagination = ref({})
 
 const currentPage = ref(Number(route.query.page) || 1)
 const currentType = ref(route.query.skillId || '')
-const currentSort = ref(route.query.sort_by || 'popular')
+const currentSort = ref(route.query.sortBy || 'popular')
 
 // 搜尋結果分頁
 const allCourses = ref([])
 const pageSize = 9
 const paginatedCourses = ref([])
 
+const debugInfo = ref({
+  fetchCount: 0,
+  lastFetchParams: null,
+  routerPushCount: 0,
+  lastRouterPush: null
+})
+
 const totalPages = computed(() =>
   route.query.keyword
     ? Math.ceil(allCourses.value.length / pageSize)
     : pagination.value.total_pages || 1
 )
+
+function handlePageClick(page) {
+  // 防止超出範圍
+  if (page < 1 || page > totalPages.value) return
+
+  console.log(`📄 分頁點擊:`, page, '當前頁:', currentPage.value)
+
+  currentPage.value = page
+
+  // 處理搜尋模式下的分頁
+  if (route.query.keyword) {
+    console.log('🔍 搜尋模式分頁')
+    paginateCourses()
+    return
+  }
+
+  // 處理一般模式下的分頁
+  const query = {
+    page: currentPage.value,
+    skillId: currentType.value,
+    sortBy: currentSort.value
+  }
+
+  // 🔍 除錯：記錄路由推送
+  debugInfo.value.routerPushCount++
+  debugInfo.value.lastRouterPush = {
+    type: 'page',
+    query: { ...query },
+    timestamp: new Date().toISOString()
+  }
+
+  console.log(`🚀 路由推送 #${debugInfo.value.routerPushCount} (分頁):`, query)
+
+  router.push({
+    path: '/courses',
+    query
+  })
+}
 
 function paginateCourses() {
   const start = (currentPage.value - 1) * pageSize
@@ -184,6 +229,21 @@ function paginateCourses() {
 
 async function fetchCourses() {
   const keyword = route.query.keyword || ''
+
+  // 🔍 除錯：記錄 API 請求
+  debugInfo.value.fetchCount++
+  const params = {
+    keyword,
+    page: currentPage.value,
+    skillId: currentType.value,
+    sortBy: currentSort.value
+  }
+  debugInfo.value.lastFetchParams = {
+    ...params,
+    timestamp: new Date().toISOString()
+  }
+
+  console.log(`🔍 API 請求 #${debugInfo.value.fetchCount}:`, params)
 
   if (keyword) {
     const { data } = await axios.get(
@@ -209,6 +269,11 @@ async function fetchCourses() {
     filters.value = data.meta.filter
     pagination.value = data.meta.pagination
   }
+
+  console.log(`✅ API 回應 #${debugInfo.value.fetchCount}:`, {
+    coursesCount: paginatedCourses.value.length,
+    totalPages: totalPages.value
+  })
 }
 
 async function fetchSkill() {
@@ -219,68 +284,118 @@ async function fetchSkill() {
 }
 
 function handleCategoryClick(skillId) {
+  console.log(`🎯 分類點擊:`, skillId)
+
   currentType.value = skillId
   currentPage.value = 1
 
+  const query = {
+    page: currentPage.value,
+    skillId: currentType.value,
+    sortBy: currentSort.value
+  }
+  // 🔍 除錯：記錄路由推送
+  debugInfo.value.routerPushCount++
+  debugInfo.value.lastRouterPush = {
+    type: 'category',
+    query: { ...query },
+    timestamp: new Date().toISOString()
+  }
+  console.log(`🚀 路由推送 #${debugInfo.value.routerPushCount} (分類):`, query)
+
   router.push({
     path: '/courses',
-    query: {
-      page: currentPage.value,
-      skillId: currentType.value,
-      sortBy: currentSort.value // ✅ 不含 keyword
-    }
+    query
   })
-
-  fetchCourses()
-  fetchSkill()
 }
 
 function handleSortClick(sortKey) {
+  console.log(`🎯 排序點擊:`, sortKey, '當前排序:', currentSort.value)
+
   currentSort.value = sortKey
   currentPage.value = 1
 
+  const query = {
+    page: currentPage.value,
+    skillId: currentType.value,
+    sortBy: currentSort.value
+  }
+
+  // 🔍 除錯：記錄路由推送
+  debugInfo.value.routerPushCount++
+  debugInfo.value.lastRouterPush = {
+    type: 'sort',
+    query: { ...query },
+    timestamp: new Date().toISOString()
+  }
+
+  console.log(`🚀 路由推送 #${debugInfo.value.routerPushCount} (排序):`, query)
+
   router.push({
     path: '/courses',
-    query: {
-      page: currentPage.value,
-      skillId: currentType.value,
-      sortBy: currentSort.value // ✅ 不含 keyword
-    }
+    query
   })
-
-  fetchCourses()
-  fetchSkill()
 }
 
 onMounted(async () => {
+  console.log('📍 組件掛載，初始參數:', {
+    page: currentPage.value,
+    skillId: currentType.value,
+    sortBy: currentSort.value,
+    keyword: route.query.keyword
+  })
+
   await fetchCourses()
   await fetchSkill()
 })
 
 watch(
+  [currentPage, currentType, currentSort],
+  ([newPage, newType, newSort], [oldPage, oldType, oldSort]) => {
+    console.log('📊 狀態變化:', {
+      page: { old: oldPage, new: newPage },
+      type: { old: oldType, new: newType },
+      sort: { old: oldSort, new: newSort },
+      hasKeyword: !!route.query.keyword
+    })
+  },
+  { deep: true }
+)
+
+watch(
   () => route.query.keyword,
-  () => {
+  (newKeyword, oldKeyword) => {
+    console.log('🔍 關鍵字變化:', { old: oldKeyword, new: newKeyword })
     fetchCourses()
   }
 )
-watch(currentPage, () => {
-  if (route.query.keyword) {
-    paginateCourses()
-  }
-})
-watch([currentPage, currentType, currentSort], () => {
-  if (route.query.keyword) return
-  router.push({
-    path: '/courses',
-    query: {
-      page: currentPage.value,
-      skillId: currentType.value,
-      sortBy: currentSort.value
+
+watch(
+  () => route.query,
+  (newQuery, oldQuery) => {
+    console.log('🛣️ 路由查詢參數變化:', { old: oldQuery, new: newQuery })
+
+    // 只有在非搜尋模式下才同步狀態並抓取資料
+    if (!newQuery.keyword) {
+      const page = Number(newQuery.page) || 1
+      const skillId = newQuery.skillId || ''
+      const sortBy = newQuery.sortBy || 'popular'
+
+      console.log('🔄 準備同步狀態:', { page, skillId, sortBy })
+
+      // 同步狀態
+      currentPage.value = page
+      currentType.value = skillId
+      currentSort.value = sortBy
+
+      // 抓取資料
+      fetchCourses()
+    } else {
+      console.log('🔄 搜尋模式，跳過狀態同步')
     }
-  })
-  fetchCourses()
-  fetchSkill()
-})
+  },
+  { immediate: false }
+)
 </script>
 
 <style scoped lang="scss">
