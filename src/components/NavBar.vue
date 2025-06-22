@@ -159,7 +159,15 @@ function handleLogout() {
             </ul>
           </li>
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-000">
+            <router-link
+              to="/login"
+              class="nav-link"
+              :class="{
+                active:
+                  route.path.startsWith('/login') ||
+                  route.path.startsWith('/users/signup')
+              }"
+            >
               登入/註冊
             </router-link>
           </li>
@@ -238,7 +246,7 @@ function handleLogout() {
           <li v-for="item in navItems" :key="item.to" class="nav-item">
             <router-link
               :to="item.to"
-              class="nav-link text-primary-600"
+              class="nav-link"
               :class="{
                 active: route.path === item.to
               }"
@@ -249,7 +257,7 @@ function handleLogout() {
           <li v-if="isLogin" class="nav-item">
             <router-link
               :to="centerLink"
-              class="nav-link text-primary-600"
+              class="nav-link"
               :class="{
                 active:
                   route.path.startsWith('/user/') ||
@@ -261,7 +269,15 @@ function handleLogout() {
             </router-link>
           </li>
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-600">
+            <router-link
+              to="/login"
+              class="nav-link"
+              :class="{
+                active:
+                  route.path.startsWith('/login') ||
+                  route.path.startsWith('/users/signup')
+              }"
+            >
               登入/註冊
             </router-link>
           </li>
@@ -281,6 +297,16 @@ function handleLogout() {
 }
 .offcanvas .nav-link {
   text-align: center;
+  color: $primary-600;
+  &:hover {
+    color: $primary-700;
+    background-color: $primary-300;
+    border-radius: 4px;
+  }
+  &.active {
+    color: $primary-100;
+    background-color: $primary-700;
+  }
 }
 .dropdown-menu {
   background-color: $grey-000; // 白底
@@ -297,9 +323,16 @@ function handleLogout() {
 }
 
 .dropdown-menu .dropdown-item:hover {
-  background-color: $primary-100; // hover 效果可自行定義
-  color: $primary-800;
+  color: $primary-700;
+  background-color: $primary-300;
+  border-radius: 4px;
 }
+
+.dropdown-menu .dropdown-item.active {
+  color: $primary-100;
+  background-color: $primary-700;
+}
+
 .default-avatar {
   background-color: $primary-600;
 }
