@@ -108,9 +108,9 @@ function handleLogout() {
               class="nav-link"
               :class="{
                 active:
-                  route.path.startsWith('/user') ||
-                  route.path.startsWith('/coach') ||
-                  route.path.startsWith('/admin')
+                  route.path.startsWith('/user/') ||
+                  route.path.startsWith('/coach/') ||
+                  route.path.startsWith('/admin/')
               }"
             >
               {{ centerLabel }}
@@ -205,7 +205,13 @@ function handleLogout() {
 
           <ul class="dropdown-menu dropdown-menu-end mt-2">
             <li v-for="item in menuItems" :key="item.to">
-              <router-link :to="item.to" class="dropdown-item">
+              <router-link
+                :to="item.to"
+                class="dropdown-item"
+                :class="{
+                  active: route.path === item.to
+                }"
+              >
                 {{ item.label }}
               </router-link>
             </li>
@@ -230,12 +236,27 @@ function handleLogout() {
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li v-for="item in navItems" :key="item.to" class="nav-item">
-            <router-link :to="item.to" class="nav-link text-primary-600">
+            <router-link
+              :to="item.to"
+              class="nav-link text-primary-600"
+              :class="{
+                active: route.path === item.to
+              }"
+            >
               {{ item.label }}
             </router-link>
           </li>
           <li v-if="isLogin" class="nav-item">
-            <router-link :to="centerLink" class="nav-link text-primary-600">
+            <router-link
+              :to="centerLink"
+              class="nav-link text-primary-600"
+              :class="{
+                active:
+                  route.path.startsWith('/user/') ||
+                  route.path.startsWith('/coach/') ||
+                  route.path.startsWith('/admin/')
+              }"
+            >
               {{ centerLabel }}
             </router-link>
           </li>
@@ -291,6 +312,10 @@ function handleLogout() {
 .default-avatar {
   background-color: $primary-600;
   font-size: 14px;
+}
+
+.nav-link.show {
+  color: $primary-000;
 }
 
 .nav-link {

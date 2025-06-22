@@ -667,7 +667,14 @@ const handleSubmit = async () => {
   try {
     const token = localStorage.getItem('token')
     submitData.value = JSON.parse(JSON.stringify(coachProfile.value))
-
+    if (
+      submitData.value.experience_years !== undefined &&
+      submitData.value.experience_years !== null
+    ) {
+      submitData.value.experience_years = Number(
+        submitData.value.experience_years
+      )
+    }
     console.log('coachProfile', coachProfile.value)
 
     if (profileImageId.value && profileImageFile.value) {
@@ -770,6 +777,13 @@ const handleSubmit = async () => {
       errorMessage = errorMessage.replace(
         'bank_account請輸入字串格式，不可為空白',
         '銀行帳號，不可為空白'
+      )
+    } else if (
+      errorMessage.includes('experience_years請輸入數字，不可為0或小數')
+    ) {
+      errorMessage = errorMessage.replace(
+        'experience_years請輸入數字，不可為0或小數',
+        '教學經驗不可為0或小數'
       )
     }
 
