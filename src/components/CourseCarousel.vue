@@ -1,5 +1,3 @@
-這段程式碼中，我想要將"查看更多"的按鈕，可以引導到相對應的課程資訊
-/sportify-plus/courses/:courseId/details
 <template>
   <div class="position-relative swiper-wrapper-with-nav">
     <swiper
@@ -73,7 +71,7 @@
                     name: 'CourseDetails', // 與 router.js 裡的 name 相同
                     params: { courseId: course.course_id }
                   }"
-                  class="text-grey-000 btn"
+                  class="text-grey-000 stretched-link"
                 >
                   查看更多
                 </router-link>

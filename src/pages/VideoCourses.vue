@@ -661,7 +661,7 @@ async function selectLesson(lesson) {
 
   currentLesson.value = lesson
   selectedChapId.value = lesson.chapterId
-
+  
   // ★ 目前只切 local 狀態，不再呼叫 details
   currentLesson.value = lesson
   if (!lesson.video_url) {

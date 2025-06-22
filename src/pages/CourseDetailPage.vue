@@ -79,7 +79,6 @@
               <p class="fs-lg-5 fs-6 mb-0">教練介紹</p>
               <a
                 :href="courseDetail.coach.coachPage_Url"
-                target="_blank"
                 class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
               >
                 教練詳細資訊
