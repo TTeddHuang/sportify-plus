@@ -88,7 +88,7 @@
               </div>
               <div class="col-12 col-md-6 mb-4">
                 <label for="birthDay" class="form-label fw-bold"
-                  >出生年月日</label
+                  >出生年月日 (YYYY-MM-DD)</label
                 >
                 <input
                   id="birthDay"
@@ -271,6 +271,7 @@
               <!-- 隱藏的檔案輸入框 -->
               <input
                 id="bankbook"
+                ref="bankbookInput"
                 type="file"
                 class="d-none"
                 accept="image/*"
@@ -528,6 +529,91 @@ const validateForm = () => {
     errors.push('銀行帳號必須為10-16位數字')
   }
 
+  // 1. 稱號(job_title)最少 2 個字元，最長 12 字元，不得包含特殊字元與空白
+  const jobTitle = coachProfile.value.job_title || ''
+  if (!jobTitle.trim()) {
+    errors.push('稱號不能為空')
+  } else if (jobTitle.length < 2 || jobTitle.length > 12) {
+    errors.push('稱號長度需為2~12字元')
+  } else if (!/^[\u4e00-\u9fa5a-zA-Z0-9]+$/.test(jobTitle)) {
+    errors.push('稱號不得包含特殊字元或空白')
+  }
+
+  // 2. bank_code, bank_account 不可空白
+  if (!coachProfile.value.bank_code || !coachProfile.value.bank_code.trim()) {
+    errors.push('銀行代號不可空白')
+  }
+  if (
+    !coachProfile.value.bank_account ||
+    !coachProfile.value.bank_account.trim()
+  ) {
+    errors.push('銀行帳號不可空白')
+  }
+
+  // 3. birthday 格式為 YYYY-MM-DD
+  const birthday = coachProfile.value.birthday || ''
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
+    errors.push('出生年月日格式需為 YYYY-MM-DD')
+  }
+
+  // 4. about_me最少 10個字元
+  const aboutMe = coachProfile.value.about_me || ''
+  if (aboutMe.length < 10) {
+    errors.push('自我介紹最少需10個字元')
+  }
+
+  // 5. skill 最少 2 個字元，不得包含特殊字元與空白，不同skill可用頓號(、)隔開
+  const skillStr = skills.value || ''
+  if (skillStr.length < 2) {
+    errors.push('專長類別最少需2個字元')
+  } else if (
+    !/^([\u4e00-\u9fa5a-zA-Z0-9]+)(、[\u4e00-\u9fa5a-zA-Z0-9]+)*$/.test(
+      skillStr
+    )
+  ) {
+    errors.push('專長類別不得包含特殊字元或空白，請用頓號(、)分隔')
+  }
+
+  // 6. skill_description總字數不可超過100字，或少於10字
+  const skillDesc = coachProfile.value.skill_description || ''
+  if (skillDesc.length < 10 || skillDesc.length > 100) {
+    errors.push('專長介紹字數需為10~100字')
+  }
+
+  // 7. experience最少 5個字元
+  const experience = coachProfile.value.experience || ''
+  if (experience.length < 5) {
+    errors.push('學經歷與得獎經歷最少需5個字元')
+  }
+
+  // 8. license總字數不可超過50字，或少於5字
+  const licenseStr = (coachLicenses.value || []).map(l => l.filename).join('、')
+  if (
+    licenseStr.length > 0 &&
+    (licenseStr.length < 5 || licenseStr.length > 50)
+  ) {
+    errors.push('執照字數需為5~50字')
+  }
+
+  // 9. hobby,motto最少 2個字元
+  const hobby = coachProfile.value.hobby || ''
+  if (hobby && hobby.length < 2) {
+    errors.push('興趣最少需2個字元')
+  }
+  const motto = coachProfile.value.motto || ''
+  if (motto && motto.length < 2) {
+    errors.push('座右銘最少需2個字元')
+  }
+  const expYears = coachProfile.value.experience_years
+  if (
+    expYears === undefined ||
+    expYears === null ||
+    expYears === '' ||
+    !/^[1-9]\d*$/.test(expYears)
+  ) {
+    errors.push('教學經驗年數請輸入正整數，不可為0或小數')
+  }
+
   if (errors.length > 0) {
     alert('表單驗證失敗：\n' + errors.join('\n'))
     return false
@@ -730,7 +816,7 @@ const handleSubmit = async () => {
     delete submitData.value.email
 
     submitData.value.skill = skills.value
-
+    submitData.value.favorite_words = '先跳過謝謝'
     console.log('submitData', submitData.value)
 
     // 提交主要資料
@@ -784,6 +870,18 @@ const handleSubmit = async () => {
       errorMessage = errorMessage.replace(
         'experience_years請輸入數字，不可為0或小數',
         '教學經驗不可為0或小數'
+      )
+    } else if (
+      errorMessage.includes('skill_description總字數不可超過100字，或少於10字')
+    ) {
+      errorMessage = errorMessage.replace(
+        'skill_description總字數不可超過100字，或少於10字',
+        '專長介紹字數不可超過100字，或少於10字'
+      )
+    } else if (errorMessage.includes('license總字數不可超過50字，或少於5字')) {
+      errorMessage = errorMessage.replace(
+        'license總字數不可超過50字，或少於5字',
+        '執照字數不可超過50字，或少於5字'
       )
     }
 
