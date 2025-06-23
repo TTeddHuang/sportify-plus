@@ -53,6 +53,7 @@
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import Hls from 'hls.js'
 import axios from 'axios'
+import mux from 'mux-embed'
 
 const showPanel = ref(false)
 
@@ -70,8 +71,11 @@ const uiLevels = ref([])
 const selectedLevel = ref(-1)
 const currentLevelTxt = ref('Auto')
 const isPlaying = ref(false)
-const video = ref(null) // ✅ 初值 null
+const video = ref(null)
 let hls = null
+let muxBound = false
+const MUX_ENV_KEY = import.meta.env.VITE_MUX_ENV_KEY
+console.log('[MUX KEY]', MUX_ENV_KEY)
 
 async function fetchPlanAndSetCap() {
   try {
@@ -105,6 +109,29 @@ function setupPlayer(src, mode = 'member') {
   hls = new Hls()
   hls.loadSource(src)
   hls.attachMedia(video.value)
+
+  // 串接 Mux Data
+  if (MUX_ENV_KEY && !muxBound && video.value) {
+    mux.monitor(video.value, {
+      debug: true, // 需要時改 true
+      hlsjs: hls,
+      hlsjsVersion: Hls.version,
+      data: {
+        environment_key: MUX_ENV_KEY,
+
+        /* ===== 影片屬性 ===== */
+        video_id: props.src, // 建議改成課程 ID
+        video_title: props.poster ?? '', // 顯示名稱（可自訂）
+
+        /* ===== 使用者屬性 ===== */
+        viewer_user_id: localStorage.getItem('uid') || '',
+
+        player_name: 'Sportify HLS Player',
+        player_init_time: Date.now()
+      }
+    })
+    muxBound = true
+  }
 
   hls.on(Hls.Events.MANIFEST_PARSED, () => {
     allLevels.value = hls.levels
@@ -155,6 +182,10 @@ watch(
 onBeforeUnmount(() => {
   hls?.destroy()
   hls = null
+  if (muxBound && video.value) {
+    mux.destroy(video.value) // ⑤ 告訴 mux-embed 停止上報
+    muxBound = false
+  }
 })
 </script>
 
