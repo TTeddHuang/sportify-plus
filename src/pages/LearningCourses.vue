@@ -804,7 +804,7 @@ onBeforeUnmount(() => {
 }
 .scroll-hint {
   position: absolute;
-  top: 0;
+  top: 32px;
   right: 0;
   width: 48px;
   height: 40px;

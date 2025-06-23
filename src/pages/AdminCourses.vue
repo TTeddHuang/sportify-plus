@@ -395,7 +395,7 @@
                     <div class="mb-lg-3 mb-5">
                       <p class="fw-bold mb-lg-3 mb-2">課程介紹：</p>
                       <div
-                        class="border rounded p-3 bg-grey-000 border-primary-700 me-lg-4"
+                        class="border rounded p-3 bg-grey-100 border-primary-700 me-lg-4"
                         style="background-color: #f8f9fa"
                       >
                         {{ selectedDetail.description }}
@@ -440,7 +440,7 @@
                         class="accordion-header text-grey-700"
                       >
                         <button
-                          class="accordion-button collapsed bg-grey-000 text-grey-700"
+                          class="accordion-button collapsed bg-grey-000 text-grey-700 d-flex justify-content-between align-items-center"
                           type="button"
                           data-bs-toggle="collapse"
                           :data-bs-target="`#collapseChap${idx}`"
@@ -448,6 +448,9 @@
                           :aria-controls="`collapseChap${idx}`"
                         >
                           {{ chap.title }}
+                          <i
+                            class="bi bi-chevron-down custom-toggle-icon text-primary-700"
+                          ></i>
                         </button>
                       </h2>
                       <div
@@ -1256,7 +1259,7 @@ textarea::placeholder {
 }
 .des-custom {
   margin-top: 8px;
-  background-color: $grey-000;
+  background-color: $grey-100;
   border: 1px solid $primary-700;
   color: $grey-700;
   display: block;
@@ -1264,10 +1267,21 @@ textarea::placeholder {
   padding: 6px 12px;
   background-clip: padding-box;
   border-radius: 6px;
+  height: 40px;
 }
 .course-photo {
   max-height: 250px;
   height: auto;
   object-fit: contain;
+}
+.accordion-button::after {
+  display: none; // 隱藏 Bootstrap 預設箭頭
+}
+.custom-toggle-icon {
+  margin-left: auto;
+  transition: transform 0.3s;
+}
+.accordion-button[aria-expanded='true'] .custom-toggle-icon {
+  transform: rotate(180deg); // 展開時轉向上
 }
 </style>

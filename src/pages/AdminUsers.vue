@@ -729,7 +729,7 @@ function openDetailModal(user) {
 }
 .des-custom {
   margin-top: 8px;
-  background-color: $grey-000;
+  background-color: $grey-100;
   border: 1px solid $primary-700;
   color: $grey-700;
   display: block;
@@ -737,6 +737,7 @@ function openDetailModal(user) {
   padding: 6px 12px;
   background-clip: padding-box;
   border-radius: 6px;
+  height: 40px;
 }
 .card-wrapper {
   background-color: $primary-600;

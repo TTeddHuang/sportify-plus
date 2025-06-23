@@ -361,7 +361,7 @@
 
                 <p class="mb-3 fw-bold">自我介紹：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -370,7 +370,7 @@
                 </div>
                 <p class="mb-3 fw-bold">學經歷與得獎經歷：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -379,7 +379,7 @@
                 </div>
                 <p class="mb-3 fw-bold">感興趣的事物：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -388,7 +388,7 @@
                 </div>
                 <p class="mb-3 fw-bold">最喜歡的一段話：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -397,7 +397,7 @@
                 </div>
                 <p class="mb-3 fw-bold">座右銘：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-000 border-primary-700"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -1045,7 +1045,7 @@ textarea::placeholder {
 }
 .des-custom {
   margin-top: 8px;
-  background-color: $grey-000;
+  background-color: $grey-100;
   border: 1px solid $primary-700;
   color: $grey-700;
   display: block;
