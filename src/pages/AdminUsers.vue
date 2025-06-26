@@ -737,7 +737,7 @@ function openDetailModal(user) {
   padding: 6px 12px;
   background-clip: padding-box;
   border-radius: 6px;
-  height: 40px;
+  min-height: 40px;
 }
 .card-wrapper {
   background-color: $primary-600;

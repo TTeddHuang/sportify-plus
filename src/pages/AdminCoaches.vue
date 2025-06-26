@@ -1053,6 +1053,6 @@ textarea::placeholder {
   padding: 6px 12px;
   background-clip: padding-box;
   border-radius: 6px;
-  height: 40px;
+  min-height: 40px;
 }
 </style>

@@ -7,7 +7,6 @@
       controls
       crossorigin="anonymous"
       :poster="poster"
-      @click.prevent.stop="togglePlay"
     />
     <button
       v-show="!isPlaying"
@@ -18,19 +17,32 @@
     >
       <i class="bi bi-play-fill" />
     </button>
-    <div v-if="uiLevels.length" class="quality-control p-0">
+    <div
+      class="tap-layer"
+      @click.stop.prevent="togglePlay"
+      @touchend.stop.prevent="togglePlay"
+    ></div>
+    <div
+      v-if="uiLevels.length"
+      class="quality-control p-0"
+      @mouseenter="openPanel"
+      @mouseleave="restartTimer"
+    >
       <button
         v-show="uiLevels.length"
         class="setting-btn"
+        :class="{ visible: showGear }"
         title="畫質設定"
-        @click="showPanel = !showPanel"
+        @click.stop="openPanel"
       >
         <i class="bi bi-gear-fill"></i>
       </button>
       <div
-        v-if="uiLevels.length && showPanel"
+        v-show="showPanel"
         class="quality-panel"
         @click.stop
+        @mouseenter="openPanel"
+        @mouseleave="restartTimer"
       >
         <select v-model.number="selectedLevel" @change="changeLevel">
           <option :value="-1">自動</option>
@@ -56,6 +68,8 @@ import axios from 'axios'
 import mux from 'mux-embed'
 
 const showPanel = ref(false)
+const showGear = ref(false)
+let hideTimer = null
 
 const props = defineProps({
   src: { type: String, required: true },
@@ -75,7 +89,20 @@ const video = ref(null)
 let hls = null
 let muxBound = false
 const MUX_ENV_KEY = import.meta.env.VITE_MUX_ENV_KEY
-console.log('[MUX KEY]', MUX_ENV_KEY)
+
+function restartTimer() {
+  clearTimeout(hideTimer)
+  hideTimer = setTimeout(() => {
+    showPanel.value = false
+    showGear.value = false
+  }, 3000)
+}
+
+function openPanel() {
+  showPanel.value = true
+  showGear.value = true
+  restartTimer()
+}
 
 async function fetchPlanAndSetCap() {
   try {
@@ -106,6 +133,10 @@ function pickCurrentPlan(subs) {
 function setupPlayer(src, mode = 'member') {
   if (!src) return
   hls?.destroy()
+  if (!Hls.isSupported()) {
+    video.value.src = src
+    return
+  }
   hls = new Hls()
   hls.loadSource(src)
   hls.attachMedia(video.value)
@@ -113,20 +144,16 @@ function setupPlayer(src, mode = 'member') {
   // 串接 Mux Data
   if (MUX_ENV_KEY && !muxBound && video.value) {
     mux.monitor(video.value, {
-      debug: true, // 需要時改 true
+      debug: false, // 驗證期開啟
+      // transport: 'xhr',
       hlsjs: hls,
-      hlsjsVersion: Hls.version,
+      Hls,
       data: {
-        environment_key: MUX_ENV_KEY,
-
-        /* ===== 影片屬性 ===== */
-        video_id: props.src, // 建議改成課程 ID
-        video_title: props.poster ?? '', // 顯示名稱（可自訂）
-
-        /* ===== 使用者屬性 ===== */
+        env_key: MUX_ENV_KEY,
+        video_id: props.src, // 之後可換課程 ID
+        video_title: props.poster ?? '',
         viewer_user_id: localStorage.getItem('uid') || '',
-
-        player_name: 'Sportify HLS Player',
+        player_name: 'Sportify Plus HLS Player',
         player_init_time: Date.now()
       }
     })
@@ -159,8 +186,10 @@ function setupPlayer(src, mode = 'member') {
 function changeLevel() {
   if (hls) hls.currentLevel = selectedLevel.value
 }
+
 function togglePlay() {
   isPlaying.value ? video.value.pause() : video.value.play()
+  if (matchMedia('(hover: none)').matches) openPanel()
 }
 
 onMounted(async () => {
@@ -181,11 +210,16 @@ watch(
 
 onBeforeUnmount(() => {
   hls?.destroy()
-  hls = null
+
   if (muxBound && video.value) {
-    mux.destroy(video.value) // ⑤ 告訴 mux-embed 停止上報
+    if (typeof mux.destroy === 'function') {
+      mux.destroy(video.value)
+    } else if (typeof mux.unmonitor === 'function') {
+      mux.unmonitor(video.value)
+    }
     muxBound = false
   }
+  clearTimeout(hideTimer)
 })
 </script>
 
@@ -303,9 +337,28 @@ onBeforeUnmount(() => {
   z-index: 7; /* 高於齒輪 */
   min-width: 90px;
 }
+
 .quality-panel select {
   background: #fff;
   color: #000;
   margin-right: 6px;
+}
+.tap-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  pointer-events: auto;
+}
+@media (hover: none) {
+  .setting-btn {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .setting-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 </style>
