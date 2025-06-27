@@ -320,6 +320,7 @@
         <!-- ※ 建議把 Modal HTML 放在這裡（也就是 container 底部、在所有內容之後） -->
         <div
           id="detailModal"
+          ref="detailModal"
           class="modal fade"
           tabindex="-1"
           aria-labelledby="detailModalLabel"
@@ -463,8 +464,42 @@
                           class="accordion-body border-top border-primary-600"
                         >
                           <ul class="mb-0 list-unstyled">
-                            <li v-for="(sub, i) in chap.subtitles" :key="i">
-                              {{ sub }}
+                            <li
+                              v-for="lesson in chap.lessons"
+                              :key="lesson.id"
+                              class=""
+                            >
+                              <button
+                                class="accordion-button collapsed bg-grey-000 text-grey-700 d-flex justify-content-between align-items-center sub-custom"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                :data-bs-target="`#video-${lesson.id}`"
+                                :aria-controls="`video-${lesson.id}`"
+                                @click="playModalLesson(lesson)"
+                              >
+                                {{ lesson.subtitle }}
+                                <i
+                                  class="bi bi-chevron-down ms-auto custom-toggle-icon"
+                                ></i>
+                              </button>
+                              <div
+                                :id="`video-${lesson.id}`"
+                                class="collapse mt-2"
+                                @[BS_COLLAPSE_HIDDEN]="
+                                  () => onCollapseHide(lesson)
+                                "
+                              >
+                                <div
+                                  v-if="currentModalLesson?.id === lesson.id"
+                                >
+                                  <HlsPlayer
+                                    v-if="modalVideoSrc"
+                                    :src="modalVideoSrc"
+                                    :poster="selectedDetail.image_url"
+                                    mode="preview"
+                                  />
+                                </div>
+                              </div>
                             </li>
                           </ul>
                         </div>
@@ -617,9 +652,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import HlsPlayer from '@/components/HlsPlayer.vue'
+
+const detailModal = ref(null)
 
 const router = useRouter()
 const route = useRoute()
@@ -845,6 +883,7 @@ async function approveReview() {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
+
     // 關閉 Modal，並顯示成功訊息
     closeDetailModal()
     alert('課程已標記為「上架中」')
@@ -875,6 +914,7 @@ async function rejectReview() {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
+
     closeDetailModal()
     alert('課程未通過，已退回給教練更新')
     fetchAllCourses()
@@ -1006,7 +1046,7 @@ async function openDetailModal(courseId) {
     const token = localStorage.getItem('token')
     // 1) 先呼叫 /details 拿 description、chapters、coach 等
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`,
+      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.data.status) {
@@ -1033,14 +1073,6 @@ async function openDetailModal(courseId) {
       payload.coach.profile_image_url || ''
     selectedDetail.value.coach.coachPage_Url = payload.coach.coachPage_Url || ''
 
-    // 塞 chapters
-    selectedDetail.value.chapters = Array.isArray(payload.chapters)
-      ? payload.chapters.map(ch => ({
-          title: ch.title,
-          subtitles: Array.isArray(ch.subtitles) ? ch.subtitles : []
-        }))
-      : []
-
     // 3) 接著從先前 fetchCourses() 拿到的 courses.value 找同一筆 course，
     //    拿 is_active 與 created_at。 detail endpoint 裡並沒有回傳這兩個欄位，
     //    所以必須從列表裡「找一筆匹配的」才能取得。
@@ -1066,6 +1098,25 @@ async function openDetailModal(courseId) {
       selectedDetail.value.category = ''
     }
 
+    const rawChapters = payload.chapters || []
+    const grouped = rawChapters.reduce((acc, ch) => {
+      let group = acc.find(g => g.title === ch.title)
+      if (!group) {
+        group = { title: ch.title, lessons: [] }
+        acc.push(group)
+      }
+      group.lessons.push({
+        id: ch.id,
+        subtitle: ch.subtitle,
+        video_url: ch.video_url,
+        duration: ch.duration,
+        uploaded_at: ch.uploaded_at
+      })
+
+      return acc
+    }, [])
+    selectedDetail.value.chapters = grouped
+
     // 確保一開始非編輯狀態
     isEditing.value = false
 
@@ -1079,6 +1130,51 @@ async function openDetailModal(courseId) {
     alert('無法載入課程詳細，請稍後再試')
   }
 }
+
+const currentModalLesson = ref(null)
+const modalVideoSrc = ref('')
+const modalLoading = ref(false)
+
+const BS_COLLAPSE_HIDDEN = 'hidden.bs.collapse'
+
+async function playModalLesson(lesson) {
+  // 已經在播放這顆 → 直接收合或什麼都不做
+  if (currentModalLesson.value?.id === lesson.id) return
+
+  currentModalLesson.value = lesson // 標記目前播放
+  modalLoading.value = true
+
+  modalVideoSrc.value = lesson.video_url
+}
+
+function onCollapseHide(lesson) {
+  if (currentModalLesson.value?.id === lesson.id) {
+    modalVideoSrc.value = ''
+    currentModalLesson.value = null
+  }
+}
+
+function onModalHide() {
+  document.querySelectorAll('#detailModal video').forEach(v => {
+    v.pause()
+    v.currentTime = 0
+  })
+
+  modalVideoSrc.value = ''
+  currentModalLesson.value = null
+}
+
+onMounted(() => {
+  if (detailModal.value) {
+    detailModal.value.addEventListener('hidden.bs.modal', onModalHide)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (detailModal.value) {
+    detailModal.value.removeEventListener('hidden.bs.modal', onModalHide)
+  }
+})
 
 function enableEdit() {
   isEditing.value = true
@@ -1278,10 +1374,29 @@ textarea::placeholder {
   display: none; // 隱藏 Bootstrap 預設箭頭
 }
 .custom-toggle-icon {
+  color: $primary-600;
   margin-left: auto;
   transition: transform 0.3s;
 }
 .accordion-button[aria-expanded='true'] .custom-toggle-icon {
   transform: rotate(180deg); // 展開時轉向上
+}
+.sub-custom {
+  border: none;
+  border-bottom: 1px solid $primary-600;
+  border-radius: 0;
+  transition: border 0.2s ease;
+  outline: none;
+}
+.sub-custom:last-child {
+  border-bottom: 1px solid $primary-600;
+}
+.sub-custom:focus {
+  border-top-color: #5b8def;
+  border-bottom-color: #5b8def;
+}
+
+.accordion-button:not(.collapsed) {
+  box-shadow: none;
 }
 </style>

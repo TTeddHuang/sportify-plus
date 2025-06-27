@@ -19,7 +19,7 @@
     </button>
     <div
       class="tap-layer"
-      @click.stop.prevent="togglePlay"
+      @click="togglePlay"
       @touchend.stop.prevent="togglePlay"
     ></div>
     <div
@@ -348,7 +348,7 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 5;
   background: transparent;
-  pointer-events: auto;
+  pointer-events: none;
 }
 @media (hover: none) {
   .setting-btn {
