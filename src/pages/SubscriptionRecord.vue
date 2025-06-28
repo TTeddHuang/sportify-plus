@@ -77,6 +77,7 @@
                   courseType.length > 3 || subscriptionStatus === 'trial-active'
                 "
                 class="btn btn-primary-600 me-2"
+                @click="$router.push('/user/courses')"
               >
                 所有
               </p>
@@ -85,6 +86,7 @@
                   v-for="type in courseType"
                   :key="type.skill_id"
                   class="btn btn-primary-600 me-2"
+                  @click="$router.push('/user/courses')"
                 >
                   {{ type.course_type }}
                 </p>
