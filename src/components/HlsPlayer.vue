@@ -192,8 +192,6 @@ function togglePlay() {
   if (matchMedia('(hover: none)').matches) openPanel()
 }
 
-console.log('[BUILD KEY]', import.meta.env.VITE_MUX_ENV_KEY)
-
 onMounted(async () => {
   if (props.mode !== 'preview') {
     await fetchPlanAndSetCap()
