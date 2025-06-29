@@ -54,7 +54,7 @@
 
         <!-- 右側主區塊：你的專屬教練群 -->
         <div class="p-lg-8 p-2 py-6 w-100" style="max-width: 1056px">
-          <h3 class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
+          <h3 ref="playerTop" class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
           <!-- 992px以下出現章節按鈕 -->
 
           <button
@@ -69,8 +69,6 @@
           <!-- 播放影片 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
-              <!-- 假設後端有提供一個 video_url，這裡就用 currentLesson.video_url -->
-              <!-- 下面只是示意，實際要看你的資料有哪些欄位 -->
               <HlsPlayer
                 v-if="videoSrc"
                 :key="currentLesson.chapterId"
@@ -674,6 +672,8 @@ onMounted(async () => {
   }
 })
 
+const playerTop = ref(null)
+
 async function selectLesson(lesson) {
   lessons.value.forEach(l => {
     l.isCurrentWatching = l.chapterId === lesson.chapterId
@@ -696,6 +696,11 @@ async function selectLesson(lesson) {
       console.error('載入章節影片失敗', e)
     }
   }
+  await nextTick()
+  playerTop.value?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
 }
 
 function toggle(idx) {
