@@ -4,7 +4,7 @@
 
     <div class="card-wrapper"></div>
     <div class="card-content p-5 mb-5">
-      <form @submit.prevent="handleSubmit">
+      <form novalidate @submit.prevent="handleSubmit">
         <!-- 頭像與基本資訊區塊 -->
         <div class="row mb-lg-8 mb-6">
           <!-- 頭像區域 -->
@@ -88,15 +88,35 @@
               </div>
               <div class="col-12 col-md-6 mb-4">
                 <label for="birthDay" class="form-label fw-bold"
-                  >出生年月日 (YYYY-MM-DD)</label
+                  >出生年月日</label
                 >
-                <input
-                  id="birthDay"
-                  v-model="coachProfile.birthday"
-                  type="text"
-                  class="form-control"
-                  :disabled="inputState === 'readOnly'"
-                />
+                <div class="position-relative">
+                  <VDatePicker
+                    v-model="birthdayDate"
+                    :disabled="inputState === 'readOnly'"
+                    :min-date="birthdayLimit.minDate"
+                    :max-date="birthdayLimit.maxDate"
+                    mode="date"
+                    :popover="{
+                      placement: 'bottom-start',
+                      visibility: 'click'
+                    }"
+                    :masks="{ input: 'YYYY-MM-DD' }"
+                    @dayclick="handleDayClick"
+                  >
+                    <template #default="{ inputValue, inputEvents }">
+                      <input
+                        id="birthDay"
+                        :value="inputValue"
+                        class="form-control"
+                        :disabled="inputState === 'readOnly'"
+                        placeholder="請選擇出生年月日"
+                        readonly
+                        v-on="inputEvents"
+                      />
+                    </template>
+                  </VDatePicker>
+                </div>
               </div>
               <div class="col-12 col-md-6 mb-4">
                 <label for="idNum" class="form-label fw-bold">身分證字號</label>
@@ -441,6 +461,8 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { user, initUser } from '@/store/user'
+import { DatePicker as VDatePicker } from 'v-calendar'
+import 'v-calendar/style.css'
 
 const inputState = ref('readOnly')
 const avatarInput = ref(null)
@@ -472,6 +494,49 @@ const skillsDisplay = computed(() => {
   }
   return coachProfile.value.skills.map(skill => skill).join('、')
 })
+
+const birthdayLimit = computed(() => ({
+  min: birthday(100),
+  max: birthday(18),
+  minDate: new Date(birthday(100)),
+  maxDate: new Date(birthday(18))
+}))
+
+// 出生日期的計算屬性，用於 VCalendar
+const birthdayDate = computed({
+  get() {
+    return coachProfile.value.birthday
+      ? new Date(coachProfile.value.birthday)
+      : null
+  },
+  set(value) {
+    if (value) {
+      const year = value.getFullYear()
+      const month = String(value.getMonth() + 1).padStart(2, '0')
+      const day = String(value.getDate()).padStart(2, '0')
+      coachProfile.value.birthday = `${year}-${month}-${day}`
+    } else {
+      coachProfile.value.birthday = ''
+    }
+  }
+})
+
+function birthday(age) {
+  const now = new Date()
+  now.setFullYear(now.getFullYear() - age)
+  const yyyy = now.getFullYear()
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+// 修復 dayIndex 錯誤的事件處理器
+const handleDayClick = (day, event) => {
+  // 防止事件冒泡並移除焦點，這樣可以避免 dayIndex 錯誤
+  if (event && event.target) {
+    event.target.blur()
+  }
+}
 
 // 資料驗證
 const validateForm = () => {
@@ -553,7 +618,17 @@ const validateForm = () => {
   // 3. birthday 格式為 YYYY-MM-DD
   const birthday = coachProfile.value.birthday || ''
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
-    errors.push('出生年月日格式需為 YYYY-MM-DD')
+    errors.push('請選擇出生年月日')
+  } else {
+    const birthDate = new Date(birthday)
+    const now = new Date()
+    const age = Math.floor((now - birthDate) / (365.25 * 24 * 60 * 60 * 1000))
+
+    if (age < 18) {
+      errors.push('年齡必須滿18歲')
+    } else if (age > 100) {
+      errors.push('年齡不可超過100歲')
+    }
   }
 
   // 4. about_me最少 10個字元
@@ -626,7 +701,7 @@ const validateForm = () => {
 const handleFileSelect = async ($event, type) => {
   const files = $event.target.files
   if (!files || files.length === 0) return
-  console.log(files)
+
   // 檔案類型驗證
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
 
@@ -678,8 +753,6 @@ const handleFileSelect = async ($event, type) => {
         filename: ''
       })
 
-      console.log(uploadResult)
-      console.log(coachLicenses.value)
       isLicenseloading.value = false
     }
 
@@ -722,7 +795,7 @@ const uploadMultipleImages = async (files, imgName, endpoint) => {
   files.forEach(file => {
     formData.append(imgName, file)
   })
-  console.log([...formData])
+
   const token = localStorage.getItem('token')
   const response = await axios.post(
     `https://sportify.zeabur.app/api/v1/coaches/${endpoint}`,
@@ -761,7 +834,6 @@ const handleSubmit = async () => {
         submitData.value.experience_years
       )
     }
-    console.log('coachProfile', coachProfile.value)
 
     if (profileImageId.value && profileImageFile.value) {
       submitData.value.profile_image_url = profileImageFile.value
@@ -778,7 +850,6 @@ const handleSubmit = async () => {
       delete submitData.value.bankbook_copy_url
       delete submitData.value.bankbook_copy_public_id
     }
-    console.log(coachLicenses.value)
 
     // 過濾證照資料：只保留 url、filename、publicId 都有值的物件
     const validLicenses = coachLicenses.value.filter(license => {
@@ -787,14 +858,8 @@ const handleSubmit = async () => {
       const hasId =
         license.file_public_id && license.file_public_id.trim() !== ''
 
-      console.log(
-        `證照驗證 - URL: ${hasUrl}, Filename: ${hasFilename}, ID: ${hasId}`
-      )
-
       return hasUrl && hasFilename && hasId
     })
-
-    console.log('有效的證照資料:', validLicenses)
 
     if (validLicenses.length > 0) {
       submitData.value.license = validLicenses
@@ -817,7 +882,6 @@ const handleSubmit = async () => {
 
     submitData.value.skill = skills.value
     submitData.value.favorite_words = '先跳過謝謝'
-    console.log('submitData', submitData.value)
 
     // 提交主要資料
     const response = await axios.patch(
@@ -963,10 +1027,6 @@ const loadCoachProfile = async () => {
       delete coachProfile.value.created_at
       delete coachProfile.value.background_image_url
       delete coachProfile.value.background_image_public_id
-
-      console.log('教練資料:', coachProfile.value)
-      console.log('證照資料:', coachLicenses.value)
-      console.log('原資料:', data)
     }
   } catch (error) {
     console.error('載入教練資料失敗:', error)
@@ -1151,6 +1211,59 @@ onMounted(async () => {
 
   .license-image {
     height: 100px;
+  }
+}
+
+// VCalendar 自定義樣式
+:deep(.vc-container) {
+  font-family: inherit;
+
+  .vc-header {
+    padding: 10px;
+  }
+
+  .vc-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $primary-900;
+  }
+
+  .vc-weekday {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $grey-600;
+    padding: 8px;
+  }
+
+  .vc-day {
+    min-height: 32px;
+
+    .vc-day-content {
+      border-radius: 6px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: rgba(62, 91, 238, 0.1);
+      }
+
+      &.vc-day-content-selected {
+        background-color: $primary-600;
+        color: white;
+      }
+
+      &.vc-day-content-disabled {
+        color: $grey-400;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .vc-nav-arrow {
+    color: $primary-600;
+
+    &:hover {
+      background-color: rgba(62, 91, 238, 0.1);
+    }
   }
 }
 </style>
