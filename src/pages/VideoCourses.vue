@@ -8,7 +8,24 @@
             <h3 class="fs-6 px-3 fw-bold text-center">
               {{ courseName }}
             </h3>
-            <hr class="divider my-5" />
+            <div class="my-4 px-3">
+              <div class="progress" style="height: 12px">
+                <div
+                  class="progress-bar bg-primary-600"
+                  role="progressbar"
+                  :style="{ width: progressPercent + '%' }"
+                  :aria-valuenow="progressPercent"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <p class="fs-8 text-end text-grey-500 mt-1">
+                {{ finishedCount }} / {{ totalCount }} 章節 ({{
+                  progressPercent
+                }}%)
+              </p>
+            </div>
+
             <ul class="list-group list-group-flush">
               <template v-for="group in groupedLessons" :key="group.title">
                 <li
@@ -476,7 +493,7 @@
         </div>
         <div
           id="lessonDrawer"
-          class="offcanvas offcanvas-start d-lg-none"
+          class="offcanvas offcanvas-start d-lg-none px-3 py-5"
           tabindex="-1"
           aria-labelledby="lessonDrawerLabel"
         >
@@ -490,16 +507,30 @@
               data-bs-dismiss="offcanvas"
             ></button>
           </div>
+          <div class="px-3">
+            <div class="progress" style="height: 12px">
+              <div
+                class="progress-bar bg-primary-600"
+                role="progressbar"
+                :style="{ width: progressPercent + '%' }"
+                :aria-valuenow="progressPercent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <p class="fs-8 text-end text-grey-500 mt-1">
+              {{ finishedCount }} / {{ totalCount }} 章節 ({{
+                progressPercent
+              }}%)
+            </p>
+          </div>
 
           <div class="offcanvas-body p-0">
             <!-- 章節清單：直接複用你現成的 li -->
             <ul class="list-group list-group-flush">
               <!-- 每個 li 代表一天的 Lesson -->
               <template v-for="group in groupedLessons" :key="group.title">
-                <li
-                  class="list-group-title fw-bold text-center fs-7"
-                  style="padding: 0.5rem 1rem"
-                >
+                <li class="list-group-title fw-bold text-center fs-7">
                   {{ group.title }}
                 </li>
                 <li
@@ -527,11 +558,8 @@
                       <i v-else class="bi bi-circle text-secondary fs-5"></i>
                       <p class="text-secondary mb-0 fs-9 ms-1">
                         {{
-                          lesson.length !== '未提供'
-                            ? lesson.length + ' 分鐘'
-                            : '未提供'
+                          lesson.length !== '未提供' ? lesson.length : '未提供'
                         }}
-                        分鐘
                       </p>
                     </div>
                   </div>
@@ -809,6 +837,16 @@ onMounted(async () => {
     console.error('取得訂閱失敗：', err)
   }
 })
+/*  完成度統計  */
+const finishedCount = computed(
+  () => lessons.value.filter(l => l.isFinished).length
+)
+const totalCount = computed(() => lessons.value.length)
+const progressPercent = computed(() =>
+  totalCount.value === 0
+    ? 0
+    : Math.round((finishedCount.value / totalCount.value) * 100)
+)
 
 onMounted(() => {
   fetchRatings(courseId)
@@ -895,6 +933,7 @@ watch(videoSrc, async () => {
 }
 .list-group-title {
   border: none;
+  border-top: 1px solid white;
   padding: 12px 16px;
   margin-bottom: 8px;
   list-style: none;
