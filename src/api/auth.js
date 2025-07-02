@@ -13,6 +13,12 @@ export async function login({ email, password }) {
   return response.data
 }
 
+// google第三方登入 API
+export async function googleLogin({ tokenId }) {
+  const response = await api.post('/google-login', { tokenId })
+  return response.data.data
+}
+
 // 註冊 API
 export async function register({ name, email, password, checkPassword }) {
   const response = await api.post('/users/signup', {
