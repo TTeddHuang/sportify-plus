@@ -13,6 +13,10 @@ const props = defineProps({
   initialData: {
     type: Array,
     default: () => []
+  },
+  courseId: {
+    type: [String, Number],
+    default: null
   }
 })
 
@@ -121,6 +125,10 @@ const onFileChange = async (section, file) => {
       size: section.fileSize
     }
 
+    if (props.courseId != null) {
+      uploadData.courseId = props.courseId
+    }
+
     const { data } = await axios.post(
       'https://sportify.zeabur.app/api/v1/mux/upload-url',
       uploadData,
@@ -141,8 +149,8 @@ const onFileChange = async (section, file) => {
       throw new Error('無法獲取上傳 URL')
     }
 
-    console.log(data)
-    console.log(uploadData)
+    console.log('上傳資料:', uploadData)
+    console.log('後端回應:', data)
 
     const upload = UpChunk.createUpload({
       endpoint: url,

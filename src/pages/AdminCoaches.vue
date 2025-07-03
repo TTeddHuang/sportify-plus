@@ -33,14 +33,6 @@
                 教練管理
               </router-link>
             </li>
-            <li
-              class="list-group-item"
-              :class="{ active: route.path === '/admin/data-analysis' }"
-            >
-              <router-link to="/admin/data-analysis" class="nav-link">
-                報表管理
-              </router-link>
-            </li>
           </ul>
         </div>
       </div>
@@ -104,7 +96,7 @@
               <input
                 v-model="searchKeyword"
                 type="text"
-                class="form-control ps-2 border-start-0"
+                class="form-control ps-2"
                 placeholder="搜尋教練名稱..."
                 aria-label="Search"
                 aria-describedby="basic-addon1"
@@ -123,6 +115,7 @@
                   <th class="th-custom">教練名稱</th>
                   <th class="th-custom">瀏覽次數</th>
                   <th class="th-custom">開課類別</th>
+                  <th class="th-custom">審核</th>
                   <th class="th-custom">操作</th>
                 </tr>
               </thead>
@@ -132,12 +125,20 @@
                   <td class="td-custom">{{ coach.coach_name }}</td>
                   <td class="td-custom">{{ coach.numbers_of_view }}</td>
                   <td class="td-custom">
-                    <!-- 把 coach.coach_skills 這個陣列裡的每個 skill_name 都顯示出來 -->
                     {{
-                      coach.coach_skills.length > 0
-                        ? coach.coach_skills[0].skill_name
+                      coach.coach_skills.length
+                        ? coach.coach_skills.map(s => s.skill_name).join('、') // ← 這裡換行顯示分隔符
                         : '—'
                     }}
+                  </td>
+                  <td class="td-custom">
+                    <span
+                      :class="
+                        isVerifiedRow(coach) ? 'text-success' : 'text-warning'
+                      "
+                    >
+                      {{ isVerifiedRow(coach) ? '已審核' : '未審核' }}
+                    </span>
                   </td>
                   <td class="td-custom">
                     <button
@@ -161,37 +162,67 @@
         </div>
 
         <!-- 分頁 -->
+        <!-- 分頁 -->
         <div v-if="totalPages > 1" class="mt-11">
           <nav class="d-flex justify-content-center" style="padding-top: 4px">
             <ul class="pagination mb-0">
+              <!-- ⬅︎ 上一頁 -->
               <li
                 class="page-item"
                 :class="{ disabled: currentPage === 1 }"
                 @click="changePage(currentPage - 1)"
               >
-                <a class="page-link"
-                  ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
-                  <span class="d-none d-lg-inline">上一頁</span></a
-                >
+                <a class="page-link px-2">
+                  <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">上一頁</span>
+                </a>
               </li>
+
+              <!-- 起始 … 與第一頁 -->
               <li
-                v-for="page in totalPages"
+                v-if="showStartDots"
+                class="page-item mx-1"
+                @click="changePage(1)"
+              >
+                <a class="page-link">1</a>
+              </li>
+              <li v-if="showStartDots" class="page-item disabled mx-1">
+                <a class="page-link">…</a>
+              </li>
+
+              <!-- 主要頁碼迴圈 -->
+              <li
+                v-for="page in visiblePages"
                 :key="page"
-                class="page-item mx-2"
+                class="page-item mx-1"
                 :class="{ active: page === currentPage }"
                 @click="changePage(page)"
               >
                 <a class="page-link">{{ page }}</a>
               </li>
+
+              <!-- 結尾 … 與最後一頁 -->
+              <li v-if="showEndDots" class="page-item disabled mx-1">
+                <a class="page-link">…</a>
+              </li>
+              <li
+                v-if="showEndDots"
+                class="page-item mx-1"
+                @click="changePage(totalPages)"
+              >
+                <a class="page-link">{{ totalPages }}</a>
+              </li>
+
+              <!-- ➡︎ 下一頁 -->
               <li
                 class="page-item"
                 :class="{ disabled: currentPage === totalPages }"
                 @click="changePage(currentPage + 1)"
               >
-                <a class="page-link"
-                  ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
-                  <span class="d-none d-lg-inline">下一頁</span></a
-                >
+                <a class="page-link px-2">
+                  <i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">下一頁</span>
+                </a>
               </li>
             </ul>
           </nav>
@@ -205,8 +236,8 @@
           aria-labelledby="detailModalLabel"
           aria-hidden="true"
         >
-          <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-700 p-5">
+          <div class="modal-dialog modal-xl p-3">
+            <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
                   教練詳細資訊
@@ -227,83 +258,125 @@
                       >
                         <div class="me-lg-4">
                           <strong>教練編號：<br class="d-xl-none" /></strong>
-                          {{ selectedCoach?.id }}
+                          <span class="des-custom">{{
+                            selectedCoach?.id
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教練名稱：</strong>
-                          {{ selectedCoach?.nickname }}
+                          <span class="des-custom">{{
+                            selectedCoach?.nickname
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>Email：</strong
-                          ><span>{{ selectedCoach?.email }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.email
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>手機：</strong
-                          ><span>{{ selectedCoach?.phone_number }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.phone_number
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>身分證字號：</strong
-                          ><span>{{ selectedCoach?.id_number }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.id_number
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>專長類別：</strong
-                          ><span
-                            v-for="s in selectedCoach?.skills || []"
-                            :key="s.name"
-                            class="me-1"
-                          >
-                            {{ s.name }}
-                          </span>
+                          ><template v-if="selectedCoach?.skills?.length">
+                            <span
+                              v-for="skill in selectedCoach.skills"
+                              :key="skill.name"
+                              class="des-custom mb-1"
+                            >
+                              {{ skill.name }}
+                            </span>
+                          </template>
+
+                          <!-- 無資料：放一格空框 + 提示文字 -->
+                          <span v-else class="des-custom text-muted"></span>
                         </div>
-                        <p>
-                          <strong>專長介紹：</strong>
-                          {{ selectedCoach?.skill_description }}
-                        </p>
+                        <div class="me-lg-4">
+                          <p>
+                            <strong>專長介紹：</strong
+                            ><span class="des-custom">{{
+                              selectedCoach?.skill_description
+                            }}</span>
+                          </p>
+                        </div>
                       </div>
                       <div
                         class="mb-3 d-flex flex-column gap-3 mobile-custom-40"
                       >
                         <div class="me-lg-4">
                           <strong>註冊時間：</strong
-                          ><span> {{ selectedCoach?.created_at }}</span>
+                          ><span class="des-custom">
+                            {{ selectedCoach?.created_at }}</span
+                          >
                         </div>
 
                         <div class="me-lg-4">
                           <strong>本名：</strong
-                          ><span>{{ selectedCoach?.realname }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.realname
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>出生日期：</strong
-                          ><span>{{ selectedCoach?.birthday }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.birthday
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教學經驗：</strong
-                          ><span>{{ selectedCoach?.experience_years }} 年</span>
+                          ><span class="des-custom"
+                            >{{ selectedCoach?.experience_years }} 年</span
+                          >
                         </div>
                         <div class="me-lg-4">
                           <strong>稱號：</strong
-                          ><span>{{ selectedCoach?.job_title }}</span>
+                          ><span class="des-custom">{{
+                            selectedCoach?.job_title
+                          }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-lg-4 text-center mb-lg-0 mb-5">
+                  <div class="col-lg-4 text-center mb-5">
                     <img
-                      :src="selectedCoach?.profile_image_url"
+                      v-if="selectedCoach?.profile_image_url"
+                      :src="selectedCoach.profile_image_url"
                       alt="教練大頭照"
                       class="rounded-circle mb-3"
                       style="width: 240px; height: 240px; object-fit: cover"
                     />
+                    <div
+                      v-else
+                      class="d-flex align-items-center justify-content-center rounded-circle bg-primary-500 mb-5 mx-auto"
+                      style="width: 240px; height: 240px"
+                      aria-label="預設頭像"
+                    >
+                      <i
+                        class="bi bi-person-fill text-white"
+                        style="font-size: 120px"
+                      ></i>
+                    </div>
                     <!-- 資格審核開關 -->
                     <div
                       class="form-check form-switch verify-switch d-flex flex-column align-items-center ps-0"
                     >
                       <input
                         id="coachVerified"
-                        v-model="isVerified"
+                        :checked="isVerified"
                         class="form-check-input m-0"
                         type="checkbox"
+                        @click.prevent="askVerify"
                       />
                       <label
                         class="form-check-label mt-2 fw-bold text-center"
@@ -318,7 +391,7 @@
 
                 <p class="mb-3 fw-bold">自我介紹：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -327,7 +400,7 @@
                 </div>
                 <p class="mb-3 fw-bold">學經歷與得獎經歷：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -336,7 +409,7 @@
                 </div>
                 <p class="mb-3 fw-bold">感興趣的事物：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -345,7 +418,7 @@
                 </div>
                 <p class="mb-3 fw-bold">最喜歡的一段話：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -354,7 +427,7 @@
                 </div>
                 <p class="mb-3 fw-bold">座右銘：</p>
                 <div
-                  class="border rounded p-3 mb-lg-3 mb-5"
+                  class="border rounded p-3 mb-lg-3 mb-5 bg-grey-100 border-primary-700"
                   style="background-color: #f8f9fa"
                 >
                   <p>
@@ -443,6 +516,38 @@
               </div>
             </div>
           </div>
+          <div
+            id="confirmVerifyModal"
+            class="modal fade"
+            tabindex="-1"
+            aria-labelledby="confirmVerifyLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-sm modal-dialog-centered p-5 p-lg-0">
+              <div
+                class="modal-content bg-grey-000 text-grey-700 border-grey-700"
+              >
+                <div class="modal-header border-0">
+                  <h5 id="confirmVerifyLabel" class="modal-title">確認操作</h5>
+                  <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="mb-0">{{ confirmText }}</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                  <button
+                    class="btn btn-outline-primary-600 text-primary-600"
+                    data-bs-dismiss="modal"
+                  >
+                    取消
+                  </button>
+                  <button class="btn btn-primary" @click="doVerify">
+                    確定
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- ※ Modal HTML 放在此處即可，不影響其他區塊排版 -->
       </div>
@@ -451,7 +556,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -483,6 +588,8 @@ async function checkAdmin() {
     return false
   }
 }
+// 確認是否審核通過
+const isVerified = ref(false)
 
 // -----------------------------------------------
 // === 教練列表相關狀態（把所有頁都拉下來） ===
@@ -631,6 +738,48 @@ watch([selectedSkill, selectedCoachName, searchKeyword], () => {
   currentPage.value = 1
 })
 
+const showStartDots = computed(() => {
+  // 前面被省略的頁數 ≥ 2 才顯示 …
+  return visiblePages.value[0] > 2
+})
+
+const showEndDots = computed(() => {
+  // 後面被省略的頁數 ≥ 2 才顯示 …
+  const last = visiblePages.value[visiblePages.value.length - 1]
+  return totalPages.value - last > 1
+})
+
+const maxButtons = ref(7) // 預設桌機 7 顆
+
+const updateMaxButtons = () => {
+  maxButtons.value = window.innerWidth < 576 ? 5 : 7 // <576px 改 5 顆
+}
+
+onMounted(() => {
+  updateMaxButtons()
+  window.addEventListener('resize', updateMaxButtons)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateMaxButtons)
+})
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const half = Math.floor(maxButtons.value / 2)
+
+  let start = Math.max(1, current - half)
+  let end = start + maxButtons.value - 1
+  if (end > total) {
+    end = total
+    start = Math.max(1, end - maxButtons.value + 1)
+  }
+
+  const arr = []
+  for (let i = start; i <= end; i++) arr.push(i)
+  return arr
+})
+
 // 取得某位教練詳細資料
 async function fetchCoachDetail(coachId) {
   try {
@@ -642,13 +791,94 @@ async function fetchCoachDetail(coachId) {
     if (!res.data.status) {
       throw new Error(res.data.message || '讀取失敗')
     }
-    // 注意：把 coachDetails 塞到 selectedCoach
-    selectedCoach.value = res.data.data.coachDetails
+
+    const detail = res.data.data.coachDetails
+
+    selectedCoach.value = detail
+    isVerified.value = detail.coach_is_verified
     // 顯示 Modal
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
   }
 }
+watch(
+  () => selectedCoach.value?.is_verified,
+  val => {
+    if (val !== undefined) isVerified.value = val
+  }
+)
+async function updateVerifyStatus() {
+  if (!selectedCoach.value) return false
+
+  const token = localStorage.getItem('token')
+  const newStatus = isVerified.value ? 'approved' : 'rejected'
+
+  try {
+    // ⬇︎ 後端通常會回最新狀態；若沒有回，改完再手動塞
+    const res = await axios.patch(
+      `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/review`,
+      { status: newStatus },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    /* ❶ 以後端回傳為準；若沒回，就用 isVerified */
+    const verified =
+      res.data?.data?.coach_is_verified ?? // 後端有回
+      isVerified.value // 否則用目前勾選
+
+    // ──同步 Modal 內資料──
+    selectedCoach.value.is_verified = verified
+    selectedCoach.value.coach_is_verified = verified
+
+    // ──同步列表 row──
+    const row = allCoaches.value.find(
+      c => c.coach_id === selectedCoach.value.id
+    )
+    if (row) row.coach_is_verified = verified
+
+    return true
+  } catch (err) {
+    console.error('更新審核狀態失敗', err)
+    alert('更新失敗，請稍後再試')
+    return false
+  }
+}
+
+function isVerifiedRow(coach) {
+  return coach.coach_is_verified === true || coach.is_verified === true
+}
+
+const wantVerify = ref(false)
+const confirmText = ref('')
+
+function askVerify() {
+  wantVerify.value = !isVerified.value
+
+  confirmText.value = `確定要將此教練標記為「${
+    wantVerify.value ? '資格已審核' : '資格未審核'
+  }」嗎？`
+
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('confirmVerifyModal')
+  ).show()
+  document.getElementById('coachVerified').checked = isVerified.value
+}
+
+async function doVerify() {
+  isVerified.value = wantVerify.value
+  const ok = await updateVerifyStatus()
+
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getInstance(
+    document.getElementById('confirmVerifyModal')
+  )?.hide()
+
+  if (!ok) {
+    isVerified.value = !wantVerify.value
+  }
+}
+
 const courses = ref([])
 const selectedCategory = ref('全部課程')
 const selectedInstructor = ref('全部講師')
@@ -746,14 +976,20 @@ function goToAdminCourse(courseId) {
 // 「點擊檢視」要開 modal
 
 function openDetailModal(coachId) {
-  // const coach = allCoaches.value.find(c => c.coach_id === coachId)
-  // if (!coach) return
-  // selectedCoach.value = coach
+  // 先用列表現成資料顯示，使用者看不到閃動
+  const row = allCoaches.value.find(c => c.coach_id === coachId)
+  if (row) {
+    selectedCoach.value = { ...row } // shallow copy 就好
+    isVerified.value = row.coach_is_verified
+  }
+
+  // 之後再去拉 detail，把缺的欄位補齊
   fetchCoachDetail(coachId)
-  const modalEl = document.getElementById('detailModal')
+
   // eslint-disable-next-line no-undef
-  const bs = new bootstrap.Modal(modalEl)
-  bs.show()
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('detailModal')
+  ).show()
 }
 
 // onMounted 先檢查管理者身分，通過才呼叫 fetchAllCoaches()
@@ -792,17 +1028,6 @@ const coachOptions = computed(() => {
   list.forEach(c => set.add(c.coach_name))
   return Array.from(set)
 })
-
-// openDetailModal：如果你有要開「教練詳細 Modal」的邏輯，請在這裡補上
-// -----------------------------------------
-// function openDetailModal(coachId) {
-// 這裡可自行呼叫 GET /admin/coaches/:coachId/details，
-// 然後把資料放到某個 ref，並開啟 Bootstrap Modal
-// console.log('點擊檢視教練', coachId)
-// 例如：
-// axios.get(`/api/v1/admin/coaches/${coachId}/details`, { headers: ... })
-//   .then(res => { /* 塞資料 & show Modal */ })
-// }
 </script>
 
 <style scoped lang="scss">
@@ -873,7 +1098,8 @@ const coachOptions = computed(() => {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $primary-000;
+  background-color: $grey-000;
+  border: 1px solid $primary-600;
   margin-top: -38px;
   padding: 24px;
   color: black;
@@ -968,5 +1194,17 @@ textarea::placeholder {
   @media (max-width: 992px) {
     width: 100%;
   }
+}
+.des-custom {
+  margin-top: 8px;
+  background-color: $grey-100;
+  border: 1px solid $primary-700;
+  color: $grey-700;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background-clip: padding-box;
+  border-radius: 6px;
+  min-height: 40px;
 }
 </style>

@@ -37,7 +37,7 @@
 
       <!-- 右側主區塊 -->
       <div class="p-lg-8 px-2 py-8 w-100" style="max-width: 1056px">
-        <h2 class="fs-lg-4 mb-lg-8 mb-6">你的專屬教練群</h2>
+        <h2 class="fs-lg-4">你的專屬教練群</h2>
 
         <!-- 無訂閱狀態 -->
         <div v-if="!hasValidSubscription" class="text-center py-8">
@@ -61,8 +61,9 @@
         <div v-else>
           <!-- 課程類型按鈕 -->
           <div ref="scrollWrapper" class="scrollable-btn-wrapper">
+            <!-- 加寬上下區塊，讓滑動更容易 -->
             <div
-              class="scrollable-btn-group d-flex flex-row align-items-center mb-lg-8 mb-6"
+              class="scrollable-btn-group d-flex flex-row align-items-center my-lg-8 my-6"
               @scroll="onScroll"
             >
               <div
@@ -170,10 +171,10 @@
                   />
                   <div class="card-body p-0">
                     <h5 class="card-title fs-7 mb-2 fw-bold">
-                      {{ course.coach_name }}
+                      {{ course.course_name }}
                     </h5>
                     <p class="card-text mb-2 fs-7">
-                      {{ course.coach_title }}
+                      {{ course.coach_name }}
                     </p>
 
                     <router-link
@@ -448,11 +449,13 @@ const fetchAllUserCourses = async token => {
     results.forEach(r => allData.push(...r.data.data))
 
     // 最後一次性寫入 courses
-    courses.value = allData.map(c => ({
-      ...c,
-      isRated: false,
-      isFavorited: c.isFavorited || false
-    }))
+    courses.value = allData
+      .filter(c => c.is_approved) // ← 只留下審核通過
+      .map(c => ({
+        ...c,
+        isRated: false,
+        isFavorited: c.isFavorited || false
+      }))
 
     // 為每堂課補抓評分狀態
     await Promise.all(courses.value.map(c => fetchUserRatingByCourseId(c)))
@@ -572,6 +575,7 @@ const submitRating = async () => {
   const modalEl = document.getElementById('ratingModal')
   if (modalEl) {
     const modal =
+      // eslint-disable-next-line no-undef
       bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
   }
@@ -625,6 +629,7 @@ const openRatingModal = async course => {
     const modalEl = document.getElementById('ratingModal')
     if (modalEl) {
       modalInstance.value =
+        // eslint-disable-next-line no-undef
         bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
       modalInstance.value.show()
     }
@@ -799,7 +804,7 @@ onBeforeUnmount(() => {
 }
 .scroll-hint {
   position: absolute;
-  top: 0;
+  top: 32px;
   right: 0;
   width: 48px;
   height: 40px;

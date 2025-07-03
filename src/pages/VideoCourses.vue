@@ -8,50 +8,79 @@
             <h3 class="fs-6 px-3 fw-bold text-center">
               {{ courseName }}
             </h3>
-            <hr class="divider my-5" />
+            <div class="my-4 px-3 border-bottom border-primary-000">
+              <div class="progress" style="height: 12px">
+                <div
+                  class="progress-bar bg-primary-600"
+                  role="progressbar"
+                  :style="{ width: progressPercent + '%' }"
+                  :aria-valuenow="progressPercent"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <p class="fs-8 text-end text-grey-500 mt-1">
+                {{ finishedCount }} / {{ totalCount }} 章節 ({{
+                  progressPercent
+                }}%)
+              </p>
+            </div>
+
             <ul class="list-group list-group-flush">
-              <!-- 每個 li 代表一天的 Lesson -->
-              <li
-                v-for="(lesson, idx) in lessons"
-                :key="idx"
-                :class="{
-                  finished: lesson.isFinished,
-                  watching: lesson.isCurrentWatching
-                }"
-                class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                style="padding: 0.75rem 1rem"
-                @click="selectLesson(lesson)"
-              >
-                <div class="d-flex flex-column text-center w-100">
-                  <p class="fs-9 mb-1" style="height: 42px">
-                    {{ lesson.name }}
-                  </p>
-                  <div class="d-flex align-items-center justify-content-center">
-                    <i
-                      v-if="lesson.isFinished"
-                      class="bi bi-check-circle-fill text-success fs-5"
-                    ></i>
-                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                    <p class="text-secondary mb-0 fs-9 ms-1">
-                      {{
-                        lesson.length !== '未提供'
-                          ? lesson.length + ' 分鐘'
-                          : '未提供'
-                      }}
-                      分鐘
-                    </p>
-                  </div>
-                </div>
-                <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
-              </li>
+              <template v-for="group in groupedLessons" :key="group.title">
+                <li
+                  class="list-group-title fw-bold text-center fs-7"
+                  @click="toggleGroup(group.title)"
+                >
+                  <span class="flex-grow-1">{{ group.title }}</span>
+                  <i
+                    class="bi ms-3"
+                    :class="
+                      isOpen(group.title) ? 'bi-chevron-up' : 'bi-chevron-down'
+                    "
+                  ></i>
+                </li>
+                <template v-if="isOpen(group.title)">
+                  <li
+                    v-for="(lesson, idx) in group.items"
+                    :key="idx"
+                    :class="{
+                      finished: lesson.isFinished,
+                      watching: lesson.isCurrentWatching
+                    }"
+                    class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                    @click="selectLesson(lesson)"
+                  >
+                    <div class="d-flex flex-column text-center w-100">
+                      <p class="fs-9 mb-1" style="height: 42px">
+                        {{ lesson.name }}
+                      </p>
+                      <div
+                        class="d-flex align-items-center justify-content-center"
+                      >
+                        <i
+                          v-if="lesson.isFinished"
+                          class="bi bi-check-circle-fill text-success fs-5"
+                        ></i>
+                        <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                        <p class="text-secondary mb-0 fs-9 ms-1">
+                          {{ lesson.length }}
+                        </p>
+                      </div>
+                    </div>
+                    <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                  </li>
+                </template>
+              </template>
             </ul>
           </div>
         </div>
 
         <!-- 右側主區塊：你的專屬教練群 -->
         <div class="p-lg-8 p-2 py-6 w-100" style="max-width: 1056px">
-          <h3 class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
+          <h3 ref="playerTop" class="mb-lg-8 mb-5">{{ currentLesson.name }}</h3>
           <!-- 992px以下出現章節按鈕 -->
+
           <button
             class="btn btn-primary-600 d-lg-none mb-3"
             type="button"
@@ -64,22 +93,18 @@
           <!-- 播放影片 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
-              <!-- 假設後端有提供一個 video_url，這裡就用 currentLesson.video_url -->
-              <!-- 下面只是示意，實際要看你的資料有哪些欄位 -->
-              <img
-                v-if="!currentLesson.video_url"
-                src="@/assets/images/video1.png"
-                class="rounded-2 video-cover"
+              <HlsPlayer
+                v-if="videoSrc"
+                :key="currentLesson.chapterId"
+                :src="videoSrc"
+                :poster="courseDetail.course.image_url"
+                :plan="memberPlan"
               />
-              <video
+              <img
                 v-else
-                :src="currentLesson.video_url"
-                class="rounded-2"
-                controls
-              ></video>
-              <div class="play-icon position-absolute">
-                <i class="bi bi-play-circle-fill"></i>
-              </div>
+                :src="courseDetail.course.image_url"
+                class="rounded-2 video-cover w-100"
+              />
             </div>
           </div>
           <!-- 課程標題與統計 -->
@@ -109,7 +134,7 @@
           <!-- 課程圖片與介紹 -->
           <div class="gy-4 d-lg-flex mb-lg-12 mb-6">
             <div
-              class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100"
+              class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100 w-100"
               style="background-color: rgba(255, 255, 255, 0.05)"
             >
               <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
@@ -475,7 +500,7 @@
         </div>
         <div
           id="lessonDrawer"
-          class="offcanvas offcanvas-start d-lg-none"
+          class="offcanvas offcanvas-start d-lg-none px-3 py-5"
           tabindex="-1"
           aria-labelledby="lessonDrawerLabel"
         >
@@ -485,48 +510,81 @@
             </h5>
             <button
               type="button"
-              class="btn-close bg-white lesson-close btn-close-white"
+              class="btn-close bg-white lesson-close btn-close-white ms-3"
               data-bs-dismiss="offcanvas"
             ></button>
+          </div>
+          <div class="px-3">
+            <div class="progress" style="height: 12px">
+              <div
+                class="progress-bar bg-primary-600"
+                role="progressbar"
+                :style="{ width: progressPercent + '%' }"
+                :aria-valuenow="progressPercent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <p class="fs-8 text-end text-grey-500 mt-1">
+              {{ finishedCount }} / {{ totalCount }} 章節 ({{
+                progressPercent
+              }}%)
+            </p>
           </div>
 
           <div class="offcanvas-body p-0">
             <!-- 章節清單：直接複用你現成的 li -->
             <ul class="list-group list-group-flush">
               <!-- 每個 li 代表一天的 Lesson -->
-              <li
-                v-for="(lesson, idx) in lessons"
-                :key="idx"
-                :class="{
-                  finished: lesson.isFinished,
-                  watching: lesson.isCurrentWatching
-                }"
-                class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                style="padding: 0.75rem 1rem"
-                @click="selectLesson(lesson)"
-              >
-                <div class="d-flex flex-column text-center w-100">
-                  <p class="fs-9 mb-1" style="height: 42px">
-                    {{ lesson.name }}
-                  </p>
-                  <div class="d-flex align-items-center justify-content-center">
-                    <i
-                      v-if="lesson.isFinished"
-                      class="bi bi-check-circle-fill text-success fs-5"
-                    ></i>
-                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                    <p class="text-secondary mb-0 fs-9 ms-1">
-                      {{
-                        lesson.length !== '未提供'
-                          ? lesson.length + ' 分鐘'
-                          : '未提供'
-                      }}
-                      分鐘
-                    </p>
-                  </div>
-                </div>
-                <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
-              </li>
+              <template v-for="group in groupedLessons" :key="group.title">
+                <li
+                  class="list-group-title fw-bold text-center fs-7 d-flex align-items-center"
+                  @click="toggleGroup(group.title)"
+                >
+                  <span class="flex-grow-1">{{ group.title }}</span>
+                  <i
+                    class="bi ms-3"
+                    :class="
+                      isOpen(group.title) ? 'bi-chevron-up' : 'bi-chevron-down'
+                    "
+                  ></i>
+                </li>
+                <template v-if="isOpen(group.title)">
+                  <li
+                    v-for="(lesson, idx) in group.items"
+                    :key="idx"
+                    :class="{
+                      finished: lesson.isFinished,
+                      watching: lesson.isCurrentWatching
+                    }"
+                    class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                    @click="selectLesson(lesson)"
+                  >
+                    <div class="d-flex flex-column text-center w-100">
+                      <p class="fs-9 mb-1" style="height: 42px">
+                        {{ lesson.name }}
+                      </p>
+                      <div
+                        class="d-flex align-items-center justify-content-center"
+                      >
+                        <i
+                          v-if="lesson.isFinished"
+                          class="bi bi-check-circle-fill text-success fs-5"
+                        ></i>
+                        <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                        <p class="text-secondary mb-0 fs-9 ms-1">
+                          {{
+                            lesson.length !== '未提供'
+                              ? lesson.length
+                              : '未提供'
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                    <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                  </li>
+                </template>
+              </template>
             </ul>
           </div>
         </div>
@@ -536,26 +594,60 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import HlsPlayer from '@/components/HlsPlayer.vue'
+
+function pickNextLesson(list) {
+  const next = list.find(l => !l.isFinished)
+  return next || list[0]
+}
+
+function pickCurrentPlan(subs) {
+  // 1. 由新到舊排
+  const sorted = [...subs].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
+  // 2. 找到第一筆尚未到期的訂閱
+  const today = Date.now()
+  const current = sorted.find(sub => new Date(sub.end_at).getTime() >= today)
+
+  // 3. 判斷方案
+  if (!current) return 'wellness'
+  const name = current.plan.toLowerCase()
+  if (name.includes('eagerness')) return 'eagerness'
+  if (name.includes('fitness')) return 'fitness'
+  return 'wellness'
+}
+
+/* ② ── 給 HlsPlayer 用的 plan 變數 ───────────────────────────── */
+const memberPlan = ref('wellness')
+
+const route = useRoute()
 
 // 1. 先準備要放 sidebar 資料的 ref
 const courseName = ref('') // ← 這裡用來存 sidebar 回傳的 courseName
 const lessons = ref([]) // ← 這裡用來存 sidebar 回傳的 chapter 陣列
-
-// currentLesson 存「當下被選到的章節物件」
-const currentLesson = ref({
-  // 先放個預設值，避免 template 一開始就錯
-  name: '',
-  length: '',
-  isFinished: false,
-  isCurrentWatching: false
+const groupedLessons = computed(() => {
+  const arr = []
+  let group = null
+  lessons.value.forEach(lsn => {
+    if (!group || group.title !== lsn.title) {
+      group = { title: lsn.title, items: [] }
+      arr.push(group)
+    }
+    group.items.push(lsn)
+  })
+  return arr
 })
-
-const route = useRoute()
 const courseId = route.params.courseId
 const courseDetail = ref(null)
+const currentLesson = ref({})
+const selectedChapId = ref('')
+
 const openIndexes = ref([])
 const userRatings = ref({
   paginatedData: [],
@@ -571,50 +663,99 @@ const userRatings = ref({
   }
 })
 
-// API 資料載入後再初始化 openIndexes
+const videoSrc = computed(
+  () =>
+    currentLesson.value?.video_url ||
+    courseDetail.value?.course?.video_url ||
+    ''
+)
+
+async function fetchSidebar(id, token) {
+  const { data } = await axios.get(
+    `https://sportify.zeabur.app/api/v1/users/courses/${id}/sidebar`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  return data.data
+}
+
+async function fetchDetails(id, chapterId, token) {
+  // 不帶 chapterId；後端會回「預設章節」的影片與 course info
+  const { data } = await axios.get(
+    `https://sportify.zeabur.app/api/v1/users/courses/${id}/details`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { chapterId }
+    }
+  )
+  return data.data // 真正 payload
+}
 
 onMounted(async () => {
   try {
-    const token = localStorage.getItem('token') // ← 確保你已經登入並且 token 在 localStorage
-    const sidebarRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/users/courses/${courseId}/sidebar`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}` // ← 把 token 加到 Authorization header
-        }
-      }
-    )
-    lessons.value = sidebarRes.data.data.chapter
-    // 初始化 currentLesson：優先找出 isCurrentWatching 為 true 的
-    const watching = lessons.value.find(item => item.isCurrentWatching)
-    if (watching) {
-      currentLesson.value = watching
-    } else if (lessons.value.length > 0) {
-      // 如果沒有人標註 isCurrentWatching，就用第一筆當預設
-      currentLesson.value = lessons.value[0]
-    }
+    const token = localStorage.getItem('token')
+    const sb = await fetchSidebar(courseId, token)
+    courseName.value = sb.courseName
+    lessons.value = sb.chapter.map(ch => ({ ...ch, isCurrentWatching: false }))
 
-    courseName.value = sidebarRes.data.data.courseName // ← 塞回傳的 courseName
-    lessons.value = sidebarRes.data.data.chapter // ← 塞回傳的章節陣列
+    /* ② 預設選未看第一順位 & 取細節 ------------------------------- */
+    const first = pickNextLesson(lessons.value)
+    if (!first) return
+    first.isCurrentWatching = true
+    currentLesson.value = first
+    selectedChapId.value = first.chapterId
 
-    const detailRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`
-    )
-    courseDetail.value = detailRes.data.data
+    openOnly(first.title)
 
-    openIndexes.value = courseDetail.value.chapters.map(() => false)
+    collapsed.value[first.title] = true
 
-    const ratingsRes = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/ratings`
-    )
-    userRatings.value = ratingsRes.data.data
-  } catch (err) {
-    console.error('載入資料失敗', err)
+    const detail = await fetchDetails(courseId, first.chapterId, token)
+    courseDetail.value = detail
+    // 把影片塞回 lesson，避免下次再 call
+    first.video_url = detail.course.video_url
+
+    openIndexes.value = detail.chapters.map(() => false)
+
+    currentLesson.value =
+      lessons.value.find(l => l.isCurrentWatching) || lessons.value[0]
+
+    openIndexes.value = detail.chapters.map(() => false)
+
+    /* ③ ratings（如需） -------------------------------------- */
+    await fetchRatings(courseId)
+  } catch (e) {
+    console.error('載入資料失敗', e)
   }
 })
 
-function selectLesson(lesson) {
+const playerTop = ref(null)
+
+async function selectLesson(lesson) {
+  lessons.value.forEach(l => {
+    l.isCurrentWatching = l.chapterId === lesson.chapterId
+  })
+
   currentLesson.value = lesson
+  selectedChapId.value = lesson.chapterId
+
+  // ★ 目前只切 local 狀態，不再呼叫 details
+  currentLesson.value = lesson
+  if (!lesson.video_url) {
+    try {
+      const token = localStorage.getItem('token')
+      const detail = await fetchDetails(courseId, lesson.chapterId, token)
+
+      courseDetail.value = detail
+      lesson.video_url = detail.course.video_url // 快取影片
+      openIndexes.value = detail.chapters.map(() => false) // 同步章節介紹
+    } catch (e) {
+      console.error('載入章節影片失敗', e)
+    }
+  }
+  await nextTick()
+  playerTop.value?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
 }
 
 function toggle(idx) {
@@ -664,8 +805,100 @@ async function fetchRatings(courseId) {
   }
 }
 
+const collapsed = ref({})
+function isOpen(title) {
+  return collapsed.value[title] !== false // undefined → 當作展開
+}
+function openOnly(title) {
+  groupedLessons.value.forEach(g => {
+    collapsed.value[g.title] = g.title === title
+  })
+}
+function toggleGroup(title) {
+  if (isOpen(title)) {
+    collapsed.value[title] = false
+  } else {
+    openOnly(title)
+  }
+}
+
+function initVideoProgressListener() {
+  const video = document.querySelector('.media-block video')
+  if (!video) return
+
+  video.removeEventListener('timeupdate', handleTimeupdate)
+  video.removeEventListener('ended', handleEnded)
+
+  video.addEventListener('timeupdate', handleTimeupdate)
+  video.addEventListener('ended', handleEnded)
+}
+
+function handleTimeupdate(e) {
+  const v = e.target
+  if (!v.duration) return
+  const ratio = v.currentTime / v.duration
+  if (ratio >= 0.9) finishCurrentLesson(v) // 90 %
+}
+function handleEnded(e) {
+  finishCurrentLesson(e.target)
+} // 影片播完
+
+async function finishCurrentLesson(videoEl) {
+  const lesson = currentLesson.value
+  if (!lesson || lesson.isFinished) return
+
+  try {
+    const token = localStorage.getItem('token')
+    await axios.post(
+      'https://sportify.zeabur.app/api/v1/users/view-progress',
+      {
+        sub_chapter_id: lesson.chapterId,
+        watched_seconds: Math.floor(videoEl.duration),
+        is_completed: true
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    lesson.isFinished = true
+  } catch (err) {
+    console.warn('送觀看進度失敗，稍後重送', err)
+    /* ➜ 進階：也可以把失敗的 payload 暫存，下次打開時再補送 */
+  }
+}
+
+/* ③ ── 元件掛載時抓訂閱 + 解析 ───────────────────────────────── */
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token') || ''
+    const { data } = await axios.get(
+      'https://sportify.zeabur.app/api/v1/users/subscriptions',
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+
+    if (data.status) {
+      memberPlan.value = pickCurrentPlan(data.data)
+    }
+  } catch (err) {
+    console.error('取得訂閱失敗：', err)
+  }
+})
+/*  完成度統計  */
+const finishedCount = computed(
+  () => lessons.value.filter(l => l.isFinished).length
+)
+const totalCount = computed(() => lessons.value.length)
+const progressPercent = computed(() =>
+  totalCount.value === 0
+    ? 0
+    : Math.round((finishedCount.value / totalCount.value) * 100)
+)
+
 onMounted(() => {
   fetchRatings(courseId)
+})
+watch(videoSrc, async () => {
+  // NEW
+  await nextTick() // 等 DOM 重新渲染
+  initVideoProgressListener()
 })
 </script>
 
@@ -741,6 +974,17 @@ onMounted(() => {
     border-radius: 4px;
     color: $primary-100;
   }
+}
+.list-group-title {
+  border: none;
+  padding: 8px 16px;
+  list-style: none;
+  border-bottom: 1px solid $primary-000;
+  cursor: pointer;
+}
+.list-group-item.watching {
+  background: $primary-600;
+  color: $primary-000;
 }
 
 /* List item hover 效果（可以自行調整） */

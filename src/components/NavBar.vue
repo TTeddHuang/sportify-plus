@@ -51,8 +51,8 @@ const menuItems = computed(() => {
     return [
       { to: '/coach/courses/new', label: '建立新課程', icon: 'bi-plus-circle' },
       { to: '/coach/courses', label: '我的課程資料', icon: 'bi-collection' },
-      { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' },
-      { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
+      { to: '/coach/profile', label: '編輯個人資料', icon: 'bi-person-gear' }
+      // { to: '/coach/earnings', label: '收益管理', icon: 'bi-graph-up' }
     ]
   } else if (isUser.value) {
     return [
@@ -64,8 +64,8 @@ const menuItems = computed(() => {
     return [
       { to: '/admin/courses', label: '課程管理' },
       { to: '/admin/users', label: '會員管理' },
-      { to: '/admin/coaches', label: '教練管理' },
-      { to: '/admin/reports', label: '報表管理' }
+      { to: '/admin/coaches', label: '教練管理' }
+      // { to: '/admin/reports', label: '報表管理' }
     ]
   }
   return []
@@ -97,7 +97,7 @@ function handleLogout() {
           <li v-for="item in navItems" :key="item.to" class="nav-item me-3">
             <router-link
               :to="item.to"
-              class="nav-link text-primary-000"
+              class="nav-link"
               :class="{ active: route.path.startsWith(item.to) }"
               >{{ item.label }}</router-link
             >
@@ -105,12 +105,12 @@ function handleLogout() {
           <li v-if="isLogin" class="nav-item me-3">
             <router-link
               :to="centerLink"
-              class="nav-link text-primary-000"
+              class="nav-link"
               :class="{
                 active:
-                  route.path.startsWith('/user') ||
-                  route.path.startsWith('/coach') ||
-                  route.path.startsWith('/admin')
+                  route.path.startsWith('/user/') ||
+                  route.path.startsWith('/coach/') ||
+                  route.path.startsWith('/admin/')
               }"
             >
               {{ centerLabel }}
@@ -119,7 +119,7 @@ function handleLogout() {
 
           <li v-if="isLogin" class="nav-item dropdown">
             <a
-              class="nav-link dropdown-toggle d-flex align-items-center text-primary-000"
+              class="nav-link dropdown-toggle d-flex align-items-center"
               href="#"
               role="button"
               data-bs-toggle="dropdown"
@@ -159,7 +159,15 @@ function handleLogout() {
             </ul>
           </li>
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-000">
+            <router-link
+              to="/login"
+              class="nav-link"
+              :class="{
+                active:
+                  route.path.startsWith('/login') ||
+                  route.path.startsWith('/users/signup')
+              }"
+            >
               登入/註冊
             </router-link>
           </li>
@@ -205,7 +213,13 @@ function handleLogout() {
 
           <ul class="dropdown-menu dropdown-menu-end mt-2">
             <li v-for="item in menuItems" :key="item.to">
-              <router-link :to="item.to" class="dropdown-item">
+              <router-link
+                :to="item.to"
+                class="dropdown-item"
+                :class="{
+                  active: route.path === item.to
+                }"
+              >
                 {{ item.label }}
               </router-link>
             </li>
@@ -230,17 +244,40 @@ function handleLogout() {
       <div class="offcanvas-body">
         <ul class="navbar-nav">
           <li v-for="item in navItems" :key="item.to" class="nav-item">
-            <router-link :to="item.to" class="nav-link text-primary-600">
+            <router-link
+              :to="item.to"
+              class="nav-link"
+              :class="{
+                active: route.path === item.to
+              }"
+            >
               {{ item.label }}
             </router-link>
           </li>
           <li v-if="isLogin" class="nav-item">
-            <router-link :to="centerLink" class="nav-link text-primary-600">
+            <router-link
+              :to="centerLink"
+              class="nav-link"
+              :class="{
+                active:
+                  route.path.startsWith('/user/') ||
+                  route.path.startsWith('/coach/') ||
+                  route.path.startsWith('/admin/')
+              }"
+            >
               {{ centerLabel }}
             </router-link>
           </li>
           <li v-else class="nav-item">
-            <router-link to="/login" class="nav-link text-primary-600">
+            <router-link
+              to="/login"
+              class="nav-link"
+              :class="{
+                active:
+                  route.path.startsWith('/login') ||
+                  route.path.startsWith('/users/signup')
+              }"
+            >
               登入/註冊
             </router-link>
           </li>
@@ -251,8 +288,6 @@ function handleLogout() {
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/styles/all.scss';
-
 .offcanvas {
   background-color: $grey-000; // 白色背景
   top: 72px !important; // 向下移動，避免遮住 navbar（根據實際 navbar 高度調整）
@@ -262,6 +297,16 @@ function handleLogout() {
 }
 .offcanvas .nav-link {
   text-align: center;
+  color: $primary-600;
+  &:hover {
+    color: $primary-700;
+    background-color: $primary-300;
+    border-radius: 4px;
+  }
+  &.active {
+    color: $primary-100;
+    background-color: $primary-700;
+  }
 }
 .dropdown-menu {
   background-color: $grey-000; // 白底
@@ -278,9 +323,16 @@ function handleLogout() {
 }
 
 .dropdown-menu .dropdown-item:hover {
-  background-color: $primary-100; // hover 效果可自行定義
-  color: $primary-800;
+  color: $primary-700;
+  background-color: $primary-300;
+  border-radius: 4px;
 }
+
+.dropdown-menu .dropdown-item.active {
+  color: $primary-100;
+  background-color: $primary-700;
+}
+
 .default-avatar {
   background-color: $primary-600;
 }
@@ -293,5 +345,25 @@ function handleLogout() {
 .default-avatar {
   background-color: $primary-600;
   font-size: 14px;
+}
+
+.nav-link.show {
+  color: $primary-000;
+}
+
+.nav-link {
+  color: $primary-000;
+  border-radius: 4px;
+}
+
+.nav-link:hover {
+  color: $primary-700;
+  background-color: $primary-300;
+  border-radius: 4px;
+}
+
+.nav-link.active {
+  color: $primary-100;
+  background-color: $primary-700;
 }
 </style>

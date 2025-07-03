@@ -1,47 +1,61 @@
 <template>
   <div class="container mb-lg-12 mb-8">
-    <h1 class="fs-2 primary-000 my-lg-10 my-8">教練列表</h1>
+    <h1 class="fs-2 primary-000 mt-lg-10 mt-8 mb-lg-7 mb-3">教練列表</h1>
     <div class="d-xl-flex flex-row justify-content-between">
       <!-- 運動類別按鍵 -->
-      <div class="types-btn-wrapper gap-1">
+      <div class="scrollable-btn-wrapper">
         <div
-          class="btn-group types-btn-group gap-1 mb-xl-0 mb-5 d-flex flex-lg-wrap"
-          role="group"
-          aria-label="Basic outlined button group"
+          ref="scrollWrapper"
+          class="types-btn-wrapper gap-1"
+          @scroll="onScroll"
         >
-          <button
-            class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
-            :class="{ active: currentType === '' }"
-            @click="((currentType = ''), (currentPage = 1))"
+          <div
+            class="btn-group types-btn-group gap-1 my-5 d-flex flex-lg-wrap"
+            role="group"
+            aria-label="Basic outlined button group"
           >
-            教練類別
-          </button>
-          <button
-            v-for="skill in skills"
-            :key="skill.skill_id"
-            class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
-            :class="{ active: currentType === skill.skill_id }"
-            @click="((currentType = skill.skill_id), (currentPage = 1))"
-          >
-            {{ skill.course_type }}
-          </button>
-          <!-- 什麼時候要讓其他分類這個下拉選單出現? -->
-          <!-- <div class="dropdown">
-          <button
-            id="dropdownMenuButton"
-            class="btn btn-outline-primary dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            其他分類
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <li><a class="dropdown-item" href="#">登山</a></li>
-            <li><a class="dropdown-item" href="#">有氧</a></li>
-            <li><a class="dropdown-item" href="#">滑板</a></li>
-          </ul>
-        </div> -->
+            <button
+              class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
+              :class="{ active: currentType === '' }"
+              @click="((currentType = ''), (currentPage = 1))"
+            >
+              所有教練
+            </button>
+            <button
+              v-for="skill in primarySkills"
+              :key="skill.skill_id"
+              class="btn btn-outline-primary flex-shrink-0 text-nowrap flex-grow-0"
+              :class="{ active: currentType === skill.skill_id }"
+              @click="((currentType = skill.skill_id), (currentPage = 1))"
+            >
+              {{ skill.course_type }}
+            </button>
+            <div v-if="extraSkills.length" class="btn-group">
+              <button
+                class="btn btn-outline-primary dropdown-toggle rounded-start"
+                data-bs-toggle="dropdown"
+                data-bs-popper-config='{"strategy":"fixed"}'
+                type="button"
+              >
+                其他分類
+              </button>
+              <ul class="dropdown-menu text-center">
+                <li
+                  v-for="skill in extraSkills"
+                  :key="skill.skill_id"
+                  @click="selectType(skill.skill_id)"
+                >
+                  <a
+                    class="dropdown-item text-primary-600"
+                    :class="{ active: currentType === skill.skill_id }"
+                    href="#"
+                  >
+                    {{ skill.course_type }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -52,12 +66,6 @@
         :key="coach.coach_id"
         class="card position-relative"
       >
-        <!-- 教練技能需要嗎? 有複數&空陣列 如何處理 -->
-        <!-- <span
-          class="badge bg-primary-100 fs-9 text-grey-700 position-absolute"
-          >{{ coach.coach_skills[0].skill_name }}</span
-        > -->
-        <!-- API缺少照片URL，先用random user API 擋一下 -->
         <img
           :src="coach.coach_profile_image_url"
           class="card-img-top"
@@ -127,7 +135,7 @@
 import WaveBannerReverse from '@/components/WaveBannerReverse.vue'
 
 import axios from 'axios'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -138,8 +146,59 @@ const skills = ref([])
 const coaches = ref([])
 const pagination = ref({})
 
+const primarySkills = computed(() => skills.value.slice(0, 5))
+const extraSkills = computed(() => skills.value.slice(5))
+
+function selectType(skillId) {
+  currentType.value = skillId
+  currentPage.value = 1
+}
+
 const currentPage = ref(Number(route.query.page) || 1)
 const currentType = ref(route.query.skillId || '')
+
+// 滾動相關方法
+const hasScrolled = ref(false)
+const isOverflowing = ref(false)
+const scrollWrapper = ref(null)
+const onScroll = () => {
+  hasScrolled.value = true
+}
+
+let isDown = false
+let startX = 0
+let scrollLeft = 0
+
+const checkOverflow = () => {
+  const el = scrollWrapper.value
+  if (!el) return
+  const mobile = window.innerWidth <= 530
+  isOverflowing.value = mobile && el.scrollWidth > el.clientWidth
+}
+
+function onMouseDown(e) {
+  if (e.target.closest('button, a, .btn')) return
+
+  isDown = true
+  scrollWrapper.value.classList.add('dragging')
+  startX = e.pageX - scrollWrapper.value.offsetLeft
+  scrollLeft = scrollWrapper.value.scrollLeft
+  document.body.style.userSelect = 'none'
+}
+
+function onMouseMove(e) {
+  if (!isDown) return
+  e.preventDefault()
+  const x = e.pageX - scrollWrapper.value.offsetLeft
+  const walk = x - startX
+  scrollWrapper.value.scrollLeft = scrollLeft - walk
+}
+
+function onMouseUp() {
+  isDown = false
+  scrollWrapper.value.classList.remove('dragging')
+  document.body.style.userSelect = ''
+}
 
 async function fetchCoaches() {
   const { data } = await axios.get(
@@ -163,8 +222,19 @@ async function fetchSkill() {
 }
 
 onMounted(async () => {
+  checkOverflow()
+  window.addEventListener('resize', checkOverflow)
+
   await fetchCoaches()
   await fetchSkill()
+  // 設置拖拽事件
+  if (scrollWrapper.value) {
+    const el = scrollWrapper.value
+    el.addEventListener('mousedown', onMouseDown)
+    el.addEventListener('mousemove', onMouseMove)
+    el.addEventListener('mouseup', onMouseUp)
+    el.addEventListener('mouseleave', onMouseUp)
+  }
 })
 
 watch([currentPage, currentType], () => {
@@ -177,6 +247,17 @@ watch([currentPage, currentType], () => {
   })
   fetchCoaches()
   fetchSkill()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkOverflow)
+
+  if (scrollWrapper.value) {
+    const el = scrollWrapper.value
+    el.removeEventListener('mousedown', onMouseDown)
+    el.removeEventListener('mousemove', onMouseMove)
+    el.removeEventListener('mouseup', onMouseUp)
+    el.removeEventListener('mouseleave', onMouseUp)
+  }
 })
 </script>
 
@@ -240,28 +321,23 @@ watch([currentPage, currentType], () => {
 }
 
 .dropdown-menu {
-  min-width: 100%;
+  border: 0.5px solid $grey-000;
   background-color: $grey-000;
-  box-shadow: inset 0 0 0 1px $grey-400;
-  padding: 8px;
-  border: 0px;
-  transform: translate(0px, 480px);
+  text-align: center;
+  color: $primary-600;
+  min-width: auto;
+  width: 131px;
   & li {
     &:not(:last-child) {
       padding-bottom: 8px;
-    }
-    > .dropdown-item {
-      color: $primary-600;
-      text-align: center;
-      padding: 12px 41.5px;
     }
   }
 }
 
 .card-section {
-  margin: 40px 0px 80px 0px;
+  margin: 16px 0px 80px 0px;
   @media (max-width: 992px) {
-    margin: 32px 0px 40px 0px;
+    margin: 12px 0px 40px 0px;
   }
 }
 
@@ -355,6 +431,11 @@ watch([currentPage, currentType], () => {
   color: $primary-100;
   background-color: $primary-700;
 }
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+}
+
 .page-item {
   @media (max-width: 992px) {
     margin: 0 5px;
@@ -369,5 +450,25 @@ watch([currentPage, currentType], () => {
 }
 .pagination .page-link {
   cursor: pointer;
+}
+.scrollable-btn-wrapper {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE 10+ */
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome、Safari、Edge
+  }
+
+  &.dragging {
+    cursor: grabbing;
+  }
 }
 </style>

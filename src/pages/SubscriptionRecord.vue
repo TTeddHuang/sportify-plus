@@ -77,6 +77,7 @@
                   courseType.length > 3 || subscriptionStatus === 'trial-active'
                 "
                 class="btn btn-primary-600 me-2"
+                @click="$router.push('/user/courses')"
               >
                 所有
               </p>
@@ -85,6 +86,7 @@
                   v-for="type in courseType"
                   :key="type.skill_id"
                   class="btn btn-primary-600 me-2"
+                  @click="$router.push('/user/courses')"
                 >
                   {{ type.course_type }}
                 </p>
@@ -251,6 +253,26 @@ const totalPages = computed(() => meta.value.total_pages)
 // 存放課程類別
 const courseType = ref([])
 
+const cachedValidPlan = ref(null) // 取第一筆資料
+
+// 封裝成函式，之後可重複用
+function findValidPlan(list) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return (
+    list.find(r => {
+      const isPaid = r.isPaid ?? r.is_paid
+      const endAt = r.endAt ?? r.end_at
+      if (!isPaid || !endAt) return false
+
+      const endDate = new Date(endAt)
+      endDate.setHours(23, 59, 59, 999)
+      return endDate >= today
+    }) || null
+  )
+}
+
 // 5. 抓資料
 async function fetchSubscriptions(page = 1) {
   const token = localStorage.getItem('token')
@@ -268,11 +290,12 @@ async function fetchSubscriptions(page = 1) {
     )
 
     if (res.data.status) {
+      const raw = res.data.data
       // 先濾出已付款的記錄
       const paidRecords = res.data.data.filter(item => item.is_paid === true)
       console.log('已付款記錄:', paidRecords)
       // 你要的欄位映射
-      records.value = paidRecords.map(item => ({
+      records.value = raw.map(item => ({
         id: item.id,
         date: item.created_at,
         orderNumber: item.order_number,
@@ -287,6 +310,12 @@ async function fetchSubscriptions(page = 1) {
         isRenewal: item.is_renewal,
         isPaid: item.is_paid
       }))
+      //  只在第一頁時，嘗試更新 cachedValidPlan
+      if (page === 1 && !cachedValidPlan.value) {
+        const rawValid = findValidPlan(raw)
+        cachedValidPlan.value = rawValid ? mapRecord(rawValid) : null
+      }
+      records.value = raw.map(mapRecord)
       // 更新後端回傳的 meta
       meta.value = res.data.meta
       // 同步本地 currentPage
@@ -305,26 +334,7 @@ async function fetchSubscriptions(page = 1) {
   }
 }
 
-const currentValidPlan = computed(() => {
-  if (records.value.length === 0) return null
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // 設為當天00:00:00
-
-  // 找到第一筆未到期的已付款記錄
-  const validRecord = records.value.find(record => {
-    if (!record.isPaid) return false
-    if (!record.endAt) return false
-
-    const endDate = new Date(record.endAt)
-    endDate.setHours(23, 59, 59, 999) // 設為當天23:59:59
-
-    return endDate >= today // 當前日期 <= end_at
-  })
-
-  console.log('目前有效方案:', validRecord)
-  return validRecord
-})
+const currentValidPlan = computed(() => cachedValidPlan.value)
 
 // 計算目前訂閱狀態
 const subscriptionStatus = computed(() => {
@@ -385,6 +395,25 @@ onMounted(async () => {
   await initUser()
   fetchSubscriptions(1)
 })
+
+function mapRecord(item) {
+  const paid = item.is_paid
+  return {
+    id: item.id,
+    date: item.created_at,
+    orderNumber: item.order_number,
+    plan: item.plan,
+    period: item.period,
+    paymentMethod: paid ? item.payment_method || '免費試用' : '付款失敗',
+    invoiceUrl: item.invoice_image_url,
+    price: item.price,
+    nextPayment: item.next_payment,
+    endAt: item.end_at,
+    tradeNo: item.merchant_trade_no,
+    isRenewal: item.is_renewal,
+    isPaid: item.is_paid
+  }
+}
 
 async function unsubscribe(MerchantTradeNo) {
   try {

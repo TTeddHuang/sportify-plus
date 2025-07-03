@@ -54,13 +54,17 @@
           <!-- 播放影片試看 -->
           <div class="mb-lg-12 mb-6">
             <div class="media-block position-relative d-block">
-              <img
-                src="@/assets/images/video1.png"
-                class="rounded-2 video-cover"
+              <HlsPlayer
+                v-if="trailerSrc"
+                :src="trailerSrc"
+                :poster="courseDetail.course.image_url"
+                mode="preview"
               />
-              <div class="play-icon position-absolute">
-                <i class="bi bi-play-circle-fill"></i>
-              </div>
+              <img
+                v-else
+                :src="courseDetail.course.image_url"
+                class="rounded-2 video-cover w-100"
+              />
             </div>
           </div>
 
@@ -75,7 +79,6 @@
               <p class="fs-lg-5 fs-6 mb-0">教練介紹</p>
               <a
                 :href="courseDetail.coach.coachPage_Url"
-                target="_blank"
                 class="btn px-3 py-1 btn-outline-grey-400 mb-0 text-grey-000 fs-8"
               >
                 教練詳細資訊
@@ -445,6 +448,7 @@ import WaveBanner from '@/components/WaveBanner.vue'
 import CourseCarousel from '@/components/CourseCarousel.vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import HlsPlayer from '@/components/HlsPlayer.vue'
 
 const route = useRoute()
 const courseId = route.params.courseId
@@ -463,6 +467,13 @@ const userRatings = ref({
     }
   }
 })
+
+const trailerSrc = computed(
+  () =>
+    courseDetail.value?.course?.trailer_url ||
+    courseDetail.value?.course?.video_url ||
+    ''
+)
 
 // API 資料載入後再初始化 openIndexes
 onMounted(async () => {

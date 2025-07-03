@@ -200,6 +200,7 @@
                       <draggable
                         ref="editDraggableRef"
                         :initial-data="editForm.chapters"
+                        :course-id="editForm.id"
                         @course-id-received="handleCourseIdReceived"
                       ></draggable>
                     </div>
@@ -279,6 +280,11 @@ const isSubmitting = ref(false)
 const isUploadingThumbnail = ref(false)
 const thumbnailUrl = ref('')
 const thumbnailPublicId = ref('')
+const fileInput = ref(null)
+
+const triggerFileSelect = () => {
+  fileInput.value?.click()
+}
 
 async function getCourses() {
   try {
@@ -316,6 +322,19 @@ async function openEditModal(course) {
       const courseData = response.data.data
       console.log('課程資料:', courseData)
 
+      let sortedChapters = []
+      if (courseData.chapters && courseData.chapters.length > 0) {
+        sortedChapters = courseData.chapters
+          .sort((a, b) => (a.chapter_number || 0) - (b.chapter_number || 0))
+          .map(chapter => ({
+            ...chapter,
+            sub_chapter: (chapter.sub_chapter || []).sort(
+              (a, b) =>
+                (a.sub_chapter_number || 0) - (b.sub_chapter_number || 0)
+            )
+          }))
+      }
+
       // 填入表單資料
       editForm.value.id = course.course_id
       editForm.value.name = courseData.name
@@ -323,7 +342,7 @@ async function openEditModal(course) {
       editForm.value.category = courseData.sports_type
       editForm.value.currentImageUrl = courseData.image_url
       editForm.value.currentImageID = courseData.image_public_id
-      editForm.value.chapters = courseData.chapters
+      editForm.value.chapters = sortedChapters
 
       // 清除之前的預覽圖片和上傳狀態
       editPreviewURL.value = ''

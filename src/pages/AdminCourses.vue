@@ -33,14 +33,6 @@
                 教練管理
               </router-link>
             </li>
-            <li
-              class="list-group-item"
-              :class="{ active: route.path === '/admin/data-analysis' }"
-            >
-              <router-link to="/admin/data-analysis" class="nav-link">
-                報表管理
-              </router-link>
-            </li>
           </ul>
         </div>
       </div>
@@ -76,7 +68,7 @@
               <!--  下拉選單：選擇講師 -->
               <div class="dropdown">
                 <button
-                  id="dropdownInstructor"
+                  id="dropdownInstructors"
                   class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
                   type="button"
                   data-bs-toggle="dropdown"
@@ -138,7 +130,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="course in filteredCourses" :key="course.id">
+                  <tr v-for="course in paginatedCourses" :key="course.id">
                     <td class="td-custom">
                       {{ course.category }}
                     </td>
@@ -328,13 +320,14 @@
         <!-- ※ 建議把 Modal HTML 放在這裡（也就是 container 底部、在所有內容之後） -->
         <div
           id="detailModal"
+          ref="detailModal"
           class="modal fade"
           tabindex="-1"
           aria-labelledby="detailModalLabel"
           aria-hidden="true"
         >
           <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-grey-000 text-grey-700 p-5">
+            <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <!-- --- Modal 標頭 --- -->
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
@@ -358,15 +351,21 @@
                       >
                         <div class="me-lg-4">
                           <strong>課程代號：<br class="d-xl-none" /></strong
-                          ><span>{{ selectedDetail.id }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.id
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>教練名稱：</strong
-                          ><span>{{ selectedDetail.coach.name }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.coach.name
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>課程名稱：</strong
-                          ><span>{{ selectedDetail.name }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.name
+                          }}</span>
                         </div>
                       </div>
                       <div
@@ -374,16 +373,22 @@
                       >
                         <div class="me-lg-4">
                           <strong>課程狀態：</strong
-                          ><span>{{ selectedDetail.status }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.status
+                          }}</span>
                         </div>
 
                         <div class="me-lg-4">
                           <strong>上架時間：</strong
-                          ><span>{{ selectedDetail.publishedAt }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.publishedAt
+                          }}</span>
                         </div>
                         <div class="me-lg-4">
                           <strong>課程類別：</strong
-                          ><span>{{ selectedDetail.category }}</span>
+                          ><span class="des-custom">{{
+                            selectedDetail.category
+                          }}</span>
                         </div>
                       </div>
                     </div>
@@ -391,7 +396,7 @@
                     <div class="mb-lg-3 mb-5">
                       <p class="fw-bold mb-lg-3 mb-2">課程介紹：</p>
                       <div
-                        class="border rounded p-3"
+                        class="border rounded p-3 bg-grey-100 border-primary-700 me-lg-4"
                         style="background-color: #f8f9fa"
                       >
                         {{ selectedDetail.description }}
@@ -402,7 +407,7 @@
                       <img
                         :src="selectedDetail.image_url"
                         alt="課程照片"
-                        class="img-fluid rounded w-100"
+                        class="img-fluid rounded course-photo"
                       />
                     </div>
                   </div>
@@ -422,18 +427,21 @@
 
                 <div class="mb-lg-3 mb-5">
                   <p class="fw-bold mb-2">課程影片：</p>
-                  <div id="courseVideoAccordion" class="accordion">
+                  <div
+                    id="courseVideoAccordion"
+                    class="accordion border-primary-600"
+                  >
                     <div
                       v-for="(chap, idx) in selectedDetail.chapters"
                       :key="idx"
-                      class="accordion-item bg-primary-000 text-grey-700"
+                      class="accordion-item bg-grey-000 text-grey-700 border-primary-600"
                     >
                       <h2
                         :id="`headingChap${idx}`"
                         class="accordion-header text-grey-700"
                       >
                         <button
-                          class="accordion-button collapsed bg-primary-000 text-grey-700"
+                          class="accordion-button collapsed bg-grey-000 text-grey-700 d-flex justify-content-between align-items-center"
                           type="button"
                           data-bs-toggle="collapse"
                           :data-bs-target="`#collapseChap${idx}`"
@@ -441,6 +449,9 @@
                           :aria-controls="`collapseChap${idx}`"
                         >
                           {{ chap.title }}
+                          <i
+                            class="bi bi-chevron-down custom-toggle-icon text-primary-700"
+                          ></i>
                         </button>
                       </h2>
                       <div
@@ -449,10 +460,46 @@
                         :aria-labelledby="`headingChap${idx}`"
                         data-bs-parent="#courseVideoAccordion"
                       >
-                        <div class="accordion-body">
+                        <div
+                          class="accordion-body border-top border-primary-600"
+                        >
                           <ul class="mb-0 list-unstyled">
-                            <li v-for="(sub, i) in chap.subtitles" :key="i">
-                              {{ sub }}
+                            <li
+                              v-for="lesson in chap.lessons"
+                              :key="lesson.id"
+                              class=""
+                            >
+                              <button
+                                class="accordion-button collapsed bg-grey-000 text-grey-700 d-flex justify-content-between align-items-center sub-custom"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                :data-bs-target="`#video-${lesson.id}`"
+                                :aria-controls="`video-${lesson.id}`"
+                                @click="playModalLesson(lesson)"
+                              >
+                                {{ lesson.subtitle }}
+                                <i
+                                  class="bi bi-chevron-down ms-auto custom-toggle-icon"
+                                ></i>
+                              </button>
+                              <div
+                                :id="`video-${lesson.id}`"
+                                class="collapse mt-2"
+                                @[BS_COLLAPSE_HIDDEN]="
+                                  () => onCollapseHide(lesson)
+                                "
+                              >
+                                <div
+                                  v-if="currentModalLesson?.id === lesson.id"
+                                >
+                                  <HlsPlayer
+                                    v-if="modalVideoSrc"
+                                    :src="modalVideoSrc"
+                                    :poster="selectedDetail.image_url"
+                                    mode="preview"
+                                  />
+                                </div>
+                              </div>
                             </li>
                           </ul>
                         </div>
@@ -469,7 +516,7 @@
                       <!-- 按下後切換到編輯模式 -->
                       <button
                         type="button"
-                        class="btn btn-primary text-grey-700"
+                        class="btn btn-primary-600"
                         @click="enableEdit"
                       >
                         編輯
@@ -477,7 +524,7 @@
                       <!-- 直接關閉 Modal -->
                       <button
                         type="button"
-                        class="btn btn-grey-400 ms-lg-3 text-grey-700"
+                        class="btn btn-grey-400 ms-lg-3"
                         @click="closeDetailModal"
                       >
                         確定
@@ -490,7 +537,7 @@
                       <p class="fw-bold">審核建議：</p>
                       <textarea
                         v-model="selectedDetail.reviewComment"
-                        class="form-control bg-grey-000 text-grey-700"
+                        class="form-control bg-grey-000 text-grey-700 border-primary-600"
                         rows="3"
                         placeholder="輸入審核建議..."
                       ></textarea>
@@ -605,9 +652,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import HlsPlayer from '@/components/HlsPlayer.vue'
+
+const detailModal = ref(null)
 
 const router = useRouter()
 const route = useRoute()
@@ -687,15 +737,6 @@ const selectedDetail = ref({
   chapters: []
 })
 
-const pagination = ref({
-  total: 0,
-  page: 1,
-  limit: 20,
-  total_pages: 1,
-  has_next: false,
-  has_previous: false
-})
-
 const loading = ref(false)
 const error = ref(null)
 
@@ -704,26 +745,44 @@ const selectedCategory = ref('全部課程')
 const selectedInstructor = ref('全部講師')
 const selectedStatus = ref('全部狀態')
 
-// 把 courses 裡面所有的 category、instructor 拿出來做成「唯一值陣列」
 const categoryOptions = computed(() => {
-  // 先收集所有 category，再去重、並在最前面加入「全部課程」
+  let list = courses.value
+  if (selectedInstructor.value !== '全部講師') {
+    list = list.filter(c => c.instructor === selectedInstructor.value)
+  }
   const set = new Set()
-  courses.value.forEach(c => set.add(c.category))
+  list.forEach(c => set.add(c.category))
   return ['全部課程', ...Array.from(set)]
 })
 
 const instructorOptions = computed(() => {
+  let list = courses.value
+  if (selectedCategory.value !== '全部課程') {
+    list = list.filter(c => c.category === selectedCategory.value)
+  }
   const set = new Set()
-  courses.value.forEach(c => set.add(c.instructor))
+  list.forEach(c => set.add(c.instructor))
   return ['全部講師', ...Array.from(set)]
 })
 
 // 狀態選項固定三項（全部/上架中/待審核）
 const statusOptions = ['全部狀態', '上架中', '待審核']
 
+const pageSize = 20
+
 // 由 pagination.value 計算出目前課程頁碼與總頁數
-const currentCoursePage = computed(() => pagination.value.page)
-const totalCoursePages = computed(() => pagination.value.total_pages)
+// const currentCoursePage = computed(() => pagination.value.page)
+// const totalCoursePages = computed(() => pagination.value.total_pages)
+const currentCoursePage = ref(1)
+
+const totalCoursePages = computed(() =>
+  Math.max(Math.ceil(filteredCourses.value.length / pageSize), 1)
+)
+
+const paginatedCourses = computed(() => {
+  const start = (currentCoursePage.value - 1) * pageSize
+  return filteredCourses.value.slice(start, start + pageSize)
+})
 
 function formatDateWithoutLib(isoString) {
   if (!isoString) return ''
@@ -732,34 +791,47 @@ function formatDateWithoutLib(isoString) {
   return `${datePart} ${timePart}`
 }
 
-async function fetchCourses() {
+/**
+ * 從 /admin/courses 把所有資料拉下來（後端固定每頁 20 筆）
+ * 1. 先打 page=1 拿到 total
+ * 2. 之後逐頁抓，直到收到「足夠的唯一 id 數量」為止
+ *    - 後端 page=2 會重送 page=1，但 page=3 又會送剩下 4 筆
+ *    - 所以用 Set 去重，再看總量是否到了就結束
+ */
+async function fetchAllCourses() {
   loading.value = true
   error.value = null
+  courses.value = []
 
   try {
     const token = localStorage.getItem('token')
-    // 不帶任何參數，因為後端不接受 page/limit
-    const res = await axios.get(
+
+    /* ❶ 先抓 page=1 */
+    const { data: first } = await axios.get(
       'https://sportify.zeabur.app/api/v1/admin/courses',
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: { Authorization: `Bearer ${token}` }, params: { page: 1 } }
     )
 
-    if (res.data.status) {
-      courses.value = res.data.data
-      if (res.data.pagination) {
-        const p = res.data.pagination
-        pagination.value.page = p.page
-        pagination.value.limit = p.limit
-        pagination.value.total = p.total
-        pagination.value.total_pages = p.total_pages
-        pagination.value.has_next = p.has_next
-        pagination.value.has_previous = p.has_previous
-      }
-    } else {
-      error.value = res.data.message || '取得課程資料失敗'
+    // 塞進陣列
+    courses.value.push(...first.data)
+
+    /* ❷ 根據 meta.total_pages，再把 2~n 頁補齊 */
+    const totalPages = first.pagination.total_pages // ← 2
+    const requests = []
+
+    for (let p = 2; p <= totalPages; p++) {
+      requests.push(
+        axios.get('https://sportify.zeabur.app/api/v1/admin/courses', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: p }
+        })
+      )
     }
+
+    const results = await Promise.all(requests)
+    results.forEach(res => courses.value.push(...res.data.data))
+
+    /* 現在 courses.value 應該就是 24 筆，且不會重複 */
   } catch (err) {
     console.error('課程列表載入失敗:', err.response?.data || err)
     error.value = err.response?.data?.message || '伺服器錯誤，請稍後再試'
@@ -769,10 +841,22 @@ async function fetchCourses() {
 }
 
 function changeCoursePage(page) {
-  if (page < 1 || page > pagination.value.total_pages) return
-  // 後端一次就回傳所有資料，不需要重新帶參數
-  fetchCourses()
+  if (page < 1 || page > totalCoursePages.value) return
+  currentCoursePage.value = page
 }
+watch([selectedCategory, selectedInstructor, selectedStatus], () => {
+  currentCoursePage.value = 1
+})
+watch([categoryOptions, instructorOptions], () => {
+  /* 類別被篩掉 → 跳回「全部課程」 */
+  if (!categoryOptions.value.includes(selectedCategory.value)) {
+    selectedCategory.value = '全部課程'
+  }
+  /* 講師被篩掉 → 跳回「全部講師」 */
+  if (!instructorOptions.value.includes(selectedInstructor.value)) {
+    selectedInstructor.value = '全部講師'
+  }
+})
 
 // 審核成功／失敗後都要關掉 Modal
 function closeDetailModal() {
@@ -799,11 +883,12 @@ async function approveReview() {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
+
     // 關閉 Modal，並顯示成功訊息
     closeDetailModal()
     alert('課程已標記為「上架中」')
     // 如果需要重新載入列表，可呼叫 fetchCourses() 或 refresh 資料
-    await fetchCourses()
+    await fetchAllCourses()
     // 不一定要立刻還原 edit flag（通常關 Modal 就沒差），
     // 但若 modal 留著，也可再把 isEditing 變 false
     isEditing.value = false
@@ -829,18 +914,16 @@ async function rejectReview() {
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
+
     closeDetailModal()
     alert('課程未通過，已退回給教練更新')
-    fetchCourses()
+    fetchAllCourses()
     isEditing.value = false
   } catch (err) {
     console.error('拒絕審核失敗：', err.response?.data || err)
     alert(err.response?.data?.message || '審核拒絕失敗，請稍後再試')
   }
 }
-onMounted(() => {
-  fetchCourses()
-})
 
 //
 
@@ -963,7 +1046,7 @@ async function openDetailModal(courseId) {
     const token = localStorage.getItem('token')
     // 1) 先呼叫 /details 拿 description、chapters、coach 等
     const res = await axios.get(
-      `https://sportify.zeabur.app/api/v1/courses/${courseId}/details`,
+      `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
     if (!res.data.status) {
@@ -990,14 +1073,6 @@ async function openDetailModal(courseId) {
       payload.coach.profile_image_url || ''
     selectedDetail.value.coach.coachPage_Url = payload.coach.coachPage_Url || ''
 
-    // 塞 chapters
-    selectedDetail.value.chapters = Array.isArray(payload.chapters)
-      ? payload.chapters.map(ch => ({
-          title: ch.title,
-          subtitles: Array.isArray(ch.subtitles) ? ch.subtitles : []
-        }))
-      : []
-
     // 3) 接著從先前 fetchCourses() 拿到的 courses.value 找同一筆 course，
     //    拿 is_active 與 created_at。 detail endpoint 裡並沒有回傳這兩個欄位，
     //    所以必須從列表裡「找一筆匹配的」才能取得。
@@ -1023,6 +1098,25 @@ async function openDetailModal(courseId) {
       selectedDetail.value.category = ''
     }
 
+    const rawChapters = payload.chapters || []
+    const grouped = rawChapters.reduce((acc, ch) => {
+      let group = acc.find(g => g.title === ch.title)
+      if (!group) {
+        group = { title: ch.title, lessons: [] }
+        acc.push(group)
+      }
+      group.lessons.push({
+        id: ch.id,
+        subtitle: ch.subtitle,
+        video_url: ch.video_url,
+        duration: ch.duration,
+        uploaded_at: ch.uploaded_at
+      })
+
+      return acc
+    }, [])
+    selectedDetail.value.chapters = grouped
+
     // 確保一開始非編輯狀態
     isEditing.value = false
 
@@ -1036,6 +1130,51 @@ async function openDetailModal(courseId) {
     alert('無法載入課程詳細，請稍後再試')
   }
 }
+
+const currentModalLesson = ref(null)
+const modalVideoSrc = ref('')
+const modalLoading = ref(false)
+
+const BS_COLLAPSE_HIDDEN = 'hidden.bs.collapse'
+
+async function playModalLesson(lesson) {
+  // 已經在播放這顆 → 直接收合或什麼都不做
+  if (currentModalLesson.value?.id === lesson.id) return
+
+  currentModalLesson.value = lesson // 標記目前播放
+  modalLoading.value = true
+
+  modalVideoSrc.value = lesson.video_url
+}
+
+function onCollapseHide(lesson) {
+  if (currentModalLesson.value?.id === lesson.id) {
+    modalVideoSrc.value = ''
+    currentModalLesson.value = null
+  }
+}
+
+function onModalHide() {
+  document.querySelectorAll('#detailModal video').forEach(v => {
+    v.pause()
+    v.currentTime = 0
+  })
+
+  modalVideoSrc.value = ''
+  currentModalLesson.value = null
+}
+
+onMounted(() => {
+  if (detailModal.value) {
+    detailModal.value.addEventListener('hidden.bs.modal', onModalHide)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (detailModal.value) {
+    detailModal.value.removeEventListener('hidden.bs.modal', onModalHide)
+  }
+})
 
 function enableEdit() {
   isEditing.value = true
@@ -1087,7 +1226,7 @@ async function confirmDelete() {
 onMounted(async () => {
   const isAdmin = await checkAdmin()
   if (isAdmin) {
-    fetchCourses()
+    fetchAllCourses()
   }
 })
 </script>
@@ -1213,5 +1352,51 @@ textarea::placeholder {
   @media (max-width: 992px) {
     width: 100%;
   }
+}
+.des-custom {
+  margin-top: 8px;
+  background-color: $grey-100;
+  border: 1px solid $primary-700;
+  color: $grey-700;
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background-clip: padding-box;
+  border-radius: 6px;
+  min-height: 40px;
+}
+.course-photo {
+  max-height: 250px;
+  height: auto;
+  object-fit: contain;
+}
+.accordion-button::after {
+  display: none; // 隱藏 Bootstrap 預設箭頭
+}
+.custom-toggle-icon {
+  color: $primary-600;
+  margin-left: auto;
+  transition: transform 0.3s;
+}
+.accordion-button[aria-expanded='true'] .custom-toggle-icon {
+  transform: rotate(180deg); // 展開時轉向上
+}
+.sub-custom {
+  border: none;
+  border-bottom: 1px solid $primary-600;
+  border-radius: 0;
+  transition: border 0.2s ease;
+  outline: none;
+}
+.sub-custom:last-child {
+  border-bottom: 1px solid $primary-600;
+}
+.sub-custom:focus {
+  border-top-color: #5b8def;
+  border-bottom-color: #5b8def;
+}
+
+.accordion-button:not(.collapsed) {
+  box-shadow: none;
 }
 </style>
