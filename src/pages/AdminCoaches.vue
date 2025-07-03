@@ -236,7 +236,7 @@
           aria-labelledby="detailModalLabel"
           aria-hidden="true"
         >
-          <div class="modal-dialog modal-xl">
+          <div class="modal-dialog modal-xl p-3">
             <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
@@ -523,7 +523,7 @@
             aria-labelledby="confirmVerifyLabel"
             aria-hidden="true"
           >
-            <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-dialog modal-sm modal-dialog-centered p-5 p-lg-0">
               <div
                 class="modal-content bg-grey-000 text-grey-700 border-grey-700"
               >
