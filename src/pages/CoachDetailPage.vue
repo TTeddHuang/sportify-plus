@@ -1,14 +1,14 @@
 <template>
   <div class="container d-flex flex-column">
     <h2 class="fs-2 fw-bold">{{ coachInfo.nickname }}</h2>
-    <div class="d-lg-flex justify-content-between">
+    <div class="d-md-flex justify-content-between">
       <img
         :src="coachInfo.profile_image_url"
         alt="教練照片"
         class="coach-avatar"
       />
-      <div class="info-card-about ms-lg-5">
-        <h3 class="mb-8 fs-5 fw-bold">關於我</h3>
+      <div class="info-card-about ms-md-5">
+        <h3 class="mb-lg-8 mb-5 fs-5 fw-bold">關於我</h3>
         <p>
           {{ coachInfo.about_me }}
         </p>
@@ -102,7 +102,7 @@ p {
   height: 320px;
   object-fit: cover;
   border-radius: 8px;
-  @media (max-width: 992px) {
+  @media (max-width: 768px) {
     width: 100%;
     margin-bottom: 32px;
     height: 200px;

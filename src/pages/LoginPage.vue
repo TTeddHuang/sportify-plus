@@ -49,6 +49,24 @@
           >
             登入
           </button>
+          <!-- Google 登入設定 (不可見) -->
+          <div
+            id="g_id_onload"
+            data-client_id="642563130821-35m2kh3959gmdv4h60u12e88p4mkbsf3.apps.googleusercontent.com"
+            data-callback="handleGoogleLogin"
+          ></div>
+          <!-- Google 登入按鈕 (可見) -->
+          <div
+            class="g_id_signin"
+            data-type="standard"
+            data-theme="outline"
+            data-size="large"
+            data-text="signin_with"
+            data-shape="rectangular"
+            data-logo_alignment="left"
+            data-width="200"
+          ></div>
+
           <div class="d-flex justify-content-between mt-5">
             <p class="mb-0">
               還沒有帳號?
@@ -73,8 +91,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { login, getUserProfile } from '@/api/auth'
+import { ref, onMounted } from 'vue'
+import { login, googleLogin, getUserProfile } from '@/api/auth'
 import { useRouter } from 'vue-router'
 import { setUser } from '@/store/user'
 
@@ -96,7 +114,7 @@ function validatePassword() {
   passwordError.value = !passwordPattern.test(password.value)
 }
 
-// 登入處理
+// 一般登入處理
 
 async function handleLogin() {
   validateEmail()
@@ -133,6 +151,37 @@ async function handleLogin() {
     isLoading.value = false
   }
 }
+// Google 登入處理
+async function handleGoogleLogin(response) {
+  isLoading.value = true
+  try {
+    const res = await googleLogin({ tokenId: response.credential })
+    console.log('Google 登入成功:', res)
+    localStorage.setItem('token', res.token)
+    const me = await getUserProfile()
+    localStorage.setItem('user', JSON.stringify(me))
+    setUser({
+      token: res.token,
+      displayName: me.displayName,
+      profile_image_url: me.profile_image_url || '',
+      role: me.role
+    })
+    router.push('/')
+  } catch (error) {
+    console.error('Google 登入失敗:', error.response?.data || error.message)
+  } finally {
+    isLoading.value = false
+  }
+}
+window.handleGoogleLogin = handleGoogleLogin
+// 載入 Google Script
+onMounted(() => {
+  const script = document.createElement('script')
+  script.src = 'https://accounts.google.com/gsi/client'
+  script.async = true
+  script.defer = true
+  document.head.appendChild(script)
+})
 </script>
 <style scoped lang="scss">
 .custom-btn {
@@ -140,6 +189,12 @@ async function handleLogin() {
   margin: 0 auto;
   width: 200px;
   max-width: 100%;
+}
+.g_id_signin {
+  display: block;
+  margin: 0 auto;
+  margin-top: 10px;
+  width: 200px;
 }
 .blur-overlay {
   position: absolute;

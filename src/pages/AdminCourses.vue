@@ -733,6 +733,7 @@ const selectedDetail = ref({
     profile_image_url: '',
     coachPage_Url: ''
   },
+  reviewComment: '',
   // 章節清單
   chapters: []
 })
@@ -864,6 +865,9 @@ function closeDetailModal() {
   // eslint-disable-next-line no-undef
   const bs = bootstrap.Modal.getInstance(modalEl)
   if (bs) bs.hide()
+
+  selectedDetail.value.reviewComment = ''
+  isEditing.value = false
 }
 
 /**
@@ -1162,6 +1166,9 @@ function onModalHide() {
 
   modalVideoSrc.value = ''
   currentModalLesson.value = null
+
+  selectedDetail.value.reviewComment = ''
+  isEditing.value = false
 }
 
 onMounted(() => {
