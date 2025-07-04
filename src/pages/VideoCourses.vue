@@ -8,7 +8,7 @@
             <h3 class="fs-6 px-3 fw-bold text-center">
               {{ courseName }}
             </h3>
-            <div class="my-4 px-3">
+            <div class="my-4 px-3 border-bottom border-primary-000">
               <div class="progress" style="height: 12px">
                 <div
                   class="progress-bar bg-primary-600"
@@ -30,40 +30,47 @@
               <template v-for="group in groupedLessons" :key="group.title">
                 <li
                   class="list-group-title fw-bold text-center fs-7"
-                  style="padding: 0.5rem 1rem"
+                  @click="toggleGroup(group.title)"
                 >
-                  {{ group.title }}
+                  <span class="flex-grow-1">{{ group.title }}</span>
+                  <i
+                    class="bi ms-3"
+                    :class="
+                      isOpen(group.title) ? 'bi-chevron-up' : 'bi-chevron-down'
+                    "
+                  ></i>
                 </li>
-                <li
-                  v-for="(lesson, idx) in group.items"
-                  :key="idx"
-                  :class="{
-                    finished: lesson.isFinished,
-                    watching: lesson.isCurrentWatching
-                  }"
-                  class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                  style="padding: 0.75rem 1rem"
-                  @click="selectLesson(lesson)"
-                >
-                  <div class="d-flex flex-column text-center w-100">
-                    <p class="fs-9 mb-1" style="height: 42px">
-                      {{ lesson.name }}
-                    </p>
-                    <div
-                      class="d-flex align-items-center justify-content-center"
-                    >
-                      <i
-                        v-if="lesson.isFinished"
-                        class="bi bi-check-circle-fill text-success fs-5"
-                      ></i>
-                      <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                      <p class="text-secondary mb-0 fs-9 ms-1">
-                        {{ lesson.length }}
+                <template v-if="isOpen(group.title)">
+                  <li
+                    v-for="(lesson, idx) in group.items"
+                    :key="idx"
+                    :class="{
+                      finished: lesson.isFinished,
+                      watching: lesson.isCurrentWatching
+                    }"
+                    class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                    @click="selectLesson(lesson)"
+                  >
+                    <div class="d-flex flex-column text-center w-100">
+                      <p class="fs-9 mb-1" style="height: 42px">
+                        {{ lesson.name }}
                       </p>
+                      <div
+                        class="d-flex align-items-center justify-content-center"
+                      >
+                        <i
+                          v-if="lesson.isFinished"
+                          class="bi bi-check-circle-fill text-success fs-5"
+                        ></i>
+                        <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                        <p class="text-secondary mb-0 fs-9 ms-1">
+                          {{ lesson.length }}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
-                </li>
+                    <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                  </li>
+                </template>
               </template>
             </ul>
           </div>
@@ -503,7 +510,7 @@
             </h5>
             <button
               type="button"
-              class="btn-close bg-white lesson-close btn-close-white"
+              class="btn-close bg-white lesson-close btn-close-white ms-3"
               data-bs-dismiss="offcanvas"
             ></button>
           </div>
@@ -530,41 +537,53 @@
             <ul class="list-group list-group-flush">
               <!-- 每個 li 代表一天的 Lesson -->
               <template v-for="group in groupedLessons" :key="group.title">
-                <li class="list-group-title fw-bold text-center fs-7">
-                  {{ group.title }}
-                </li>
                 <li
-                  v-for="(lesson, idx) in group.items"
-                  :key="idx"
-                  :class="{
-                    finished: lesson.isFinished,
-                    watching: lesson.isCurrentWatching
-                  }"
-                  class="list-group-item d-flex justify-content-between align-items-center rounded-1"
-                  style="padding: 0.75rem 1rem"
-                  @click="selectLesson(lesson)"
+                  class="list-group-title fw-bold text-center fs-7 d-flex align-items-center"
+                  @click="toggleGroup(group.title)"
                 >
-                  <div class="d-flex flex-column text-center w-100">
-                    <p class="fs-9 mb-1" style="height: 42px">
-                      {{ lesson.name }}
-                    </p>
-                    <div
-                      class="d-flex align-items-center justify-content-center"
-                    >
-                      <i
-                        v-if="lesson.isFinished"
-                        class="bi bi-check-circle-fill text-success fs-5"
-                      ></i>
-                      <i v-else class="bi bi-circle text-secondary fs-5"></i>
-                      <p class="text-secondary mb-0 fs-9 ms-1">
-                        {{
-                          lesson.length !== '未提供' ? lesson.length : '未提供'
-                        }}
-                      </p>
-                    </div>
-                  </div>
-                  <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                  <span class="flex-grow-1">{{ group.title }}</span>
+                  <i
+                    class="bi ms-3"
+                    :class="
+                      isOpen(group.title) ? 'bi-chevron-up' : 'bi-chevron-down'
+                    "
+                  ></i>
                 </li>
+                <template v-if="isOpen(group.title)">
+                  <li
+                    v-for="(lesson, idx) in group.items"
+                    :key="idx"
+                    :class="{
+                      finished: lesson.isFinished,
+                      watching: lesson.isCurrentWatching
+                    }"
+                    class="list-group-item d-flex justify-content-between align-items-center rounded-1"
+                    @click="selectLesson(lesson)"
+                  >
+                    <div class="d-flex flex-column text-center w-100">
+                      <p class="fs-9 mb-1" style="height: 42px">
+                        {{ lesson.name }}
+                      </p>
+                      <div
+                        class="d-flex align-items-center justify-content-center"
+                      >
+                        <i
+                          v-if="lesson.isFinished"
+                          class="bi bi-check-circle-fill text-success fs-5"
+                        ></i>
+                        <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                        <p class="text-secondary mb-0 fs-9 ms-1">
+                          {{
+                            lesson.length !== '未提供'
+                              ? lesson.length
+                              : '未提供'
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                    <!-- 右側圖示：已完成顯示打勾，否則顯示空圈 -->
+                  </li>
+                </template>
               </template>
             </ul>
           </div>
@@ -579,6 +598,11 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import HlsPlayer from '@/components/HlsPlayer.vue'
+
+function pickNextLesson(list) {
+  const next = list.find(l => !l.isFinished)
+  return next || list[0]
+}
 
 function pickCurrentPlan(subs) {
   // 1. 由新到舊排
@@ -673,13 +697,16 @@ onMounted(async () => {
     courseName.value = sb.courseName
     lessons.value = sb.chapter.map(ch => ({ ...ch, isCurrentWatching: false }))
 
-    /* ② 預設選第一章 & 取細節 ------------------------------- */
-    const first =
-      lessons.value.find(l => l.isCurrentWatching) || lessons.value[0]
+    /* ② 預設選未看第一順位 & 取細節 ------------------------------- */
+    const first = pickNextLesson(lessons.value)
     if (!first) return
     first.isCurrentWatching = true
     currentLesson.value = first
     selectedChapId.value = first.chapterId
+
+    openOnly(first.title)
+
+    collapsed.value[first.title] = true
 
     const detail = await fetchDetails(courseId, first.chapterId, token)
     courseDetail.value = detail
@@ -775,6 +802,23 @@ async function fetchRatings(courseId) {
     userRatings.value = res.data.data
   } catch (error) {
     console.error('評價載入失敗', error)
+  }
+}
+
+const collapsed = ref({})
+function isOpen(title) {
+  return collapsed.value[title] !== false // undefined → 當作展開
+}
+function openOnly(title) {
+  groupedLessons.value.forEach(g => {
+    collapsed.value[g.title] = g.title === title
+  })
+}
+function toggleGroup(title) {
+  if (isOpen(title)) {
+    collapsed.value[title] = false
+  } else {
+    openOnly(title)
   }
 }
 
@@ -933,11 +977,10 @@ watch(videoSrc, async () => {
 }
 .list-group-title {
   border: none;
-  border-top: 1px solid white;
-  padding: 12px 16px;
-  margin-bottom: 8px;
+  padding: 8px 16px;
   list-style: none;
   border-bottom: 1px solid $primary-000;
+  cursor: pointer;
 }
 .list-group-item.watching {
   background: $primary-600;

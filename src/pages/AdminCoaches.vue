@@ -162,37 +162,67 @@
         </div>
 
         <!-- 分頁 -->
+        <!-- 分頁 -->
         <div v-if="totalPages > 1" class="mt-11">
           <nav class="d-flex justify-content-center" style="padding-top: 4px">
             <ul class="pagination mb-0">
+              <!-- ⬅︎ 上一頁 -->
               <li
                 class="page-item"
                 :class="{ disabled: currentPage === 1 }"
                 @click="changePage(currentPage - 1)"
               >
-                <a class="page-link"
-                  ><i class="bi bi-chevron-left d-inline d-lg-none"></i>
-                  <span class="d-none d-lg-inline">上一頁</span></a
-                >
+                <a class="page-link px-2">
+                  <i class="bi bi-chevron-left d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">上一頁</span>
+                </a>
               </li>
+
+              <!-- 起始 … 與第一頁 -->
               <li
-                v-for="page in totalPages"
+                v-if="showStartDots"
+                class="page-item mx-1"
+                @click="changePage(1)"
+              >
+                <a class="page-link">1</a>
+              </li>
+              <li v-if="showStartDots" class="page-item disabled mx-1">
+                <a class="page-link">…</a>
+              </li>
+
+              <!-- 主要頁碼迴圈 -->
+              <li
+                v-for="page in visiblePages"
                 :key="page"
-                class="page-item mx-2"
+                class="page-item mx-1"
                 :class="{ active: page === currentPage }"
                 @click="changePage(page)"
               >
                 <a class="page-link">{{ page }}</a>
               </li>
+
+              <!-- 結尾 … 與最後一頁 -->
+              <li v-if="showEndDots" class="page-item disabled mx-1">
+                <a class="page-link">…</a>
+              </li>
+              <li
+                v-if="showEndDots"
+                class="page-item mx-1"
+                @click="changePage(totalPages)"
+              >
+                <a class="page-link">{{ totalPages }}</a>
+              </li>
+
+              <!-- ➡︎ 下一頁 -->
               <li
                 class="page-item"
                 :class="{ disabled: currentPage === totalPages }"
                 @click="changePage(currentPage + 1)"
               >
-                <a class="page-link"
-                  ><i class="bi bi-chevron-right d-inline d-lg-none"></i>
-                  <span class="d-none d-lg-inline">下一頁</span></a
-                >
+                <a class="page-link px-2">
+                  <i class="bi bi-chevron-right d-inline d-lg-none"></i>
+                  <span class="d-none d-lg-inline">下一頁</span>
+                </a>
               </li>
             </ul>
           </nav>
@@ -206,7 +236,7 @@
           aria-labelledby="detailModalLabel"
           aria-hidden="true"
         >
-          <div class="modal-dialog modal-xl">
+          <div class="modal-dialog modal-xl p-3">
             <div class="modal-content bg-primary-000 text-grey-700 p-5">
               <div class="modal-header border-grey-200">
                 <h5 id="detailModalLabel" class="modal-title text-primary-900">
@@ -343,10 +373,10 @@
                     >
                       <input
                         id="coachVerified"
-                        v-model="isVerified"
+                        :checked="isVerified"
                         class="form-check-input m-0"
                         type="checkbox"
-                        @change="updateVerifyStatus()"
+                        @click.prevent="askVerify"
                       />
                       <label
                         class="form-check-label mt-2 fw-bold text-center"
@@ -486,6 +516,38 @@
               </div>
             </div>
           </div>
+          <div
+            id="confirmVerifyModal"
+            class="modal fade"
+            tabindex="-1"
+            aria-labelledby="confirmVerifyLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-sm modal-dialog-centered p-5 p-lg-0">
+              <div
+                class="modal-content bg-grey-000 text-grey-700 border-grey-700"
+              >
+                <div class="modal-header border-0">
+                  <h5 id="confirmVerifyLabel" class="modal-title">確認操作</h5>
+                  <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="mb-0">{{ confirmText }}</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                  <button
+                    class="btn btn-outline-primary-600 text-primary-600"
+                    data-bs-dismiss="modal"
+                  >
+                    取消
+                  </button>
+                  <button class="btn btn-primary" @click="doVerify">
+                    確定
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- ※ Modal HTML 放在此處即可，不影響其他區塊排版 -->
       </div>
@@ -494,7 +556,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -676,6 +738,48 @@ watch([selectedSkill, selectedCoachName, searchKeyword], () => {
   currentPage.value = 1
 })
 
+const showStartDots = computed(() => {
+  // 前面被省略的頁數 ≥ 2 才顯示 …
+  return visiblePages.value[0] > 2
+})
+
+const showEndDots = computed(() => {
+  // 後面被省略的頁數 ≥ 2 才顯示 …
+  const last = visiblePages.value[visiblePages.value.length - 1]
+  return totalPages.value - last > 1
+})
+
+const maxButtons = ref(7) // 預設桌機 7 顆
+
+const updateMaxButtons = () => {
+  maxButtons.value = window.innerWidth < 576 ? 5 : 7 // <576px 改 5 顆
+}
+
+onMounted(() => {
+  updateMaxButtons()
+  window.addEventListener('resize', updateMaxButtons)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateMaxButtons)
+})
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const half = Math.floor(maxButtons.value / 2)
+
+  let start = Math.max(1, current - half)
+  let end = start + maxButtons.value - 1
+  if (end > total) {
+    end = total
+    start = Math.max(1, end - maxButtons.value + 1)
+  }
+
+  const arr = []
+  for (let i = start; i <= end; i++) arr.push(i)
+  return arr
+})
+
 // 取得某位教練詳細資料
 async function fetchCoachDetail(coachId) {
   try {
@@ -704,33 +808,75 @@ watch(
   }
 )
 async function updateVerifyStatus() {
-  if (!selectedCoach.value) return
-  try {
-    const token = localStorage.getItem('token')
-    const newStatus = isVerified.value ? 'approved' : 'rejected'
+  if (!selectedCoach.value) return false
 
-    await axios.patch(
+  const token = localStorage.getItem('token')
+  const newStatus = isVerified.value ? 'approved' : 'rejected'
+
+  try {
+    // ⬇︎ 後端通常會回最新狀態；若沒有回，改完再手動塞
+    const res = await axios.patch(
       `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/review`,
       { status: newStatus },
       { headers: { Authorization: `Bearer ${token}` } }
     )
 
-    selectedCoach.value.is_verified = isVerified.value
+    /* ❶ 以後端回傳為準；若沒回，就用 isVerified */
+    const verified =
+      res.data?.data?.coach_is_verified ?? // 後端有回
+      isVerified.value // 否則用目前勾選
 
-    /* 同步列表狀態（optional） */
-    const target = allCoaches.value.find(
+    // ──同步 Modal 內資料──
+    selectedCoach.value.is_verified = verified
+    selectedCoach.value.coach_is_verified = verified
+
+    // ──同步列表 row──
+    const row = allCoaches.value.find(
       c => c.coach_id === selectedCoach.value.id
     )
-    if (target) target.coach_is_verified = isVerified.value
+    if (row) row.coach_is_verified = verified
+
+    return true
   } catch (err) {
     console.error('更新審核狀態失敗', err)
-    /* 失敗就把 switch 拉回原狀態 */
-    isVerified.value = !isVerified.value
+    alert('更新失敗，請稍後再試')
+    return false
   }
 }
 
 function isVerifiedRow(coach) {
   return coach.coach_is_verified === true || coach.is_verified === true
+}
+
+const wantVerify = ref(false)
+const confirmText = ref('')
+
+function askVerify() {
+  wantVerify.value = !isVerified.value
+
+  confirmText.value = `確定要將此教練標記為「${
+    wantVerify.value ? '資格已審核' : '資格未審核'
+  }」嗎？`
+
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('confirmVerifyModal')
+  ).show()
+  document.getElementById('coachVerified').checked = isVerified.value
+}
+
+async function doVerify() {
+  isVerified.value = wantVerify.value
+  const ok = await updateVerifyStatus()
+
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getInstance(
+    document.getElementById('confirmVerifyModal')
+  )?.hide()
+
+  if (!ok) {
+    isVerified.value = !wantVerify.value
+  }
 }
 
 const courses = ref([])
@@ -830,14 +976,20 @@ function goToAdminCourse(courseId) {
 // 「點擊檢視」要開 modal
 
 function openDetailModal(coachId) {
-  // const coach = allCoaches.value.find(c => c.coach_id === coachId)
-  // if (!coach) return
-  // selectedCoach.value = coach
+  // 先用列表現成資料顯示，使用者看不到閃動
+  const row = allCoaches.value.find(c => c.coach_id === coachId)
+  if (row) {
+    selectedCoach.value = { ...row } // shallow copy 就好
+    isVerified.value = row.coach_is_verified
+  }
+
+  // 之後再去拉 detail，把缺的欄位補齊
   fetchCoachDetail(coachId)
-  const modalEl = document.getElementById('detailModal')
+
   // eslint-disable-next-line no-undef
-  const bs = new bootstrap.Modal(modalEl)
-  bs.show()
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('detailModal')
+  ).show()
 }
 
 // onMounted 先檢查管理者身分，通過才呼叫 fetchAllCoaches()
