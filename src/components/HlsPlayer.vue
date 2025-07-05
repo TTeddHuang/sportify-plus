@@ -152,7 +152,9 @@ function setupPlayer(src, mode = 'member') {
         env_key: MUX_ENV_KEY,
         video_id: props.src, // 之後可換課程 ID
         video_title: props.poster ?? '',
-        viewer_user_id: localStorage.getItem('uid') || '',
+        viewer_user_id:
+          JSON.parse(localStorage.getItem('user') || '{}').id || '',
+        viewer_plan: props.mode || 'preivew',
         player_name: 'Sportify Plus HLS Player',
         player_init_time: Date.now()
       }
