@@ -16,9 +16,15 @@
     </div>
     <div class="info-card">
       <h3 class="mb-8 fs-5 fw-bold">個人經歷</h3>
-      <p>
-        {{ coachInfo.experience }}
-      </p>
+      <ul class="experience-list">
+        <li
+          v-for="(item, index) in experienceItems"
+          :key="index"
+          class="experience-item"
+        >
+          {{ item }}
+        </li>
+      </ul>
     </div>
     <div class="info-card">
       <h3 class="mb-8 fs-5 fw-bold">感興趣的事物</h3>
@@ -41,7 +47,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import WaveBanner from '@/components/WaveBanner.vue'
@@ -51,6 +57,14 @@ const route = useRoute()
 
 const coachId = ref(route.params.coachId)
 const coachInfo = ref({})
+
+const experienceItems = computed(() => {
+  if (!coachInfo.value.experience) return []
+  return coachInfo.value.experience
+    .split('\n')
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+})
 
 async function fetchCoachDetail(id) {
   try {
@@ -138,6 +152,32 @@ p {
   }
   @media (max-width: 992px) {
     padding: 24px;
+  }
+}
+
+.experience-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  .experience-item {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+
+    &:before {
+      content: '•';
+      color: $primary-600;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 </style>
