@@ -467,7 +467,7 @@
                   />
                 </div>
                 <div v-if="selectedCoach?.background_image_url">
-                  <p class="fw-bold">相關資格證明（背景照）</p>
+                  <p class="fw-bold">相關資格證明</p>
                   <img
                     :src="selectedCoach.background_image_url"
                     alt="證明照片"
