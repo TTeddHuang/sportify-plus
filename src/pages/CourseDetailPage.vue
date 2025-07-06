@@ -4,13 +4,13 @@
       <div class="course-detail container py-5 text-white">
         <div class="">
           <!-- 課程標題與統計 -->
-          <div class="mb-lg-12">
-            <div class="d-lg-flex justify-content-between align-items-center">
-              <h2 class="fw-bold mb-lg-0 mb-5 fs-lg-2 fs-4">
+          <div class="mb-xl-12">
+            <div class="d-xl-flex justify-content-between align-items-center">
+              <h2 class="fw-bold mb-xl-0 mb-5 fs-lg-2 fs-4 title-cell">
                 {{ courseDetail.course.name || '課程名稱載入中' }}
               </h2>
               <div
-                class="d-flex align-items-center gap-5 gap-lg-8 mb-lg-0 mb-6"
+                class="d-flex align-items-center gap-5 gap-xl-8 mb-xl-0 mb-6"
               >
                 <div class="icon-custom">
                   <i class="bi bi-star-fill text-secondary-600 me-1 fs-6"></i>
@@ -723,6 +723,15 @@ onMounted(() => {
   max-width: 389px;
 
   @media (max-width: 992px) {
+    max-width: 100%;
+  }
+}
+.title-cell {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 800px;
+  width: 100%;
+  @media (max-width: 1200px) {
     max-width: 100%;
   }
 }
