@@ -2,9 +2,9 @@
   <div>
     <div v-if="courseDetail">
       <div class="course-detail container py-5 text-white">
-        <div class="px-2">
+        <div class="">
           <!-- 課程標題與統計 -->
-          <div class="my-lg-12">
+          <div class="mb-lg-12">
             <div class="d-lg-flex justify-content-between align-items-center">
               <h2 class="fw-bold mb-lg-0 mb-5 fs-lg-2 fs-4">
                 {{ courseDetail.course.name || '課程名稱載入中' }}
@@ -29,25 +29,18 @@
           </div>
 
           <!-- 課程圖片與介紹 -->
-          <div class="row gy-4 mb-lg-12 mb-6">
-            <div class="col-12 col-lg-4">
-              <img
-                :src="courseDetail.course.image_url"
-                :alt="courseDetail.course.name"
-                class="course-image rounded-3 d-block mb-5 mb-lg-0 img-fluid"
-              />
-            </div>
-            <div class="col-12 col-lg-8">
-              <div
-                class="p-lg-8 p-5 rounded-4 border border-primary-000 h-100 info-card"
-              >
-                <h5 class="mb-lg-8 fw-bold">課程介紹</h5>
-                <div>
-                  <p class="mb-5">
-                    {{ courseDetail.course.description }}
-                  </p>
-                </div>
-              </div>
+
+          <div class="d-md-flex justify-content-between gy-4 mb-lg-12 mb-6">
+            <img
+              :src="courseDetail.course.image_url"
+              :alt="courseDetail.course.name"
+              class="course-image"
+            />
+            <div class="info-card-course ms-md-5">
+              <h3 class="mb-lg-8 mb-5 fs-5 fw-bold">課程介紹</h3>
+              <p>
+                {{ courseDetail.course.description }}
+              </p>
             </div>
           </div>
 
@@ -84,11 +77,11 @@
                 教練詳細資訊
               </a>
             </div>
-            <div class="d-lg-flex">
+            <div class="d-md-flex">
               <img
                 :src="courseDetail.coach.profile_image_url"
                 :alt="courseDetail.coach.name"
-                class="rounded-3 me-lg-8 object-fit-cover mb-lg-0 mb-8 coach-image"
+                class="rounded-3 me-md-8 object-fit-cover mb-lg-0 mb-8 coach-image"
               />
               <div>
                 <div
@@ -196,7 +189,7 @@
 
           <!-- 課程評價 -->
           <div
-            class="rounded-4 p-lg-8 p-5 border border-primary-000 mb-lg-12 mb-6"
+            class="rounded-4 p-lg-8 p-5 border border-primary-000"
             style="background-color: rgba(255, 255, 255, 0.05)"
           >
             <div
@@ -553,6 +546,20 @@ onMounted(() => {
 .course-detail {
   min-height: 100vh;
 }
+.container {
+  max-width: 1296px;
+  height: 100%;
+  margin: 80px auto;
+  padding: 16px;
+  gap: 80px;
+  @media (max-width: 992px) {
+    padding: 0 24px;
+    margin-top: 40px;
+    margin-bottom: 0px;
+    gap: 32px;
+  }
+}
+
 .icon-custom {
   display: flex;
   align-items: center;
@@ -568,13 +575,12 @@ onMounted(() => {
 .course-image {
   width: 320px;
   height: 320px;
-  object-position: center;
   object-fit: cover;
-
-  @media (max-width: 992px) {
+  border-radius: 8px;
+  @media (max-width: 768px) {
     width: 100%;
+    margin-bottom: 32px;
     height: 200px;
-    object-position: top;
   }
 }
 .info-card {
@@ -588,7 +594,22 @@ onMounted(() => {
     padding: 24px;
   }
 }
-
+.info-card-course {
+  background-color: rgba(255, 255, 255, 0.05);
+  width: 896px;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: inset 0px 0px 0px 1px $primary-000;
+  &:nth-of-type(1) {
+    width: 896px;
+  }
+  @media (max-width: 992px) {
+    padding: 24px;
+  }
+}
 .media-block {
   img {
     width: 100%;

@@ -91,6 +91,29 @@
                 </li>
               </ul>
             </div>
+            <!-- 依審核狀態篩選 -->
+            <div class="dropdown">
+              <button
+                class="btn btn-primary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                {{ selectedVerifyStatus }}
+                <!-- 預設顯示「全部審核狀態」 -->
+              </button>
+
+              <ul class="dropdown-menu">
+                <li
+                  v-for="st in verifyStatusOptions"
+                  :key="st"
+                  @click="selectedVerifyStatus = st"
+                >
+                  <a class="dropdown-item" href="#">{{ st }}</a>
+                </li>
+              </ul>
+            </div>
+
             <!-- 文字搜尋（教練名稱模糊搜尋） -->
             <div class="input-group" style="width: 200px; height: 42px">
               <input
@@ -535,15 +558,23 @@
                   <p class="mb-0">{{ confirmText }}</p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center">
-                  <button
-                    class="btn btn-outline-primary-600 text-primary-600"
-                    data-bs-dismiss="modal"
-                  >
-                    取消
-                  </button>
-                  <button class="btn btn-primary" @click="doVerify">
-                    確定
-                  </button>
+                  <template v-if="confirmMode === 'warn'">
+                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                      知道了
+                    </button>
+                  </template>
+
+                  <template v-else>
+                    <button
+                      class="btn btn-outline-primary-600 text-primary-600"
+                      data-bs-dismiss="modal"
+                    >
+                      取消
+                    </button>
+                    <button class="btn btn-primary" @click="doVerify">
+                      確定
+                    </button>
+                  </template>
                 </div>
               </div>
             </div>
@@ -647,6 +678,27 @@ async function fetchCoachesPage(page = 1) {
   }
 }
 
+const selectedVerifyStatus = ref('全部狀態')
+
+const verifyStatusOptions = computed(() => {
+  let list = allCoaches.value
+
+  if (selectedSkill.value) {
+    list = list.filter(c =>
+      c.coach_skills.some(s => s.skill_name === selectedSkill.value)
+    )
+  }
+
+  if (selectedCoachName.value) {
+    list = list.filter(c => c.coach_name === selectedCoachName.value)
+  }
+
+  const set = new Set()
+  list.forEach(c => set.add(isVerifiedRow(c) ? '已審核' : '未審核'))
+
+  return ['全部狀態', ...Array.from(set)]
+})
+
 /**
  * 切分「分頁顯示」給前端 Table 用
  * 由 filteredCoaches 先做過濾、再把結果切成 pageSize，回傳當前 currentPage 那一小段
@@ -714,7 +766,11 @@ const filteredCoaches = computed(() => {
         .includes(kw)
       if (!nameMatch && !skillMatch) return false
     }
-    return true
+    const statusLabel = isVerifiedRow(coach) ? '已審核' : '未審核'
+    const matchVerify =
+      selectedVerifyStatus.value === '全部狀態' ||
+      statusLabel === selectedVerifyStatus.value
+    return matchVerify
   })
 })
 
@@ -733,10 +789,6 @@ function changePage(page) {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
 }
-
-watch([selectedSkill, selectedCoachName, searchKeyword], () => {
-  currentPage.value = 1
-})
 
 const showStartDots = computed(() => {
   // 前面被省略的頁數 ≥ 2 才顯示 …
@@ -844,19 +896,52 @@ async function updateVerifyStatus() {
   }
 }
 
+const confirmText = ref('')
+const confirmMode = ref('normal')
+
 function isVerifiedRow(coach) {
   return coach.coach_is_verified === true || coach.is_verified === true
 }
 
+function isProfileComplete(coach) {
+  if (!coach) return false
+
+  const required = [
+    'realname',
+    'id_number',
+    'phone_number',
+    'birthday',
+    'about_me',
+    'skill_description',
+    'experience',
+    'hobby',
+    'favorite_words',
+    'motto'
+  ]
+
+  const basicOK = required.every(
+    k => coach[k] && coach[k].toString().trim() !== ''
+  )
+
+  const skillsOK = Array.isArray(coach.skills) && coach.skills.length > 0
+
+  return basicOK && skillsOK
+}
+
 const wantVerify = ref(false)
-const confirmText = ref('')
 
 function askVerify() {
   wantVerify.value = !isVerified.value
 
-  confirmText.value = `確定要將此教練標記為「${
-    wantVerify.value ? '資格已審核' : '資格未審核'
-  }」嗎？`
+  if (wantVerify.value && !isProfileComplete(selectedCoach.value)) {
+    confirmText.value = '教練基本資料尚未填寫完整，請提醒對方補齊資訊後再審核。'
+    confirmMode.value = 'warn'
+  } else {
+    confirmText.value = `確定要將此教練標記為「${
+      wantVerify.value ? '資格已審核' : '資格未審核'
+    }」嗎？`
+    confirmMode.value = 'normal'
+  }
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getOrCreateInstance(
@@ -1011,6 +1096,11 @@ const skillOptions = computed(() => {
     list = list.filter(coach => coach.coach_name === selectedCoachName.value)
   }
 
+  if (selectedVerifyStatus.value !== '全部狀態') {
+    const wantVerified = selectedVerifyStatus.value === '已審核'
+    list = list.filter(c => isVerifiedRow(c) === wantVerified)
+  }
+
   const set = new Set()
   list.forEach(coach => coach.coach_skills.forEach(s => set.add(s.skill_name)))
   return Array.from(set)
@@ -1024,9 +1114,34 @@ const coachOptions = computed(() => {
       coach.coach_skills.some(s => s.skill_name === selectedSkill.value)
     )
   }
+  if (selectedVerifyStatus.value !== '全部狀態') {
+    const wantVerified = selectedVerifyStatus.value === '已審核'
+    list = list.filter(c => isVerifiedRow(c) === wantVerified)
+  }
   const set = new Set()
   list.forEach(c => set.add(c.coach_name))
   return Array.from(set)
+})
+
+watch([skillOptions, coachOptions, verifyStatusOptions], () => {
+  if (
+    selectedSkill.value &&
+    !skillOptions.value.includes(selectedSkill.value)
+  ) {
+    selectedSkill.value = ''
+  }
+  if (
+    selectedCoachName.value &&
+    !coachOptions.value.includes(selectedCoachName.value)
+  ) {
+    selectedCoachName.value = ''
+  }
+  if (
+    selectedVerifyStatus.value !== '全部狀態' &&
+    !verifyStatusOptions.value.includes(selectedVerifyStatus.value)
+  ) {
+    selectedVerifyStatus.value = '全部狀態'
+  }
 })
 </script>
 
@@ -1098,7 +1213,7 @@ const coachOptions = computed(() => {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $grey-000;
+  background-color: $primary-000;
   border: 1px solid $primary-600;
   margin-top: -38px;
   padding: 24px;
