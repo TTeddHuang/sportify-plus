@@ -457,12 +457,21 @@
                     {{ selectedCoach?.motto }}
                   </p>
                 </div>
-                <div>
-                  <p class="fw-bold">相關資格證明照片</p>
+                <div v-if="selectedCoach?.bankbook_copy_url">
+                  <p class="fw-bold">存摺影本</p>
                   <img
-                    :src="selectedCoach?.background_image_url"
+                    :src="selectedCoach.bankbook_copy_url"
+                    alt="存摺影本"
+                    class="img-fluid rounded mb-3"
+                    style="max-height: 200px; object-fit: cover"
+                  />
+                </div>
+                <div v-if="selectedCoach?.background_image_url">
+                  <p class="fw-bold">相關資格證明（背景照）</p>
+                  <img
+                    :src="selectedCoach.background_image_url"
                     alt="證明照片"
-                    class="img-fluid rounded background-img"
+                    class="img-fluid rounded mb-3"
                     style="max-height: 200px; object-fit: cover"
                   />
                 </div>
@@ -546,7 +555,7 @@
             aria-labelledby="confirmVerifyLabel"
             aria-hidden="true"
           >
-            <div class="modal-dialog modal-sm modal-dialog-centered p-5 p-lg-0">
+            <div class="modal-dialog modal-lg modal-dialog-centered p-5 p-lg-0">
               <div
                 class="modal-content bg-grey-000 text-grey-700 border-grey-700"
               >
@@ -565,9 +574,19 @@
                   </template>
 
                   <template v-else>
+                    <div class="w-100">
+                      <label class="form-label fw-bold mb-1">審核備註</label>
+                      <textarea
+                        v-model="reviewComment"
+                        rows="3"
+                        class="form-control bg-grey-000 text-grey-700 border-primary-600"
+                        placeholder="輸入審核原因（選填；若未通過建議必填）"
+                      ></textarea>
+                    </div>
                     <button
                       class="btn btn-outline-primary-600 text-primary-600"
                       data-bs-dismiss="modal"
+                      @click="reviewComment = ''"
                     >
                       取消
                     </button>
@@ -808,6 +827,10 @@ const updateMaxButtons = () => {
 }
 
 onMounted(() => {
+  const confirmEl = document.getElementById('confirmVerifyModal')
+  confirmEl.addEventListener('hidden.bs.modal', () => {
+    reviewComment.value = ''
+  })
   updateMaxButtons()
   window.addEventListener('resize', updateMaxButtons)
 })
@@ -836,18 +859,22 @@ const visiblePages = computed(() => {
 async function fetchCoachDetail(coachId) {
   try {
     const token = localStorage.getItem('token')
-    const res = await axios.get(
+    const { data } = await axios.get(
       `https://sportify.zeabur.app/api/v1/admin/coaches/${coachId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    if (!res.data.status) {
-      throw new Error(res.data.message || '讀取失敗')
+    if (!data.status) {
+      throw new Error(data.message || '讀取失敗')
     }
 
-    const detail = res.data.data.coachDetails
+    const { coachDetails, licenses = [], courses = [] } = data.data
 
-    selectedCoach.value = detail
-    isVerified.value = detail.coach_is_verified
+    selectedCoach.value = {
+      ...coachDetails,
+      licenses,
+      courses
+    }
+    isVerified.value = coachDetails.is_verified
     // 顯示 Modal
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
@@ -859,17 +886,17 @@ watch(
     if (val !== undefined) isVerified.value = val
   }
 )
-async function updateVerifyStatus() {
+async function updateVerifyStatus(approved, commentTxt) {
   if (!selectedCoach.value) return false
 
   const token = localStorage.getItem('token')
-  const newStatus = isVerified.value ? 'approved' : 'rejected'
+  const newStatus = approved ? 'approved' : 'rejected'
 
   try {
     // ⬇︎ 後端通常會回最新狀態；若沒有回，改完再手動塞
     const res = await axios.patch(
       `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/review`,
-      { status: newStatus },
+      { status: newStatus, review_comment: commentTxt },
       { headers: { Authorization: `Bearer ${token}` } }
     )
 
@@ -929,6 +956,7 @@ function isProfileComplete(coach) {
 }
 
 const wantVerify = ref(false)
+const reviewComment = ref('')
 
 function askVerify() {
   wantVerify.value = !isVerified.value
@@ -951,13 +979,23 @@ function askVerify() {
 }
 
 async function doVerify() {
+  const wantApproved = wantVerify.value
+  const comment = (reviewComment.value || '').trim()
+
+  if (!wantApproved && !comment) {
+    alert('若審核未通過，請填寫原因')
+    return
+  }
+
   isVerified.value = wantVerify.value
-  const ok = await updateVerifyStatus()
+  const ok = await updateVerifyStatus(wantApproved, comment)
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getInstance(
     document.getElementById('confirmVerifyModal')
   )?.hide()
+
+  reviewComment.value = ''
 
   if (!ok) {
     isVerified.value = !wantVerify.value
