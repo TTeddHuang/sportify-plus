@@ -108,6 +108,24 @@
               <div class="card-wrapper"></div>
               <div class="card-content p-5 mb-5">
                 <form class="container">
+                  <!-- 審核建議回覆區域 -->
+                  <div
+                    v-if="editForm.review_comment"
+                    class="review-comment-section mb-5"
+                  >
+                    <div class="alert alert-warning d-flex align-items-start">
+                      <span
+                        class="material-symbols-outlined text-warning me-3 mt-1"
+                      >
+                        feedback
+                      </span>
+                      <div>
+                        <h6 class="alert-heading mb-2 fw-bold">審核建議</h6>
+                        <p class="mb-0">{{ editForm.review_comment }}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="mb-5">
                     <label for="editName" class="form-label fw-bold"
                       >課程名稱</label
@@ -275,7 +293,8 @@ const editForm = ref({
   intro: '',
   category: '',
   currentImageUrl: '',
-  chapters: []
+  chapters: [],
+  review_comment: ''
 })
 
 const categories = [
@@ -361,6 +380,7 @@ async function openEditModal(course) {
       editForm.value.currentImageUrl = courseData.image_url
       editForm.value.currentImageID = courseData.image_public_id
       editForm.value.chapters = sortedChapters
+      editForm.value.review_comment = courseData.review_comment || ''
 
       // 清除之前的預覽圖片和上傳狀態
       editPreviewURL.value = ''
@@ -680,6 +700,30 @@ onMounted(async () => await getCourses())
 .modal-content {
   border: none;
   border-radius: 0;
+}
+
+// 審核建議樣式
+.review-comment-section {
+  .alert {
+    border: 1px solid #ffeaa7;
+    background-color: #fff9e6;
+    border-radius: 8px;
+
+    .alert-heading {
+      color: #e17055;
+      font-size: 1rem;
+    }
+
+    p {
+      color: #636e72;
+      line-height: 1.6;
+    }
+
+    .material-symbols-outlined {
+      font-size: 24px;
+      color: #e17055;
+    }
+  }
 }
 
 .card-wrapper {
