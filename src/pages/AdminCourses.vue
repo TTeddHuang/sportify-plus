@@ -135,7 +135,7 @@
                       {{ course.category }}
                     </td>
                     <td class="td-custom">***{{ course.id.slice(-5) }}</td>
-                    <td class="td-custom">{{ course.title }}</td>
+                    <td class="td-custom title-cell">{{ course.title }}</td>
                     <td class="td-custom">
                       {{ formatDateWithoutLib(course.created_at) }}
                     </td>
@@ -751,6 +751,10 @@ const categoryOptions = computed(() => {
   if (selectedInstructor.value !== '全部講師') {
     list = list.filter(c => c.instructor === selectedInstructor.value)
   }
+  if (selectedStatus.value !== '全部狀態') {
+    const wantActive = selectedStatus.value === '上架中'
+    list = list.filter(c => c.is_active === wantActive)
+  }
   const set = new Set()
   list.forEach(c => set.add(c.category))
   return ['全部課程', ...Array.from(set)]
@@ -761,13 +765,29 @@ const instructorOptions = computed(() => {
   if (selectedCategory.value !== '全部課程') {
     list = list.filter(c => c.category === selectedCategory.value)
   }
+  if (selectedStatus.value !== '全部狀態') {
+    const wantActive = selectedStatus.value === '上架中'
+    list = list.filter(c => c.is_active === wantActive)
+  }
   const set = new Set()
   list.forEach(c => set.add(c.instructor))
   return ['全部講師', ...Array.from(set)]
 })
 
-// 狀態選項固定三項（全部/上架中/待審核）
-const statusOptions = ['全部狀態', '上架中', '待審核']
+const statusOptions = computed(() => {
+  let list = courses.value
+
+  if (selectedCategory.value !== '全部課程') {
+    list = list.filter(c => c.category === selectedCategory.value)
+  }
+  if (selectedInstructor.value !== '全部講師') {
+    list = list.filter(c => c.instructor === selectedInstructor.value)
+  }
+
+  const set = new Set()
+  list.forEach(c => set.add(c.is_active ? '上架中' : '待審核'))
+  return ['全部狀態', ...Array.from(set)]
+})
 
 const pageSize = 20
 
@@ -848,14 +868,15 @@ function changeCoursePage(page) {
 watch([selectedCategory, selectedInstructor, selectedStatus], () => {
   currentCoursePage.value = 1
 })
-watch([categoryOptions, instructorOptions], () => {
-  /* 類別被篩掉 → 跳回「全部課程」 */
+watch([categoryOptions, instructorOptions, statusOptions], () => {
   if (!categoryOptions.value.includes(selectedCategory.value)) {
     selectedCategory.value = '全部課程'
   }
-  /* 講師被篩掉 → 跳回「全部講師」 */
   if (!instructorOptions.value.includes(selectedInstructor.value)) {
     selectedInstructor.value = '全部講師'
+  }
+  if (!statusOptions.value.includes(selectedStatus.value)) {
+    selectedStatus.value = '全部狀態'
   }
 })
 
@@ -876,6 +897,7 @@ function closeDetailModal() {
  * body 裡帶 approved: true
  */
 async function approveReview() {
+  const commentTxt = (selectedDetail.value.reviewComment || '').trim()
   try {
     const courseId = selectedDetail.value.id
     const token = localStorage.getItem('token')
@@ -883,7 +905,7 @@ async function approveReview() {
       `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
       {
         status: 'approved',
-        reviewComment: selectedDetail.value.reviewComment || ''
+        review_comment: commentTxt
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
@@ -907,6 +929,14 @@ async function approveReview() {
  * 同樣呼叫 PATCH，把 approved: false
  */
 async function rejectReview() {
+  const commentTxt = (selectedDetail.value.reviewComment || '').trim()
+
+  if (!commentTxt) {
+    // 前端先做必填驗證
+    alert('若審核未通過，請填寫建議')
+    return
+  }
+
   try {
     const courseId = selectedDetail.value.id
     const token = localStorage.getItem('token')
@@ -914,7 +944,7 @@ async function rejectReview() {
       `https://sportify.zeabur.app/api/v1/admin/courses/${courseId}/review`,
       {
         status: 'rejected',
-        reviewComment: selectedDetail.value.reviewComment || ''
+        review_comment: commentTxt
       },
       { headers: { Authorization: `Bearer ${token}` } }
     )
@@ -1322,6 +1352,12 @@ onMounted(async () => {
   font-size: 14px;
   text-align: center;
   white-space: nowrap;
+}
+.title-cell {
+  white-space: normal; // 讓文字可以自動折行
+  word-break: break-word; // 長單字或網址也能斷行
+  min-width: 180px;
+  width: 100%;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
