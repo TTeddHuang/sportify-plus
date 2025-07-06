@@ -1213,7 +1213,7 @@ watch([skillOptions, coachOptions, verifyStatusOptions], () => {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $grey-000;
+  background-color: $primary-000;
   border: 1px solid $primary-600;
   margin-top: -38px;
   padding: 24px;
