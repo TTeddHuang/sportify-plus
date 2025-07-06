@@ -1,6 +1,10 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6 pt-8 ps-8">
+    <!-- 當有課程資料時顯示課程列表 -->
+    <div
+      v-if="courses.length > 0"
+      class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6 pt-8 ps-8"
+    >
       <div
         v-for="course in courses"
         :key="course.course_id"
@@ -73,6 +77,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 當沒有課程資料時顯示空狀態 -->
+    <div
+      v-else
+      class="empty-state d-flex flex-column align-items-center justify-content-center text-center"
+    >
+      <div class="empty-icon mb-4">
+        <span class="material-symbols-outlined">school</span>
+      </div>
+      <h3 class="mb-3 text-grey-600">還沒有建立任何課程</h3>
+      <p class="text-grey-500 mb-0">
+        開始建立您的第一個課程，與學員分享您的專業知識！
+      </p>
+    </div>
+
     <div
       id="editCourseModal"
       class="modal fade"
@@ -320,7 +339,6 @@ async function openEditModal(course) {
 
     if (response.data.status) {
       const courseData = response.data.data
-      console.log('課程資料:', courseData)
 
       let sortedChapters = []
       if (courseData.chapters && courseData.chapters.length > 0) {
@@ -433,7 +451,6 @@ function formatChaptersData() {
   if (!editDraggableRef.value) return []
 
   const chapters = editDraggableRef.value.chapters
-  console.log(chapters)
   return chapters.map((chapter, chapterIndex) => ({
     chapter_number: chapterIndex + 1,
     chapter_title: chapter.title,
@@ -489,7 +506,6 @@ async function updateCourse() {
       courseData.image_public_id = thumbnailPublicId.value
     }
 
-    console.log('courseData', courseData)
     const response = await axios.patch(
       `https://sportify.zeabur.app/api/v1/coaches/courses/${editForm.value.id}`,
       courseData,
@@ -499,9 +515,7 @@ async function updateCourse() {
         }
       }
     )
-    console.log('editForm', editForm.value)
-    console.log('courseData', courseData)
-    console.log(response.data)
+
     if (response.data.status) {
       alert('課程更新成功！')
 
@@ -524,9 +538,7 @@ async function updateCourse() {
   }
 }
 
-const handleCourseIdReceived = id => {
-  console.log('接收到 course_id:', id)
-}
+const handleCourseIdReceived = id => {}
 
 onMounted(async () => await getCourses())
 </script>
@@ -624,7 +636,44 @@ onMounted(async () => await getCourses())
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
+}
+
+// 空狀態樣式
+.empty-state {
+  min-height: 400px;
+  padding: 60px 20px;
+
+  .empty-icon {
+    width: 120px;
+    height: 120px;
+    background-color: rgba($primary-600, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+
+    .material-symbols-outlined {
+      font-size: 48px;
+      color: $primary-600;
+    }
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $grey-600;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $grey-500;
+    max-width: 400px;
+    line-height: 1.6;
+  }
 }
 
 // Modal 內的樣式 - 與 CoachNewCourse 保持一致
