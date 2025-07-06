@@ -135,20 +135,7 @@ import axios from 'axios'
 const router = useRouter()
 const courseId = ref(null)
 const fileInput = ref(null)
-const categories = [
-  '瑜珈',
-  '單車',
-  '登山',
-  '皮拉提斯',
-  '足球',
-  '籃球',
-  '羽球',
-  '重訓',
-  '滑板',
-  '有氧',
-  '舞蹈',
-  '游泳'
-]
+const categories = ref([])
 const form = reactive({ name: '', intro: '', category: '' })
 const previewURL = ref('')
 const draggableRef = ref(null)
@@ -168,7 +155,16 @@ const checkUserVerification = () => {
 
     const user = JSON.parse(userStr)
     if (!user.is_verified) {
-      alert('請等待個人資料通過驗證，方可建立新課程')
+      alert('須待個人資料通過驗證，方可建立新課程')
+      router.push('/coach/profile')
+      return false
+    }
+
+    // 設定 categories 為用戶的技能
+    if (user.skills && Array.isArray(user.skills)) {
+      categories.value = user.skills
+    } else {
+      alert('請先到個人資料頁面設定您的專長技能')
       router.push('/coach/profile')
       return false
     }
