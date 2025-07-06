@@ -115,7 +115,6 @@ function validatePassword() {
 }
 
 // 一般登入處理
-
 async function handleLogin() {
   validateEmail()
   validatePassword()
