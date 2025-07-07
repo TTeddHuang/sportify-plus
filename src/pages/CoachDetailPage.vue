@@ -126,8 +126,7 @@ p {
   background-color: rgba(255, 255, 255, 0.05);
   width: 896px;
   max-width: 100%;
-  height: auto;
-  max-height: 100%;
+  min-height: 200px;
   padding: 40px;
   border-radius: 16px;
   box-shadow: inset 0px 0px 0px 1px $primary-000;
@@ -141,9 +140,7 @@ p {
 .info-card {
   background-color: rgba(255, 255, 255, 0.05);
   width: 100%;
-
-  height: 320px;
-  max-height: 100%;
+  min-height: 200px;
   padding: 40px;
   border-radius: 16px;
   box-shadow: inset 0px 0px 0px 1px $primary-000;
