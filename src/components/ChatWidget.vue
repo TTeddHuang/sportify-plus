@@ -21,7 +21,9 @@
       </div>
       <div ref="chatBody" class="chat-body">
         <div v-for="(msg, index) in messages" :key="index" class="chat-message">
-          <span :class="[msg.role, { loading: msg.isLoading }]">{{ msg.text }}</span>
+          <span :class="[msg.role, { loading: msg.isLoading }]">{{
+            msg.text
+          }}</span>
         </div>
       </div>
       <div class="chat-input">
@@ -155,37 +157,38 @@ const sendMessage = async () => {
   flex: 1;
   padding: 0 16px;
   overflow-y: auto;
-  font-size: 14px;    .chat-message {
-      display: flex;
-      width: 100%;
-      margin-bottom: 12px;
+  font-size: 14px;
+  .chat-message {
+    display: flex;
+    width: 100%;
+    margin-bottom: 12px;
 
-      .user {
-        margin-left: auto;
-      }
+    .user {
+      margin-left: auto;
+    }
 
-      .bot {
-        margin-right: auto;
-      }
+    .bot {
+      margin-right: auto;
+    }
 
-      > span {
-        display: inline-block;
-        width: fit-content;
-        max-width: 80%;
-        background: $primary-000;
-        border-radius: 8px;
-        padding: 12px;
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: $grey-1000;
-        line-height: 1.6;
+    > span {
+      display: inline-block;
+      width: fit-content;
+      max-width: 80%;
+      background: $primary-000;
+      border-radius: 8px;
+      padding: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: $grey-1000;
+      line-height: 1.6;
 
-        &.loading {
-          animation: pulse 1.5s ease-in-out infinite;
-          opacity: 0.7;
-        }
+      &.loading {
+        animation: pulse 1.5s ease-in-out infinite;
+        opacity: 0.7;
       }
     }
+  }
 }
 
 .chat-input {
@@ -215,7 +218,8 @@ const sendMessage = async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
   }
   50% {
