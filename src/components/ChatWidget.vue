@@ -21,7 +21,7 @@
       </div>
       <div ref="chatBody" class="chat-body">
         <div v-for="(msg, index) in messages" :key="index" class="chat-message">
-          <span :class="msg.role">{{ msg.text }}</span>
+          <span :class="[msg.role, { loading: msg.isLoading }]">{{ msg.text }}</span>
         </div>
       </div>
       <div class="chat-input">
@@ -40,6 +40,11 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import axios from 'axios'
+
+// 為 ChatWidget 創建獨立的 axios 實例，不使用全域攔截器
+const chatAxios = axios.create({
+  baseURL: 'https://sportify.zeabur.app/api/v1'
+})
 const isOpen = ref(false)
 const input = ref('')
 const messages = ref([])
@@ -58,10 +63,19 @@ const sendMessage = async () => {
   input.value = ''
   loading.value = true
   await scrollToBottom()
+
+  // 顯示 loading 訊息
+  const loadingMessageIndex = messages.value.length
+  messages.value.push({ role: 'bot', text: '正在思考中...', isLoading: true })
+  await scrollToBottom()
+
   try {
-    const res = await axios.post('https://sportify.zeabur.app/api/v1/chat', {
+    const res = await chatAxios.post('/chat', {
       message: userMessage
     })
+    // 移除 loading 訊息
+    messages.value.splice(loadingMessageIndex, 1)
+
     if (res.data && res.data.reply) {
       messages.value.push({ role: 'bot', text: res.data.reply })
     } else {
@@ -71,6 +85,9 @@ const sendMessage = async () => {
       })
     }
   } catch (error) {
+    // 移除 loading 訊息
+    messages.value.splice(loadingMessageIndex, 1)
+
     messages.value.push({
       role: 'bot',
       text: '⚠️ 發送失敗，請檢查網路或稍後再試。'
@@ -138,34 +155,37 @@ const sendMessage = async () => {
   flex: 1;
   padding: 0 16px;
   overflow-y: auto;
-  font-size: 14px;
+  font-size: 14px;    .chat-message {
+      display: flex;
+      width: 100%;
+      margin-bottom: 12px;
 
-  .chat-message {
-    display: flex;
-    width: 100%;
-    margin-bottom: 12px;
+      .user {
+        margin-left: auto;
+      }
 
-    .user {
-      margin-left: auto;
+      .bot {
+        margin-right: auto;
+      }
+
+      > span {
+        display: inline-block;
+        width: fit-content;
+        max-width: 80%;
+        background: $primary-000;
+        border-radius: 8px;
+        padding: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: $grey-1000;
+        line-height: 1.6;
+
+        &.loading {
+          animation: pulse 1.5s ease-in-out infinite;
+          opacity: 0.7;
+        }
+      }
     }
-
-    .bot {
-      margin-right: auto;
-    }
-
-    > span {
-      display: inline-block;
-      width: fit-content;
-      max-width: 80%;
-      background: $primary-000;
-      border-radius: 8px;
-      padding: 12px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: $grey-1000;
-      line-height: 1.6;
-    }
-  }
 }
 
 .chat-input {
@@ -191,6 +211,15 @@ const sendMessage = async () => {
       opacity: 0.6;
       cursor: not-allowed;
     }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
   }
 }
 </style>
