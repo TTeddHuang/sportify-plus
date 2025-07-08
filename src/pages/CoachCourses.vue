@@ -287,6 +287,7 @@ import axios from 'axios'
 
 const coach = ref([])
 const courses = ref([])
+const categories = ref([])
 const editForm = ref({
   id: null,
   name: '',
@@ -296,21 +297,6 @@ const editForm = ref({
   chapters: [],
   review_comment: ''
 })
-
-const categories = [
-  '瑜珈',
-  '單車',
-  '登山',
-  '皮拉提斯',
-  '足球',
-  '籃球',
-  '羽球',
-  '重訓',
-  '滑板',
-  '有氧',
-  '舞蹈',
-  '游泳'
-]
 
 const editPreviewURL = ref('')
 const editDraggableRef = ref(null)
@@ -322,6 +308,52 @@ const fileInput = ref(null)
 
 const triggerFileSelect = () => {
   fileInput.value?.click()
+}
+
+const loadUserCategories = () => {
+  try {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      if (user.skills && Array.isArray(user.skills)) {
+        categories.value = user.skills
+      } else {
+        console.warn('用戶沒有設定技能，使用預設類別')
+        // 如果用戶沒有技能，使用預設類別
+        categories.value = [
+          '瑜珈',
+          '單車',
+          '登山',
+          '皮拉提斯',
+          '足球',
+          '籃球',
+          '羽球',
+          '重訓',
+          '滑板',
+          '有氧',
+          '舞蹈',
+          '游泳'
+        ]
+      }
+    }
+  } catch (error) {
+    console.error('載入用戶技能失敗:', error)
+    // 出錯時使用預設類別
+    categories.value = [
+      '瑜珈',
+      '單車',
+      '登山',
+      '皮拉提斯',
+      '足球',
+      '籃球',
+      '羽球',
+      '重訓',
+      '滑板',
+      '有氧',
+      '舞蹈',
+      '游泳'
+    ]
+  }
 }
 
 async function getCourses() {
@@ -560,7 +592,10 @@ async function updateCourse() {
 
 const handleCourseIdReceived = id => {}
 
-onMounted(async () => await getCourses())
+onMounted(async () => {
+  loadUserCategories()
+  await getCourses()
+})
 </script>
 
 <style scoped lang="scss">
