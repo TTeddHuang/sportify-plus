@@ -625,9 +625,7 @@
             aria-hidden="true"
           >
             <div class="modal-dialog modal-dialog-centered">
-              <div
-                class="modal-content bg-transparent border-0 shadow-none bg-grey-000"
-              >
+              <div class="modal-content bg-transparent border-0 shadow-none">
                 <button
                   type="button"
                   class="btn-close position-absolute end-0 top-0 m-3"
