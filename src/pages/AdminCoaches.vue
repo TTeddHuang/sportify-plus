@@ -462,20 +462,36 @@
                   <img
                     :src="selectedCoach.bankbook_copy_url"
                     alt="存摺影本"
-                    class="img-fluid rounded mb-3"
+                    class="img-fluid rounded mb-3 bankbook-card previewable"
                     style="max-height: 200px; object-fit: cover"
+                    @click="
+                      openPreview(selectedCoach.bankbook_copy_url, '存摺影本')
+                    "
                   />
                 </div>
-                <div v-if="selectedCoach?.background_image_url">
+                <div
+                  v-if="selectedCoach?.licenses?.length"
+                  class="license-wrapper"
+                >
                   <p class="fw-bold">相關資格證明</p>
-                  <img
-                    :src="selectedCoach.background_image_url"
-                    alt="證明照片"
-                    class="img-fluid rounded mb-3"
-                    style="max-height: 200px; object-fit: cover"
-                  />
+                  <div class="d-flex flex-wrap">
+                    <div
+                      v-for="lic in selectedCoach.licenses"
+                      :key="lic.id"
+                      class="license-card text-center me-3 mb-3"
+                    >
+                      <img
+                        :src="lic.file_url"
+                        :alt="lic.name"
+                        class="previewable"
+                        @click="openPreview(lic.file_url, lic.name)"
+                      />
+                      <p class="lic-name text-wrap text-grey-700 mb-0">
+                        {{ lic.name }}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <!-- ...如果有更多欄位，可以自行加在這裡 -->
               </div>
               <div class="subscription-card">
                 <div class="card-wrapper"></div>
@@ -584,17 +600,47 @@
                       ></textarea>
                     </div>
                     <button
-                      class="btn btn-outline-primary-600 text-primary-600"
-                      data-bs-dismiss="modal"
-                      @click="reviewComment = ''"
+                      class="btn btn-danger me-3 text-grey-700"
+                      @click="chooseVerify(false)"
                     >
-                      取消
+                      <i class="bi bi-x-circle me-2"></i>
+                      未通過
                     </button>
-                    <button class="btn btn-primary" @click="doVerify">
-                      確定
+                    <button
+                      class="btn btn-success text-grey-700"
+                      @click="chooseVerify(true)"
+                    >
+                      <i class="bi bi-check-circle me-2"></i>
+                      通過
                     </button>
                   </template>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div
+            id="imagePreviewModal"
+            class="modal fade"
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered">
+              <div
+                class="modal-content bg-transparent border-0 shadow-none bg-grey-000"
+              >
+                <button
+                  type="button"
+                  class="btn-close position-absolute end-0 top-0 m-3"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+
+                <!-- 原圖 → 動態綁 src / alt -->
+                <img
+                  :src="previewSrc"
+                  :alt="previewAlt"
+                  class="img-fluid rounded"
+                />
               </div>
             </div>
           </div>
@@ -665,6 +711,19 @@ const pagination = ref({
 
 const loading = ref(false)
 const error = ref(null)
+
+const previewSrc = ref('')
+const previewAlt = ref('')
+
+function openPreview(src, alt = '') {
+  previewSrc.value = src
+  previewAlt.value = alt
+  // 顯示 Bootstrap 5 Modal
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('imagePreviewModal')
+  ).show()
+}
 
 // 由 pagination.value 計算出目前頁碼與總頁數
 
@@ -955,40 +1014,33 @@ function isProfileComplete(coach) {
   return basicOK && skillsOK
 }
 
-const wantVerify = ref(false)
 const reviewComment = ref('')
 
 function askVerify() {
-  wantVerify.value = !isVerified.value
-
-  if (wantVerify.value && !isProfileComplete(selectedCoach.value)) {
+  if (!isProfileComplete(selectedCoach.value)) {
     confirmText.value = '教練基本資料尚未填寫完整，請提醒對方補齊資訊後再審核。'
     confirmMode.value = 'warn'
   } else {
-    confirmText.value = `確定要將此教練標記為「${
-      wantVerify.value ? '資格已審核' : '資格未審核'
-    }」嗎？`
-    confirmMode.value = 'normal'
+    confirmText.value = '請選擇要將此教練標記審核結果'
+    confirmMode.value = 'choose'
   }
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getOrCreateInstance(
     document.getElementById('confirmVerifyModal')
   ).show()
-  document.getElementById('coachVerified').checked = isVerified.value
 }
 
-async function doVerify() {
-  const wantApproved = wantVerify.value
+async function doVerify(approved) {
   const comment = (reviewComment.value || '').trim()
 
-  if (!wantApproved && !comment) {
+  if (!approved && !comment) {
     alert('若審核未通過，請填寫原因')
     return
   }
 
-  isVerified.value = wantVerify.value
-  const ok = await updateVerifyStatus(wantApproved, comment)
+  isVerified.value = approved
+  const ok = await updateVerifyStatus(approved, comment)
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getInstance(
@@ -998,8 +1050,16 @@ async function doVerify() {
   reviewComment.value = ''
 
   if (!ok) {
-    isVerified.value = !wantVerify.value
+    // eslint-disable-next-line no-undef
+    bootstrap.Modal.getInstance(
+      document.getElementById('confirmVerifyModal')
+    )?.hide()
+    reviewComment.value = ''
   }
+}
+
+function chooseVerify(approved) {
+  doVerify(approved)
 }
 
 const courses = ref([])
@@ -1262,6 +1322,7 @@ watch([skillOptions, coachOptions, verifyStatusOptions], () => {
   background: $primary-000;
   font-size: 20px;
   text-align: center;
+  white-space: nowrap;
   @media (max-width: 992px) {
     font-size: 16px;
   }
@@ -1271,6 +1332,7 @@ watch([skillOptions, coachOptions, verifyStatusOptions], () => {
   background: $primary-000;
   font-size: 14px;
   text-align: center;
+  white-space: nowrap;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
@@ -1359,5 +1421,53 @@ textarea::placeholder {
   background-clip: padding-box;
   border-radius: 6px;
   min-height: 40px;
+}
+.license-wrapper {
+  align-items: flex-start;
+}
+.license-card {
+  width: 200px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(236, 239, 253, 1);
+  border-radius: 8px;
+  padding: 8px;
+  background-color: rgba(252, 252, 252, 0.1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+  transition: all 0.2s ease;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.bankbook-card {
+  border: 1px solid rgba(236, 239, 253, 1);
+  border-radius: 8px;
+  padding: 8px;
+  background-color: rgba(252, 252, 252, 0.1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+  transition: all 0.2s ease;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.license-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.previewable {
+  cursor: zoom-in;
+  transition: 0.2s;
+}
+.previewable:hover {
+  opacity: 0.8;
+}
+.lic-name {
+  padding: 8px;
+  display: inline-block;
+  width: 100%;
+  min-height: 38px;
+  line-height: 19px;
+  overflow: hidden;
 }
 </style>
