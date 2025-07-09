@@ -184,6 +184,12 @@ onMounted(async () => {
     console.log('auth/me 回傳:', userRes.data)
 
     userInfo.value = userRes.data.data
+
+    if (userInfo.value && userInfo.value.hasTrial === false) {
+      alert(
+        '尚未完成信箱驗證，暫時無法啟用 7 日 Eagerness 試用。請至信箱點擊驗證連結後再試一次，謝謝！'
+      )
+    }
   } catch (err) {
     console.error('取得使用者資料失敗')
   }
