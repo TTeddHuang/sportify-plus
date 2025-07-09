@@ -549,6 +549,7 @@
                         class="btn btn-danger text-grey-700"
                         @click="rejectReview"
                       >
+                        <i class="bi bi-x-circle me-2"></i>
                         未通過
                       </button>
                       <button
@@ -556,6 +557,7 @@
                         class="btn btn-success text-grey-700 ms-lg-5"
                         @click="approveReview"
                       >
+                        <i class="bi bi-check-circle me-2"></i>
                         通過
                       </button>
                     </div>
