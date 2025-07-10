@@ -32,12 +32,12 @@
         <div class="dropdown">
           <button
             id="dropdownStartMonth"
-            class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9"
+            class="btn btn-primary-600 dropdown-toggle px-lg-3 px-1 fs-lg-8 fs-9 text-start"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            {{ selectedMonth || '請選擇月份' }}
+            起始月份: {{ selectedMonth || '尚未選擇' }}
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownStartMonth">
             <li
@@ -114,28 +114,31 @@
       </div>
 
       <!-- 雙欄:長條圖+圓餅圖 -->
-      <div class="row mb-lg-8 mb-6 justify-content-center text-center">
+      <div>
         <p class="fs-5 fw-semibold text-dark mb-4">觀看數據</p>
-        <!-- 橫向標題 -->
-        <div class="d-flex flex-wrap justify-content-center mb-3 gap-4">
-          <p class="fs-6 mb-0">各月份觀看次數</p>
-          <p class="fs-6 mb-0">各月份占比</p>
-        </div>
+      </div>
+      <div class="row mb-lg-8 mb-6 justify-content-center text-center">
         <!-- 長條圖 -->
-        <div class="col-12 col-lg-6 d-flex justify-content-center">
-          <Bar
-            v-if="
-              barChartData &&
-              barChartData.labels &&
-              barChartData.labels.length > 0
-            "
-            :data="barChartData"
-            :options="barChartOptions"
-          ></Bar>
+        <div class="col-12 col-lg-6 d-flex flex-column align-items-start">
+          <p class="fs-6 mb-2">各月份觀看次數</p>
+          <div style="width: 100%" height:300px>
+            <Bar
+              v-if="
+                barChartData &&
+                barChartData.labels &&
+                barChartData.labels.length > 0
+              "
+              :data="barChartData"
+              :options="barChartOptions"
+            ></Bar>
+          </div>
         </div>
         <!-- 圓餅圖 -->
-        <div class="col-12 col-lg-6 d-flex justify-content-center">
-          <Pie :data="pieChartData" :options="pieChartOptions"></Pie>
+        <div class="col-12 col-lg-6 d-flex flex-column align-items-start">
+          <p class="fs-6 mb-2">各月份占比</p>
+          <div style="width: 100%; height: 300px">
+            <Pie :data="pieChartData" :options="pieChartOptions"></Pie>
+          </div>
         </div>
       </div>
 
@@ -145,7 +148,11 @@
         <template v-if="chapterReport.length > 0">
           <CoachEarningChapterAccordion :chapters="chapterReport" />
         </template>
-        <template v-else-if="courseOptions.length === 1">
+        <template
+          v-else-if="
+            isSubmitted && !chapterReport.length && selectedCourse !== 'all'
+          "
+        >
           <p class="text-center mt-4">此課程近 3 個月無觀看紀錄</p>
         </template>
       </div>
@@ -188,6 +195,8 @@ const pieChartData = ref({
 const chapterReport = ref([])
 const revenueTable = ref([])
 const fullCourseList = ref([]) // 儲存教練所有課程名稱
+
+const isSubmitted = ref(false) // 儲存送出前的狀態，防止即使渲染
 
 onMounted(async () => {
   await submit()
@@ -302,10 +311,9 @@ async function submit() {
   console.log('查詢參數')
 
   try {
-    // const token = localStorage.getItem('token')
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMGE2ZDE2LTM5NGYtNGYzZi1hMDE1LTUwMTRjYzcwOGQ1ZSIsInJvbGUiOiJDT0FDSCIsImlhdCI6MTc1MjExMTA5NSwiZXhwIjoxNzU0NzAzMDk1fQ.LMW7ektH8cKkpuhTySq0koiXwicoE8sNY9rwHU-Ge9o`
+    const token = localStorage.getItem('token')
     const { data } = await axios.get(
-      'http://localhost:8080/api/v1/coaches/courses/analysis',
+      'https://sportify.zeabur.app/api/v1/coaches/courses/analysis',
       {
         headers: { Authorization: `Bearer ${token}` },
         params
