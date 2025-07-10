@@ -25,8 +25,8 @@ onMounted(async () => {
   try {
     await axios.patch(
       'https://sportify.zeabur.app/api/v1/auth/user-verification',
-      null, // No body
-      { params: { token } } // ?token=xxx
+      null,
+      { params: { token } }
     )
     status.value = 'success'
   } catch (e) {
