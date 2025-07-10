@@ -1,14 +1,14 @@
 <template>
   <div class="container d-flex flex-column">
     <h2 class="fs-2 fw-bold">{{ coachInfo.nickname }}</h2>
-    <div class="d-lg-flex justify-content-between">
+    <div class="d-md-flex justify-content-between">
       <img
         :src="coachInfo.profile_image_url"
         alt="教練照片"
         class="coach-avatar"
       />
-      <div class="info-card-about ms-lg-5">
-        <h3 class="mb-8 fs-5 fw-bold">關於我</h3>
+      <div class="info-card-about ms-md-5">
+        <h3 class="mb-lg-8 mb-5 fs-5 fw-bold">關於我</h3>
         <p>
           {{ coachInfo.about_me }}
         </p>
@@ -16,9 +16,15 @@
     </div>
     <div class="info-card">
       <h3 class="mb-8 fs-5 fw-bold">個人經歷</h3>
-      <p>
-        {{ coachInfo.experience }}
-      </p>
+      <ul class="experience-list">
+        <li
+          v-for="(item, index) in experienceItems"
+          :key="index"
+          class="experience-item"
+        >
+          {{ item }}
+        </li>
+      </ul>
     </div>
     <div class="info-card">
       <h3 class="mb-8 fs-5 fw-bold">感興趣的事物</h3>
@@ -41,7 +47,7 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import WaveBanner from '@/components/WaveBanner.vue'
@@ -51,6 +57,14 @@ const route = useRoute()
 
 const coachId = ref(route.params.coachId)
 const coachInfo = ref({})
+
+const experienceItems = computed(() => {
+  if (!coachInfo.value.experience) return []
+  return coachInfo.value.experience
+    .split('\n')
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+})
 
 async function fetchCoachDetail(id) {
   try {
@@ -102,7 +116,7 @@ p {
   height: 320px;
   object-fit: cover;
   border-radius: 8px;
-  @media (max-width: 992px) {
+  @media (max-width: 768px) {
     width: 100%;
     margin-bottom: 32px;
     height: 200px;
@@ -112,8 +126,7 @@ p {
   background-color: rgba(255, 255, 255, 0.05);
   width: 896px;
   max-width: 100%;
-  height: auto;
-  max-height: 100%;
+  min-height: 200px;
   padding: 40px;
   border-radius: 16px;
   box-shadow: inset 0px 0px 0px 1px $primary-000;
@@ -127,9 +140,7 @@ p {
 .info-card {
   background-color: rgba(255, 255, 255, 0.05);
   width: 100%;
-
-  height: 320px;
-  max-height: 100%;
+  min-height: 200px;
   padding: 40px;
   border-radius: 16px;
   box-shadow: inset 0px 0px 0px 1px $primary-000;
@@ -138,6 +149,32 @@ p {
   }
   @media (max-width: 992px) {
     padding: 24px;
+  }
+}
+
+.experience-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  .experience-item {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+
+    &:before {
+      content: '•';
+      color: $primary-600;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 </style>

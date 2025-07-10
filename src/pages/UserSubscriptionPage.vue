@@ -45,7 +45,7 @@
                 </li>
               </ul>
               <button
-                v-if="userInfo && !userInfo.hasTrial"
+                v-if="showPlanUI"
                 class="mt-auto btn btn-lg btn-primary"
                 :class="plan.buttonClass"
                 @click="selectPlan(plan.key)"
@@ -58,10 +58,7 @@
       </div>
 
       <!-- 目前選擇顯示 -->
-      <div
-        v-if="userInfo && !userInfo?.hasTrial"
-        class="text-center my-lg-12 my-7 fs-lg-4"
-      >
+      <div v-if="showPlanUI" class="text-center my-lg-12 my-7 fs-lg-4">
         您目前選擇
         <strong class="text-primary">
           {{ selectedPlanLabel }}
@@ -79,7 +76,7 @@
       </div>
 
       <!-- 運動種類選擇 -->
-      <div v-if="userInfo && selectedPlan && limit < Infinity" class="mt-5">
+      <div v-if="showPlanUI && selectedPlan && limit < Infinity" class="mt-5">
         <div class="row gx-4">
           <div
             v-for="group in groups"
@@ -115,9 +112,9 @@
       </div>
 
       <!-- 送出按鈕 -->
-      <div class="text-center mt-lg-10">
+      <div class="text-center mt-lg-10 mt-5">
         <button
-          v-if="userInfo?.hasTrial || !userInfo"
+          v-if="showTrialBtn"
           class="btn btn-success btn-lg"
           @click="submitTrial"
         >
@@ -125,13 +122,30 @@
         </button>
 
         <button
-          v-else
+          v-else-if="showPlanUI"
           class="btn btn-success btn-lg"
           :disabled="!canSubmit"
           @click="submit"
         >
           選購方案
         </button>
+      </div>
+    </div>
+    <div id="verifyModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4 border-1 border-primary-000">
+          <h5 class="modal-title mb-3 fw-bold">尚未完成信箱驗證</h5>
+          <p class="mb-4">驗證後才能啟用 7 日 Eagerness 試用方案！</p>
+
+          <div class="d-flex justify-content-center gap-3">
+            <button class="btn btn-grey-400" data-bs-dismiss="modal">
+              稍後再說
+            </button>
+            <button id="goVerify" class="btn btn-primary" @click="goVerify">
+              前往驗證
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -144,6 +158,13 @@ import { useRouter } from 'vue-router'
 import { submitEcpay } from '@/api/submitEcpay'
 
 const router = useRouter()
+
+const isLoggedIn = computed(() => !!userInfo.value)
+const isVerified = computed(() => userInfo.value?.is_verified)
+const hasTrial = computed(() => userInfo.value?.hasTrial)
+const hasActiveSub = computed(() => userInfo.value?.hasActiveSubscription)
+
+let verifyModalInstance = null
 
 // 1. 用 import.meta.glob，並加上 eager: true
 const iconModules = import.meta.glob('../assets/icons/*.png', {
@@ -168,24 +189,46 @@ const groups = ref([])
 // user資料
 const userInfo = ref(null)
 
+const showPlanUI = computed(
+  () => isVerified.value && (!hasTrial.value || hasActiveSub.value)
+)
+const showTrialBtn = computed(
+  () => !isLoggedIn.value || !isVerified.value || hasTrial.value
+)
+
+const needVerify = computed(() => isLoggedIn.value && !isVerified.value)
+async function showVerifyModal() {
+  const ModalCtor = window.bootstrap?.Modal || (await import('bootstrap')).Modal
+  const el = document.getElementById('verifyModal')
+  verifyModalInstance = ModalCtor.getOrCreateInstance(el)
+  verifyModalInstance.show()
+}
+
+function goVerify() {
+  if (verifyModalInstance) {
+    verifyModalInstance.hide()
+  }
+  router.push('/user/profile')
+}
+
 onMounted(async () => {
   try {
     const token = localStorage.getItem('token')
     if (!token) return
 
-    const userRes = await axios.get(
+    const { data } = await axios.get(
       'https://sportify.zeabur.app/api/v1/auth/me',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     )
-    console.log('auth/me 回傳:', userRes.data)
+    console.log('auth/me 回傳:', data)
 
-    userInfo.value = userRes.data.data
+    userInfo.value = data.data
+
+    if (!userInfo.value.is_verified && !userInfo.value.hasTrial) {
+      showVerifyModal()
+    }
   } catch (err) {
-    console.error('取得使用者資料失敗')
+    console.error('取得使用者資料失敗', err)
   }
 })
 
@@ -320,6 +363,11 @@ const canSubmit = computed(() => {
 
 // 試用七天
 async function submitTrial() {
+  if (!showTrialBtn.value) return
+  if (needVerify.value) {
+    showVerifyModal()
+    return
+  }
   try {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -348,6 +396,7 @@ async function submitTrial() {
 
 // 提交
 async function submit() {
+  if (!showPlanUI.value) return
   const payload = {
     subscription_name: selectedPlanLabel.value,
     course_type: selectedPlan.value === 'Eagerness' ? [] : selectedItems.value

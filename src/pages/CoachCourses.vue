@@ -1,6 +1,10 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6 pt-8 ps-8">
+    <!-- 當有課程資料時顯示課程列表 -->
+    <div
+      v-if="courses.length > 0"
+      class="d-flex flex-wrap course-grid gap-lg-8 gap-md-6 pt-8 ps-8"
+    >
       <div
         v-for="course in courses"
         :key="course.course_id"
@@ -73,6 +77,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 當沒有課程資料時顯示空狀態 -->
+    <div
+      v-else
+      class="empty-state d-flex flex-column align-items-center justify-content-center text-center"
+    >
+      <div class="empty-icon mb-4">
+        <span class="material-symbols-outlined">school</span>
+      </div>
+      <h3 class="mb-3 text-grey-600">還沒有建立任何課程</h3>
+      <p class="text-grey-500 mb-0">
+        開始建立您的第一個課程，與學員分享您的專業知識！
+      </p>
+    </div>
+
     <div
       id="editCourseModal"
       class="modal fade"
@@ -89,6 +108,24 @@
               <div class="card-wrapper"></div>
               <div class="card-content p-5 mb-5">
                 <form class="container">
+                  <!-- 審核建議回覆區域 -->
+                  <div
+                    v-if="editForm.review_comment"
+                    class="review-comment-section mb-5"
+                  >
+                    <div class="alert alert-warning d-flex align-items-start">
+                      <span
+                        class="material-symbols-outlined text-warning me-3 mt-1"
+                      >
+                        feedback
+                      </span>
+                      <div>
+                        <h6 class="alert-heading mb-2 fw-bold">審核建議</h6>
+                        <p class="mb-0">{{ editForm.review_comment }}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="mb-5">
                     <label for="editName" class="form-label fw-bold"
                       >課程名稱</label
@@ -250,29 +287,16 @@ import axios from 'axios'
 
 const coach = ref([])
 const courses = ref([])
+const categories = ref([])
 const editForm = ref({
   id: null,
   name: '',
   intro: '',
   category: '',
   currentImageUrl: '',
-  chapters: []
+  chapters: [],
+  review_comment: ''
 })
-
-const categories = [
-  '瑜珈',
-  '單車',
-  '登山',
-  '皮拉提斯',
-  '足球',
-  '籃球',
-  '羽球',
-  '重訓',
-  '滑板',
-  '有氧',
-  '舞蹈',
-  '游泳'
-]
 
 const editPreviewURL = ref('')
 const editDraggableRef = ref(null)
@@ -284,6 +308,52 @@ const fileInput = ref(null)
 
 const triggerFileSelect = () => {
   fileInput.value?.click()
+}
+
+const loadUserCategories = () => {
+  try {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      if (user.skills && Array.isArray(user.skills)) {
+        categories.value = user.skills
+      } else {
+        console.warn('用戶沒有設定技能，使用預設類別')
+        // 如果用戶沒有技能，使用預設類別
+        categories.value = [
+          '瑜珈',
+          '單車',
+          '登山',
+          '皮拉提斯',
+          '足球',
+          '籃球',
+          '羽球',
+          '重訓',
+          '滑板',
+          '有氧',
+          '舞蹈',
+          '游泳'
+        ]
+      }
+    }
+  } catch (error) {
+    console.error('載入用戶技能失敗:', error)
+    // 出錯時使用預設類別
+    categories.value = [
+      '瑜珈',
+      '單車',
+      '登山',
+      '皮拉提斯',
+      '足球',
+      '籃球',
+      '羽球',
+      '重訓',
+      '滑板',
+      '有氧',
+      '舞蹈',
+      '游泳'
+    ]
+  }
 }
 
 async function getCourses() {
@@ -320,7 +390,6 @@ async function openEditModal(course) {
 
     if (response.data.status) {
       const courseData = response.data.data
-      console.log('課程資料:', courseData)
 
       let sortedChapters = []
       if (courseData.chapters && courseData.chapters.length > 0) {
@@ -343,6 +412,7 @@ async function openEditModal(course) {
       editForm.value.currentImageUrl = courseData.image_url
       editForm.value.currentImageID = courseData.image_public_id
       editForm.value.chapters = sortedChapters
+      editForm.value.review_comment = courseData.review_comment || ''
 
       // 清除之前的預覽圖片和上傳狀態
       editPreviewURL.value = ''
@@ -433,7 +503,6 @@ function formatChaptersData() {
   if (!editDraggableRef.value) return []
 
   const chapters = editDraggableRef.value.chapters
-  console.log(chapters)
   return chapters.map((chapter, chapterIndex) => ({
     chapter_number: chapterIndex + 1,
     chapter_title: chapter.title,
@@ -489,7 +558,6 @@ async function updateCourse() {
       courseData.image_public_id = thumbnailPublicId.value
     }
 
-    console.log('courseData', courseData)
     const response = await axios.patch(
       `https://sportify.zeabur.app/api/v1/coaches/courses/${editForm.value.id}`,
       courseData,
@@ -499,9 +567,7 @@ async function updateCourse() {
         }
       }
     )
-    console.log('editForm', editForm.value)
-    console.log('courseData', courseData)
-    console.log(response.data)
+
     if (response.data.status) {
       alert('課程更新成功！')
 
@@ -524,11 +590,12 @@ async function updateCourse() {
   }
 }
 
-const handleCourseIdReceived = id => {
-  console.log('接收到 course_id:', id)
-}
+const handleCourseIdReceived = id => {}
 
-onMounted(async () => await getCourses())
+onMounted(async () => {
+  loadUserCategories()
+  await getCourses()
+})
 </script>
 
 <style scoped lang="scss">
@@ -624,13 +691,74 @@ onMounted(async () => await getCourses())
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
+}
+
+// 空狀態樣式
+.empty-state {
+  min-height: 400px;
+  padding: 60px 20px;
+
+  .empty-icon {
+    width: 120px;
+    height: 120px;
+    background-color: rgba($primary-600, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+
+    .material-symbols-outlined {
+      font-size: 48px;
+      color: $primary-600;
+    }
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $grey-600;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $grey-500;
+    max-width: 400px;
+    line-height: 1.6;
+  }
 }
 
 // Modal 內的樣式 - 與 CoachNewCourse 保持一致
 .modal-content {
   border: none;
   border-radius: 0;
+}
+
+// 審核建議樣式
+.review-comment-section {
+  .alert {
+    border: 1px solid #ffeaa7;
+    background-color: #fff9e6;
+    border-radius: 8px;
+
+    .alert-heading {
+      color: #e17055;
+      font-size: 1rem;
+    }
+
+    p {
+      color: #636e72;
+      line-height: 1.6;
+    }
+
+    .material-symbols-outlined {
+      font-size: 24px;
+      color: #e17055;
+    }
+  }
 }
 
 .card-wrapper {

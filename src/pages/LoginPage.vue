@@ -49,7 +49,6 @@
           >
             登入
           </button>
-
           <!-- Google 登入設定 (不可見) -->
           <div
             id="g_id_onload"
@@ -166,7 +165,6 @@ async function handleGoogleLogin(response) {
       profile_image_url: me.profile_image_url || '',
       role: me.role
     })
-
     router.push('/')
   } catch (error) {
     console.error('Google 登入失敗:', error.response?.data || error.message)
