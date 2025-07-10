@@ -45,7 +45,9 @@
               required
               @blur="validatePassword"
             />
-            <p v-if="passwordError" class="text-danger mt-1">*密碼格式錯誤!</p>
+            <p v-if="passwordError" class="text-danger mt-1">
+              *密碼格式錯誤!密碼需 8–16 碼，且同時包含大寫、小寫字母與數字。
+            </p>
           </div>
 
           <!-- 確認密碼 -->
@@ -129,7 +131,9 @@ async function handleRegister() {
       password_check: checkPassword.value
     })
 
-    alert('註冊成功')
+    alert(
+      '註冊成功！驗證信已寄出，請至您的信箱完成驗證，即可立即開啟 7 日 Eagerness 免費試用。'
+    )
     router.push('/login')
   } catch (error) {
     console.error(error)
