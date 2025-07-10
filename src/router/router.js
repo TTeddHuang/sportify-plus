@@ -119,6 +119,11 @@ const routes = [
     path: '/admin/users',
     component: AdminUsers,
     meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
+  },
+  {
+    path: '/api/v1/auth/user-verification',
+    name: 'VerifyEmail',
+    component: () => import('@/pages/VerifyEmailPage.vue')
   }
 ]
 
