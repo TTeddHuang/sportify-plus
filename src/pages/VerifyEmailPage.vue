@@ -9,16 +9,29 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
+import { user } from '@/store/user'
+
 const status = ref('loading')
-const token = useRoute().query.token ?? ''
+const message = ref('')
+
+const route = useRoute()
+const router = useRouter()
 
 onMounted(async () => {
+  const { token = '' } = route.query
   if (!token) {
     status.value = 'fail'
+    message.value = '缺少驗證 Token'
+    return
+  }
+
+  const authToken = user.value?.token
+  if (!authToken) {
+    status.value = 'needLogin'
     return
   }
 
@@ -26,11 +39,19 @@ onMounted(async () => {
     await axios.patch(
       'https://sportify.zeabur.app/api/v1/auth/user-verification',
       null,
-      { params: { token } }
+      {
+        params: { token },
+        headers: { Authorization: `Bearer ${authToken}` }
+      }
     )
+
+    if (user.value) user.value.is_verified = true
+
     status.value = 'success'
-  } catch (e) {
+    setTimeout(() => router.push('/'), 3000)
+  } catch (err) {
     status.value = 'fail'
+    message.value = err.response?.data?.message || '連結可能已過期或已使用'
   }
 })
 </script>

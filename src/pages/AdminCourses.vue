@@ -60,7 +60,7 @@
                     :key="cat"
                     @click="selectedCategory = cat"
                   >
-                    <a class="dropdown-item" href="#">{{ cat }}</a>
+                    <a class="dropdown-item rounded-2" href="#">{{ cat }}</a>
                   </li>
                 </ul>
               </div>
@@ -82,7 +82,7 @@
                     :key="instr"
                     @click="selectedInstructor = instr"
                   >
-                    <a class="dropdown-item" href="#">{{ instr }}</a>
+                    <a class="dropdown-item rounded-2" href="#">{{ instr }}</a>
                   </li>
                 </ul>
               </div>
@@ -104,7 +104,7 @@
                     :key="st"
                     @click="selectedStatus = st"
                   >
-                    <a class="dropdown-item" href="#">{{ st }}</a>
+                    <a class="dropdown-item rounded-2" href="#">{{ st }}</a>
                   </li>
                 </ul>
               </div>
@@ -1443,5 +1443,16 @@ textarea::placeholder {
 
 .accordion-button:not(.collapsed) {
   box-shadow: none;
+}
+.dropdown-menu {
+  text-align: center;
+  color: $primary-600;
+  min-width: auto;
+  width: 131px;
+  & li {
+    &:not(:last-child) {
+      padding-bottom: 8px;
+    }
+  }
 }
 </style>
