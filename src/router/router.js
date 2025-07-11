@@ -23,6 +23,7 @@ import VideoCourses from '@/pages/VideoCourses.vue'
 import AdminCourses from '@/pages/AdminCourses.vue'
 import AdminCoaches from '@/pages/AdminCoaches.vue'
 import AdminUsers from '@/pages/AdminUsers.vue'
+import AdminReport from '@/pages/AdminReport.vue'
 
 import { user, userRole } from '@/store/user'
 
@@ -96,6 +97,12 @@ const routes = [
     ]
   },
   // 管理者後台，需登入，需管理者身分
+  {
+    path: '/admin/reports',
+    name: 'AdminReport',
+    component: AdminReport,
+    meta: { requiresAuth: true, requiredRole: 'admin', hideFooter: true }
+  },
   {
     path: '/admin/courses',
     name: 'AdminCourses',
