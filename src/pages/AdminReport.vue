@@ -57,25 +57,29 @@
                 <label class="form-label">開始月份</label>
                 <VDatePicker
                   v-model="startMonth"
-                  mode="month"
                   locale="zh-TW"
-                  show-months
-                  :columns="1"
                   :popover="popoverOptions"
+                  :min-view="'month'"
+                  :max-view="'month'"
+                  is-inline
                 />
               </div>
               <div>
                 <label class="form-label">結束月份</label>
                 <VDatePicker
                   v-model="endMonth"
-                  mode="month"
                   locale="zh-TW"
-                  show-months
-                  :columns="1"
                   :popover="popoverOptions"
+                  :min-view="month"
+                  :max-view="month"
+                  is-inline
                 />
+                <p>startMonth: {{ startMonth }}</p>
+                <p>endMonth: {{ endMonth }}</p>
               </div>
-              <button class="btn btn-primary" @click="applyFilter">查詢</button>
+              <button class="btn btn-primary" @click="loadReportData">
+                查詢
+              </button>
               <!-- 選擇起始月份與結束月份 -->
             </div>
             <div>
@@ -83,18 +87,18 @@
               <div class="row mb-4 justify-content-space-around">
                 <div class="col-12 col-md-4 mb-3">
                   <h6>總收入</h6>
-                  <p>今年 {{ reportData.summary.totalIncome }}</p>
-                  <p>本月 {{ reportData.summary.currentMonthIncome }}</p>
+                  <p>區間: {{ totalIncome }}</p>
+                  <p>本月: {{ currentMonthIncome }}</p>
                 </div>
                 <div class="col-12 col-md-4 mb-3">
                   <h6>活躍會員數</h6>
-                  <p>訂閱總數 {{ reportData.summary.totalMembers }}</p>
-                  <p>本月新增 {{ reportData.summary.newMembersThisMonth }}</p>
+                  <p>訂閱總數: {{ totalMembers }}</p>
+                  <p>本月新增: {{ newMembersThisMonth }}</p>
                 </div>
                 <div class="col-12 col-md-4 mb-3">
                   <h6>教練與課程數</h6>
-                  <p>教練總數 {{ reportData.summary.totalCoaches }}</p>
-                  <p>課程總數 {{ reportData.summary.totalCourses }}</p>
+                  <p>教練總數: {{ totalCoaches }}</p>
+                  <p>課程總數: {{ totalCourses }}</p>
                 </div>
               </div>
               <!-- 圖表兩欄 -->
@@ -102,16 +106,24 @@
                 <div class="col-12 col-md-4 mb-3">
                   <h5>訂閱方案人數比例圖</h5>
                   <Pie
-                    v-if="reportData.subscriptionPieChartData"
-                    :data="reportData.subscriptionPieChartData"
+                    v-if="
+                      subscriptionPieData &&
+                      subscriptionPieData.labels &&
+                      subscriptionPieData.labels.length > 0
+                    "
+                    :data="subscriptionPieData"
                     :options="pieChartOptions"
                   ></Pie>
                 </div>
                 <div class="col-12 col-md-8 mb-3">
                   <h5>訂閱運動種類人數一覽</h5>
                   <Bar
-                    v-if="reportData.barChartData"
-                    :data="reportData.barChartData"
+                    v-if="
+                      sportsTypeData &&
+                      sportsTypeData.labels &&
+                      sportsTypeData.labels.length > 0
+                    "
+                    :data="sportsTypeData"
                     :options="barChartOptions"
                   ></Bar>
                 </div>
@@ -131,8 +143,12 @@
               >
                 <h5>教練分潤比例圖</h5>
                 <Pie
-                  v-if="reportData.coachProfitPieChartData"
-                  :data="reportData.coachProfitPieChartData"
+                  v-if="
+                    coachProfitData &&
+                    coachProfitData.labels &&
+                    coachProfitData.labels.length > 0
+                  "
+                  :data="coachProfitData"
                   :options="coachProfitPieChartOptions"
                 ></Pie>
               </div>
@@ -147,7 +163,7 @@
 <script setup>
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import {
   Chart as ChartJS,
@@ -168,7 +184,6 @@ import { DatePicker as VDatePicker } from 'v-calendar'
 import 'v-calendar/style.css'
 import dayjs from 'dayjs'
 
-const router = useRouter()
 const route = useRoute()
 
 // 註冊chart.js元件
@@ -185,17 +200,17 @@ ChartJS.register(
 )
 
 // 儲存api回傳資料
-const reportData = ref({
-  summary: {
-    totalIncome: 0,
-    currentMonthIncome: 0,
-    totalMembers: 0,
-    newMembersThisMonth: 0,
-    totalCoaches: 0,
-    totalCourses: 0
-  }
-})
+
+const totalIncome = ref(null)
+const currentMonthIncome = ref(null)
+const totalMembers = ref(null)
+const newMembersThisMonth = ref(null)
+const totalCoaches = ref(null)
+const totalCourses = ref(null)
 const lineChartData = ref(null)
+const subscriptionPieData = ref([])
+const sportsTypeData = ref([])
+const coachProfitData = ref([])
 
 // 設定月份
 
@@ -208,17 +223,19 @@ const startMonth = ref(sixMonthsAgo.toDate())
 const endMonth = ref(today.startOf('month').toDate())
 
 // popover options: 讓 datepicker 以彈出模式顯示
-const popoverOptions = {
-  placement: 'bottom-start'
-}
+// const popoverOptions = {
+//   placement: 'bottom-start'
+// }
 
 // 送出選取月份
-const applyFilter = () => {
+
+// 取得後台報表資料
+const loadReportData = async () => {
   if (!startMonth.value || !endMonth.value) {
     alert('請選擇起始月份與結束月份')
     return
   }
-
+  console.log(startMonth.value, endMonth.value)
   const start = dayjs(startMonth.value)
   const end = dayjs(endMonth.value)
 
@@ -231,102 +248,125 @@ const applyFilter = () => {
   const endString = end.format('YYYY-MM')
 
   console.log(`查詢從 ${startString} 到 ${endString}的報表`)
-}
 
-// 取得後台報表資料
-const loadReportData = async () => {
   try {
-    // 假資料
-    const subscriptionPieData = [
-      { name: 'Wellness', proportion: 30, amount: 180 },
-      { name: 'Fitness', proportion: 40, amount: 240 },
-      { name: 'Eagerness', proportion: 30, amount: 180 }
-    ]
-
-    const sportsTypeData = {
-      swimming: 200,
-      basketball: 320,
-      workout: 120,
-      mountainClimbing: 250
-    }
-    const coachProfitData = [
-      { name: 'coachA', share: 36, amount: 18000 },
-      { name: 'coachB', share: 32, amount: 16000 },
-      { name: 'coachC', share: 20, amount: 10000 },
-      { name: 'others', share: 12, amount: 6000 }
-    ]
-    reportData.value = {
-      summary: {
-        totalIncome: 12345,
-        currentMonthIncome: 11900,
-        totalMembers: 100,
-        newMembersThisMonth: 3,
-        totalCoaches: 6,
-        totalCourses: 7
-      },
-      subscriptionPieChartData: {
-        labels: subscriptionPieData.map(s => s.name),
-        datasets: [
-          {
-            label: '訂閱方案',
-            data: subscriptionPieData.map(s => s.proportion)
-          }
-        ],
-        rawAmounts: subscriptionPieData.map(s => s.amount)
-      },
-      barChartData: {
-        labels: Object.keys(sportsTypeData).map(k => k),
-        datasets: [
-          {
-            label: '人數',
-            data: Object.values(sportsTypeData)
-          }
-        ]
-      },
-      coachProfitPieChartData: {
-        labels: coachProfitData.map(c => c.name),
-        datasets: [
-          {
-            label: '分潤比例',
-            data: coachProfitData.map(c => c.share)
-          }
-        ],
-        rawAmounts: coachProfitData.map(c => c.amount)
-      }
-    }
     // const token = localStorage.getItem('token')
-    // const token =
-    //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE2YTEyMmUwLThiMzEtNDU3NS1hODhjLTlmNDVhNDUwYmUwMiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1MjE4MTExMSwiZXhwIjoxNzU0NzczMTExfQ.RnyyWo_Rj5uDoX1ldUamhgklVjuwMEYVUy6-8sXT0Ng'
-    // const response = await axios.get(
-    //   `http://localhost:8080/api/v1/admin/data-analysis`
-    // )
+    const token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE2YTEyMmUwLThiMzEtNDU3NS1hODhjLTlmNDVhNDUwYmUwMiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1MjE4MTExMSwiZXhwIjoxNzU0NzczMTExfQ.RnyyWo_Rj5uDoX1ldUamhgklVjuwMEYVUy6-8sXT0Ng'
+    const { data } = await axios.get(
+      `http://localhost:8080/api/v1/admin/data-analysis`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { startMonth: startString, endMonth: endString }
+      }
+    )
+    if (data.status) {
+      const result = data.data
+      totalIncome.value = result.totalIncome || 0
+      currentMonthIncome.value = result.currentMonthIncome || 0
+      totalMembers.value = result.totalMembers || 0
+      newMembersThisMonth.value = result.newMembersThisMonth || 0
+      totalCoaches.value = result.totalCoaches || 0
+      totalCourses.value = result.totalCourses || 0
+      subscriptionPieData.value = transformPieChartData(result.planCounts)
+      sportsTypeData.value = convertToBarChartData(result.subscribeSports)
+      lineChartData.value = transformLineChartData(
+        result.subscriberByMonthOutput
+      )
+      coachProfitData.value = transformPieChartData(result.profitShare)
+    }
   } catch (err) {
     console.err('讀取管理員報表資料失敗')
   }
 }
 onMounted(() => {
   loadReportData()
-  lineChartData.value = {
-    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-    datasets: [
-      { label: '總訂閱數', data: [400, 420, 450, 470, 500, 520] },
-      { label: 'Wellness', data: [200, 220, 250, 170, 200, 220] },
-      { label: 'Fitness', data: [100, 100, 90, 150, 150, 150] },
-      { label: 'Eagerness', data: [100, 100, 110, 150, 150, 150] }
-    ]
-  }
 })
 
-// 轉換line chart資料
-// function transformLineChartData (apiData){
-//     if(!apiData||apiData.length===0){
-//         return{
-//             labels:[],
-//             datasets:[]
-//         }
-//     }
-//     const labels=apiData.map(item=>item.)
-// }
+// 轉化圓餅圖資料
+function transformPieChartData(apiData) {
+  if (!apiData || apiData.length === 0) {
+    return {
+      labels: [],
+      datasets: [
+        {
+          label: '',
+          data: [],
+          backgroundColor: []
+        }
+      ]
+    }
+  }
+  let labels = []
+  let data = []
+  let label
+  let amounts = []
+  // 依照圓餅圖性質定義資料
+  if ('plan' in apiData[0]) {
+    // 訂閱方案pie
+    labels = apiData.map(item => item.plan)
+    data = apiData.map(item => item.proportion)
+    label = '訂閱方案人數'
+    amounts = apiData.map(item => item.amount)
+  } else if ('share' in apiData[0]) {
+    // 教練分潤pie
+    labels = apiData.map(item => item.name)
+    data = apiData.map(item => item.share)
+    label = '教練分潤比例'
+    amounts = apiData.map(item => item.amount)
+  }
+  const backgroundColors = labels.map(() => getRandomColor())
+  return {
+    labels,
+    datasets: [
+      {
+        label,
+        data,
+        backgroundColor: backgroundColors,
+        customAmounts: amounts
+      }
+    ]
+  }
+}
+
+// 轉化線狀圖
+function transformLineChartData(apiData) {
+  if (!Array.isArray(apiData) || apiData.length === 0) {
+    return {
+      labels: [],
+      datasets: []
+    }
+  }
+  const labels = Object.keys(apiData[0].monthly)
+  const datasets = apiData.map(item => ({
+    label: item.name,
+    data: labels.map(month => item.monthly[month] || 0) // 確保每個月都有數值
+  }))
+
+  return { labels, datasets }
+}
+
+// 轉化棒狀圖
+function convertToBarChartData(apiData) {
+  if (!Array.isArray(apiData) || apiData.length === 0) {
+    return {
+      labels: [],
+      datasets: []
+    }
+  }
+  const labels = apiData.map(item => item.name)
+  const data = apiData.map(item => item.amount)
+  const backgroundColors = labels.map(() => getRandomColor())
+  return {
+    labels,
+    datasets: [
+      {
+        data,
+        backgroundColor: backgroundColors
+      }
+    ]
+  }
+}
 
 // 圖表隨機顏色
 function getRandomColor() {
@@ -345,7 +385,7 @@ const barChartOptions = {
   scales: {
     y: { beginAtZero: true }
   },
-  plugins: { legend: { display: true }, title: { display: true } },
+  plugins: { legend: { display: false }, title: { display: false } },
   text: '訂閱運動種類人數一覽'
 }
 // 訂閱人數比例的圓餅圖options
@@ -359,8 +399,9 @@ const pieChartOptions = {
           const dataset = tooltipItem.dataset // 取得對應data物件
           const index = tooltipItem.dataIndex // 取得資料索引
           const value = dataset.data[index]
-          const rawAmounts = tooltipItem.chart.data.rawAmounts // 整個data物件，rawAmounts是自定義的金額
-          const amount = rawAmounts ? rawAmounts[index] : 0
+          const amount = dataset.customAmounts
+            ? dataset.customAmounts[index]
+            : 0
           return `${tooltipItem.label}: ${value}% / ${amount}人`
         }
       }
@@ -380,8 +421,9 @@ const coachProfitPieChartOptions = {
           const dataset = tooltipItem.dataset // 取得對應data物件
           const index = tooltipItem.dataIndex // 取得資料索引
           const value = dataset.data[index]
-          const rawAmounts = tooltipItem.chart.data.rawAmounts // 整個data物件，rawAmounts是自定義的金額
-          const amount = rawAmounts ? rawAmounts[index] : 0
+          const amount = dataset.customAmounts
+            ? dataset.customAmounts[index]
+            : 0
           return `${tooltipItem.label}: ${value}% / NT$${amount.toLocaleString()}`
         }
       }
