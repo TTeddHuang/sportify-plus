@@ -56,14 +56,14 @@
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
                 <li @click="selectedSkill = ''">
-                  <a class="dropdown-item" href="#">選擇類別</a>
+                  <a class="dropdown-item rounded-2" href="#">選擇類別</a>
                 </li>
                 <li
                   v-for="skill in skillOptions"
                   :key="skill"
                   @click="selectedSkill = skill"
                 >
-                  <a class="dropdown-item" href="#">{{ skill }}</a>
+                  <a class="dropdown-item rounded-2" href="#">{{ skill }}</a>
                 </li>
               </ul>
             </div>
@@ -80,17 +80,40 @@
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
                 <li @click="selectedCoachName = ''">
-                  <a class="dropdown-item" href="#">選擇教練</a>
+                  <a class="dropdown-item rounded-2" href="#">選擇教練</a>
                 </li>
                 <li
                   v-for="name in coachOptions"
                   :key="name"
                   @click="selectedCoachName = name"
                 >
-                  <a class="dropdown-item" href="#">{{ name }}</a>
+                  <a class="dropdown-item rounded-2" href="#">{{ name }}</a>
                 </li>
               </ul>
             </div>
+            <!-- 依審核狀態篩選 -->
+            <div class="dropdown">
+              <button
+                class="btn btn-primary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                {{ selectedVerifyStatus }}
+                <!-- 預設顯示「全部審核狀態」 -->
+              </button>
+
+              <ul class="dropdown-menu">
+                <li
+                  v-for="st in verifyStatusOptions"
+                  :key="st"
+                  @click="selectedVerifyStatus = st"
+                >
+                  <a class="dropdown-item rounded-2" href="#">{{ st }}</a>
+                </li>
+              </ul>
+            </div>
+
             <!-- 文字搜尋（教練名稱模糊搜尋） -->
             <div class="input-group" style="width: 200px; height: 42px">
               <input
@@ -434,16 +457,41 @@
                     {{ selectedCoach?.motto }}
                   </p>
                 </div>
-                <div>
-                  <p class="fw-bold">相關資格證明照片</p>
+                <div v-if="selectedCoach?.bankbook_copy_url">
+                  <p class="fw-bold">存摺影本</p>
                   <img
-                    :src="selectedCoach?.background_image_url"
-                    alt="證明照片"
-                    class="img-fluid rounded background-img"
+                    :src="selectedCoach.bankbook_copy_url"
+                    alt="存摺影本"
+                    class="img-fluid rounded mb-3 bankbook-card previewable"
                     style="max-height: 200px; object-fit: cover"
+                    @click="
+                      openPreview(selectedCoach.bankbook_copy_url, '存摺影本')
+                    "
                   />
                 </div>
-                <!-- ...如果有更多欄位，可以自行加在這裡 -->
+                <div
+                  v-if="selectedCoach?.licenses?.length"
+                  class="license-wrapper"
+                >
+                  <p class="fw-bold">相關資格證明</p>
+                  <div class="d-flex flex-wrap">
+                    <div
+                      v-for="lic in selectedCoach.licenses"
+                      :key="lic.id"
+                      class="license-card text-center me-3 mb-3"
+                    >
+                      <img
+                        :src="lic.file_url"
+                        :alt="lic.name"
+                        class="previewable"
+                        @click="openPreview(lic.file_url, lic.name)"
+                      />
+                      <p class="lic-name text-wrap text-grey-700 mb-0">
+                        {{ lic.name }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="subscription-card">
                 <div class="card-wrapper"></div>
@@ -523,7 +571,7 @@
             aria-labelledby="confirmVerifyLabel"
             aria-hidden="true"
           >
-            <div class="modal-dialog modal-sm modal-dialog-centered p-5 p-lg-0">
+            <div class="modal-dialog modal-lg modal-dialog-centered p-5 p-lg-0">
               <div
                 class="modal-content bg-grey-000 text-grey-700 border-grey-700"
               >
@@ -535,16 +583,62 @@
                   <p class="mb-0">{{ confirmText }}</p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center">
-                  <button
-                    class="btn btn-outline-primary-600 text-primary-600"
-                    data-bs-dismiss="modal"
-                  >
-                    取消
-                  </button>
-                  <button class="btn btn-primary" @click="doVerify">
-                    確定
-                  </button>
+                  <template v-if="confirmMode === 'warn'">
+                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                      知道了
+                    </button>
+                  </template>
+
+                  <template v-else>
+                    <div class="w-100">
+                      <label class="form-label fw-bold mb-1">審核備註</label>
+                      <textarea
+                        v-model="reviewComment"
+                        rows="3"
+                        class="form-control bg-grey-000 text-grey-700 border-primary-600"
+                        placeholder="輸入審核原因（選填；若未通過建議必填）"
+                      ></textarea>
+                    </div>
+                    <button
+                      class="btn btn-danger me-3 text-grey-700"
+                      @click="chooseVerify(false)"
+                    >
+                      <i class="bi bi-x-circle me-2"></i>
+                      未通過
+                    </button>
+                    <button
+                      class="btn btn-success text-grey-700"
+                      @click="chooseVerify(true)"
+                    >
+                      <i class="bi bi-check-circle me-2"></i>
+                      通過
+                    </button>
+                  </template>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div
+            id="imagePreviewModal"
+            class="modal fade"
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content bg-transparent border-0 shadow-none">
+                <button
+                  type="button"
+                  class="btn-close position-absolute end-0 top-0 m-3"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+
+                <!-- 原圖 → 動態綁 src / alt -->
+                <img
+                  :src="previewSrc"
+                  :alt="previewAlt"
+                  class="img-fluid rounded"
+                />
               </div>
             </div>
           </div>
@@ -616,6 +710,19 @@ const pagination = ref({
 const loading = ref(false)
 const error = ref(null)
 
+const previewSrc = ref('')
+const previewAlt = ref('')
+
+function openPreview(src, alt = '') {
+  previewSrc.value = src
+  previewAlt.value = alt
+  // 顯示 Bootstrap 5 Modal
+  // eslint-disable-next-line no-undef
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('imagePreviewModal')
+  ).show()
+}
+
 // 由 pagination.value 計算出目前頁碼與總頁數
 
 // 篩選用的三個 ref，一定要都存在
@@ -646,6 +753,27 @@ async function fetchCoachesPage(page = 1) {
     throw err
   }
 }
+
+const selectedVerifyStatus = ref('全部狀態')
+
+const verifyStatusOptions = computed(() => {
+  let list = allCoaches.value
+
+  if (selectedSkill.value) {
+    list = list.filter(c =>
+      c.coach_skills.some(s => s.skill_name === selectedSkill.value)
+    )
+  }
+
+  if (selectedCoachName.value) {
+    list = list.filter(c => c.coach_name === selectedCoachName.value)
+  }
+
+  const set = new Set()
+  list.forEach(c => set.add(isVerifiedRow(c) ? '已審核' : '未審核'))
+
+  return ['全部狀態', ...Array.from(set)]
+})
 
 /**
  * 切分「分頁顯示」給前端 Table 用
@@ -714,7 +842,11 @@ const filteredCoaches = computed(() => {
         .includes(kw)
       if (!nameMatch && !skillMatch) return false
     }
-    return true
+    const statusLabel = isVerifiedRow(coach) ? '已審核' : '未審核'
+    const matchVerify =
+      selectedVerifyStatus.value === '全部狀態' ||
+      statusLabel === selectedVerifyStatus.value
+    return matchVerify
   })
 })
 
@@ -734,10 +866,6 @@ function changePage(page) {
   currentPage.value = page
 }
 
-watch([selectedSkill, selectedCoachName, searchKeyword], () => {
-  currentPage.value = 1
-})
-
 const showStartDots = computed(() => {
   // 前面被省略的頁數 ≥ 2 才顯示 …
   return visiblePages.value[0] > 2
@@ -756,6 +884,10 @@ const updateMaxButtons = () => {
 }
 
 onMounted(() => {
+  const confirmEl = document.getElementById('confirmVerifyModal')
+  confirmEl.addEventListener('hidden.bs.modal', () => {
+    reviewComment.value = ''
+  })
   updateMaxButtons()
   window.addEventListener('resize', updateMaxButtons)
 })
@@ -784,18 +916,22 @@ const visiblePages = computed(() => {
 async function fetchCoachDetail(coachId) {
   try {
     const token = localStorage.getItem('token')
-    const res = await axios.get(
+    const { data } = await axios.get(
       `https://sportify.zeabur.app/api/v1/admin/coaches/${coachId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    if (!res.data.status) {
-      throw new Error(res.data.message || '讀取失敗')
+    if (!data.status) {
+      throw new Error(data.message || '讀取失敗')
     }
 
-    const detail = res.data.data.coachDetails
+    const { coachDetails, licenses = [], courses = [] } = data.data
 
-    selectedCoach.value = detail
-    isVerified.value = detail.coach_is_verified
+    selectedCoach.value = {
+      ...coachDetails,
+      licenses,
+      courses
+    }
+    isVerified.value = coachDetails.is_verified
     // 顯示 Modal
   } catch (err) {
     console.error('fetchCoachDetail 錯誤', err)
@@ -807,17 +943,17 @@ watch(
     if (val !== undefined) isVerified.value = val
   }
 )
-async function updateVerifyStatus() {
+async function updateVerifyStatus(approved, commentTxt) {
   if (!selectedCoach.value) return false
 
   const token = localStorage.getItem('token')
-  const newStatus = isVerified.value ? 'approved' : 'rejected'
+  const newStatus = approved ? 'approved' : 'rejected'
 
   try {
     // ⬇︎ 後端通常會回最新狀態；若沒有回，改完再手動塞
     const res = await axios.patch(
       `https://sportify.zeabur.app/api/v1/admin/coaches/${selectedCoach.value.id}/review`,
-      { status: newStatus },
+      { status: newStatus, review_comment: commentTxt },
       { headers: { Authorization: `Bearer ${token}` } }
     )
 
@@ -844,39 +980,84 @@ async function updateVerifyStatus() {
   }
 }
 
+const confirmText = ref('')
+const confirmMode = ref('normal')
+
 function isVerifiedRow(coach) {
   return coach.coach_is_verified === true || coach.is_verified === true
 }
 
-const wantVerify = ref(false)
-const confirmText = ref('')
+function isProfileComplete(coach) {
+  if (!coach) return false
+
+  const required = [
+    'realname',
+    'id_number',
+    'phone_number',
+    'birthday',
+    'about_me',
+    'skill_description',
+    'experience',
+    'hobby',
+    'favorite_words',
+    'motto'
+  ]
+
+  const basicOK = required.every(
+    k => coach[k] && coach[k].toString().trim() !== ''
+  )
+
+  const skillsOK = Array.isArray(coach.skills) && coach.skills.length > 0
+
+  return basicOK && skillsOK
+}
+
+const reviewComment = ref('')
 
 function askVerify() {
-  wantVerify.value = !isVerified.value
-
-  confirmText.value = `確定要將此教練標記為「${
-    wantVerify.value ? '資格已審核' : '資格未審核'
-  }」嗎？`
+  if (!isProfileComplete(selectedCoach.value)) {
+    confirmText.value = '教練基本資料尚未填寫完整，請提醒對方補齊資訊後再審核。'
+    confirmMode.value = 'warn'
+  } else {
+    confirmText.value = '請選擇要將此教練標記審核結果'
+    confirmMode.value = 'choose'
+  }
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getOrCreateInstance(
     document.getElementById('confirmVerifyModal')
   ).show()
-  document.getElementById('coachVerified').checked = isVerified.value
 }
 
-async function doVerify() {
-  isVerified.value = wantVerify.value
-  const ok = await updateVerifyStatus()
+async function doVerify(approved) {
+  const comment = (reviewComment.value || '').trim()
+
+  if (!approved && !comment) {
+    alert('若審核未通過，請填寫原因')
+    return
+  }
+
+  isVerified.value = approved
+  const ok = await updateVerifyStatus(approved, comment)
 
   // eslint-disable-next-line no-undef
   bootstrap.Modal.getInstance(
     document.getElementById('confirmVerifyModal')
   )?.hide()
 
+  reviewComment.value = ''
+
   if (!ok) {
-    isVerified.value = !wantVerify.value
+    // eslint-disable-next-line no-undef
+    bootstrap.Modal.getInstance(
+      document.getElementById('confirmVerifyModal')
+    )?.hide()
+    reviewComment.value = ''
   }
+}
+
+function chooseVerify(approved) {
+  doVerify(approved)
 }
 
 const courses = ref([])
@@ -1011,6 +1192,11 @@ const skillOptions = computed(() => {
     list = list.filter(coach => coach.coach_name === selectedCoachName.value)
   }
 
+  if (selectedVerifyStatus.value !== '全部狀態') {
+    const wantVerified = selectedVerifyStatus.value === '已審核'
+    list = list.filter(c => isVerifiedRow(c) === wantVerified)
+  }
+
   const set = new Set()
   list.forEach(coach => coach.coach_skills.forEach(s => set.add(s.skill_name)))
   return Array.from(set)
@@ -1024,9 +1210,34 @@ const coachOptions = computed(() => {
       coach.coach_skills.some(s => s.skill_name === selectedSkill.value)
     )
   }
+  if (selectedVerifyStatus.value !== '全部狀態') {
+    const wantVerified = selectedVerifyStatus.value === '已審核'
+    list = list.filter(c => isVerifiedRow(c) === wantVerified)
+  }
   const set = new Set()
   list.forEach(c => set.add(c.coach_name))
   return Array.from(set)
+})
+
+watch([skillOptions, coachOptions, verifyStatusOptions], () => {
+  if (
+    selectedSkill.value &&
+    !skillOptions.value.includes(selectedSkill.value)
+  ) {
+    selectedSkill.value = ''
+  }
+  if (
+    selectedCoachName.value &&
+    !coachOptions.value.includes(selectedCoachName.value)
+  ) {
+    selectedCoachName.value = ''
+  }
+  if (
+    selectedVerifyStatus.value !== '全部狀態' &&
+    !verifyStatusOptions.value.includes(selectedVerifyStatus.value)
+  ) {
+    selectedVerifyStatus.value = '全部狀態'
+  }
 })
 </script>
 
@@ -1098,7 +1309,7 @@ const coachOptions = computed(() => {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $grey-000;
+  background-color: $primary-000;
   border: 1px solid $primary-600;
   margin-top: -38px;
   padding: 24px;
@@ -1109,6 +1320,7 @@ const coachOptions = computed(() => {
   background: $primary-000;
   font-size: 20px;
   text-align: center;
+  white-space: nowrap;
   @media (max-width: 992px) {
     font-size: 16px;
   }
@@ -1118,6 +1330,7 @@ const coachOptions = computed(() => {
   background: $primary-000;
   font-size: 14px;
   text-align: center;
+  white-space: nowrap;
 }
 .table-striped > tbody > tr:nth-of-type(odd) > td {
   background-color: $primary-000; /* 你想要的斑馬底色 */
@@ -1206,5 +1419,64 @@ textarea::placeholder {
   background-clip: padding-box;
   border-radius: 6px;
   min-height: 40px;
+}
+.license-wrapper {
+  align-items: flex-start;
+}
+.license-card {
+  width: 200px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(236, 239, 253, 1);
+  border-radius: 8px;
+  padding: 8px;
+  background-color: rgba(252, 252, 252, 0.1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+  transition: all 0.2s ease;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.bankbook-card {
+  border: 1px solid rgba(236, 239, 253, 1);
+  border-radius: 8px;
+  padding: 8px;
+  background-color: rgba(252, 252, 252, 0.1);
+  box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+  transition: all 0.2s ease;
+  @media (max-width: 992px) {
+    width: 100%;
+  }
+}
+.license-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.previewable {
+  cursor: zoom-in;
+  transition: 0.2s;
+}
+.previewable:hover {
+  opacity: 0.8;
+}
+.lic-name {
+  padding: 8px;
+  display: inline-block;
+  width: 100%;
+  min-height: 38px;
+  line-height: 19px;
+  overflow: hidden;
+}
+.dropdown-menu {
+  text-align: center;
+  color: $primary-600;
+  min-width: auto;
+  width: 131px;
+  & li {
+    &:not(:last-child) {
+      padding-bottom: 8px;
+    }
+  }
 }
 </style>

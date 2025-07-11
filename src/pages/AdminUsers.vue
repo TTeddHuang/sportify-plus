@@ -58,7 +58,7 @@
                 <li>
                   <a
                     href="#"
-                    class="dropdown-item"
+                    class="dropdown-item rounded-2"
                     @click.prevent="selectedPlan = ''"
                   >
                     全部方案
@@ -69,7 +69,7 @@
                 <li v-for="plan in planOptions" :key="plan.value">
                   <a
                     href="#"
-                    class="dropdown-item"
+                    class="dropdown-item rounded-2"
                     @click.prevent="selectedPlan = plan.value"
                   >
                     {{ plan.label }}
@@ -746,7 +746,7 @@ function openDetailModal(user) {
 }
 .card-content {
   border-radius: 15px;
-  background-color: $grey-000;
+  background-color: $primary-000;
   margin-top: -38px;
   padding: 24px;
   color: black;
@@ -803,6 +803,17 @@ textarea::placeholder {
   width: 40%;
   @media (max-width: 992px) {
     width: 100%;
+  }
+}
+.dropdown-menu {
+  text-align: center;
+  color: $primary-600;
+  min-width: auto;
+  width: 131px;
+  & li {
+    &:not(:last-child) {
+      padding-bottom: 8px;
+    }
   }
 }
 </style>

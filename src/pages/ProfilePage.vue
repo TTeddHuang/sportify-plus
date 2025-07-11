@@ -59,6 +59,15 @@
                   ></i>
                 </div>
               </div>
+              <!-- 審核狀態標籤 -->
+              <div class="mb-4">
+                <span
+                  class="badge fs-8 px-3 py-2"
+                  :class="isEmailVerified ? 'badge-approved' : 'badge-pending'"
+                >
+                  {{ isEmailVerified ? '信箱已通過驗證' : '信箱尚未驗證' }}
+                </span>
+              </div>
               <div v-if="inputState === 'inEdit'" class="mt-3">
                 <input
                   ref="fileInput"
@@ -94,6 +103,23 @@
                   class="form-control"
                   disabled
                 />
+
+                <div v-if="inputState === 'readOnly'" class="my-5">
+                  <div class="d-flex justify-content-evenly gap-3 flex-wrap">
+                    <button
+                      v-if="!isEmailVerified"
+                      class="btn btn-primary-600"
+                      :disabled="resending"
+                      @click="resendVerifyEmail"
+                    >
+                      {{ resending ? '寄送中…' : '重新寄送驗證信' }}
+                    </button>
+
+                    <button class="btn btn-primary-600" @click="goEdit">
+                      編輯個人資料
+                    </button>
+                  </div>
+                </div>
               </div>
               <div v-if="inputState === 'inEdit'">
                 <div class="mb-3">
@@ -132,11 +158,10 @@
                 <!-- 佔用於密碼狀態提示，後面可換成 vee-validation之類的? -->
                 <p class="valid-message">{{ pwdValidMessage }}</p>
               </div>
-              <div v-if="inputState === 'readOnly'" class="my-5 text-center">
-                <button class="btn btn-primary-600" @click="goEdit">
-                  編輯個人資料
-                </button>
-              </div>
+              <div
+                v-if="inputState === 'readOnly'"
+                class="my-5 text-center"
+              ></div>
               <div
                 v-else-if="inputState === 'inEdit'"
                 class="my-5 text-center d-flex justify-content-evenly"
@@ -249,12 +274,19 @@ const validInput = () => {
   editData.value.newPassword_check = userCheckPwd.value
 }
 
+const resending = ref(false)
+const isEmailVerified = ref(false)
+
 onMounted(async () => {
+  const auth = await getAuthInfo(userToken.value)
+  if (!auth) return
+
   userId.value = await verifyLogin(userToken.value)
   const userData = await getUserData(userToken.value, userId.value)
   userName.value = userData.name
   userEmail.value = userData.email
   userAvatar.value = userData.profile_image_url
+  isEmailVerified.value = Boolean(auth.is_verified)
 })
 
 // 驗證登入API
@@ -283,6 +315,32 @@ async function getUserData(token, userId) {
     return data
   } catch (error) {
     console.error(error)
+  }
+}
+async function getAuthInfo(token) {
+  const { data } = await axios.get(
+    'https://sportify.zeabur.app/api/v1/auth/me',
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  return data.data // { id, name, email, is_verified, ... }
+}
+
+// 重新寄出驗證信件
+async function resendVerifyEmail() {
+  try {
+    resending.value = true
+    await axios.post(
+      'https://sportify.zeabur.app/api/v1/auth/resend-verification',
+      {},
+      { headers: { Authorization: `Bearer ${userToken.value}` } }
+    )
+
+    alert('驗證信已重新寄出，請至信箱完成驗證！')
+  } catch (err) {
+    console.error('重寄驗證信失敗：', err)
+    alert(err.response?.data?.message || '重寄失敗，請稍後再試')
+  } finally {
+    resending.value = false
   }
 }
 
@@ -528,5 +586,24 @@ const confirmEdit = async () => {
   color: $grey-700;
   border: 1px solid rgba(236, 239, 253, 1);
   box-shadow: 0 0 5px 0 rgba(94, 142, 221, 1);
+}
+.badge {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 100px;
+  border: 1px solid $primary-400;
+  line-height: 150%;
+  font-weight: 600;
+  margin-top: 8px;
+
+  &.badge-approved {
+    background-color: $success;
+    color: $primary-000;
+  }
+
+  &.badge-pending {
+    background-color: $notification;
+    color: $primary-000;
+  }
 }
 </style>

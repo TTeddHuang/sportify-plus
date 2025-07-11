@@ -46,8 +46,11 @@
                   @click="selectType(skill.skill_id)"
                 >
                   <a
-                    class="dropdown-item text-primary-600"
-                    :class="{ active: currentType === skill.skill_id }"
+                    class="dropdown-item text-primary-600 rounded-2"
+                    :class="{
+                      active: currentType === skill.skill_id,
+                      'text-grey-000': currentType === skill.skill_id
+                    }"
                     href="#"
                   >
                     {{ skill.course_type }}
