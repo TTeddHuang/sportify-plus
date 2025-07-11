@@ -56,14 +56,14 @@
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
                 <li @click="selectedSkill = ''">
-                  <a class="dropdown-item" href="#">選擇類別</a>
+                  <a class="dropdown-item rounded-2" href="#">選擇類別</a>
                 </li>
                 <li
                   v-for="skill in skillOptions"
                   :key="skill"
                   @click="selectedSkill = skill"
                 >
-                  <a class="dropdown-item" href="#">{{ skill }}</a>
+                  <a class="dropdown-item rounded-2" href="#">{{ skill }}</a>
                 </li>
               </ul>
             </div>
@@ -80,14 +80,14 @@
               <ul class="dropdown-menu">
                 <!-- 全部選項 -->
                 <li @click="selectedCoachName = ''">
-                  <a class="dropdown-item" href="#">選擇教練</a>
+                  <a class="dropdown-item rounded-2" href="#">選擇教練</a>
                 </li>
                 <li
                   v-for="name in coachOptions"
                   :key="name"
                   @click="selectedCoachName = name"
                 >
-                  <a class="dropdown-item" href="#">{{ name }}</a>
+                  <a class="dropdown-item rounded-2" href="#">{{ name }}</a>
                 </li>
               </ul>
             </div>
@@ -109,7 +109,7 @@
                   :key="st"
                   @click="selectedVerifyStatus = st"
                 >
-                  <a class="dropdown-item" href="#">{{ st }}</a>
+                  <a class="dropdown-item rounded-2" href="#">{{ st }}</a>
                 </li>
               </ul>
             </div>
@@ -1467,5 +1467,16 @@ textarea::placeholder {
   min-height: 38px;
   line-height: 19px;
   overflow: hidden;
+}
+.dropdown-menu {
+  text-align: center;
+  color: $primary-600;
+  min-width: auto;
+  width: 131px;
+  & li {
+    &:not(:last-child) {
+      padding-bottom: 8px;
+    }
+  }
 }
 </style>

@@ -23,6 +23,7 @@ import VideoCourses from '@/pages/VideoCourses.vue'
 import AdminCourses from '@/pages/AdminCourses.vue'
 import AdminCoaches from '@/pages/AdminCoaches.vue'
 import AdminUsers from '@/pages/AdminUsers.vue'
+import VerifyEmailPage from '@/pages/VerifyEmailPage.vue'
 
 import { user, userRole } from '@/store/user'
 
@@ -122,8 +123,8 @@ const routes = [
   },
   {
     path: '/api/v1/auth/user-verification',
-    name: 'VerifyEmail',
-    component: () => import('@/pages/VerifyEmailPage.vue')
+    component: VerifyEmailPage,
+    meta: { requiresAuth: true, requiredRole: 'user', hideFooter: true }
   }
 ]
 
