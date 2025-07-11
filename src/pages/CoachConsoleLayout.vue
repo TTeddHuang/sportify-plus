@@ -29,14 +29,14 @@
               課程資料
             </router-link>
           </li>
-          <!-- <li
+          <li
             class="list-group-item"
             :class="{ active: route.name === 'CoachEarnings' }"
           >
             <router-link :to="{ name: 'CoachEarnings' }" class="nav-link">
               教練收益
             </router-link>
-          </li> -->
+          </li>
         </ul>
       </div>
     </div>
