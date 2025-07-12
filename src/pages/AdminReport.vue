@@ -51,58 +51,53 @@
         <div class="card-wrapper"></div>
         <div class="card-content p-5 mb-5">
           <div>
-            <div class="d-flex align-items-center gap-3 mb-2">
-              <h3>平台儀表板</h3>
-              <div>
-                <label class="form-label">開始月份</label>
-                <VDatePicker
-                  v-model="startMonth"
-                  locale="zh-TW"
-                  :popover="popoverOptions"
-                  :min-view="'month'"
-                  :max-view="'month'"
-                  is-inline
-                />
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="m-0">平台儀表板</h3>
+              <div class="d-flex align-items-end gap-2">
+                <div class="d-flex flex-column">
+                  <label class="form-label m-0">開始月份</label>
+                  <input
+                    v-model="startMonth"
+                    type="month"
+                    class="month-picker form-control form-control-sm"
+                  />
+                </div>
+                <div class="d-flex flex-column">
+                  <label class="form-label m-0">結束月份</label>
+                  <input
+                    v-model="endMonth"
+                    type="month"
+                    class="month-picker form-control form-control-sm"
+                  />
+                </div>
+                <button class="btn btn-primary btn-sm" @click="loadReportData">
+                  查詢
+                </button>
               </div>
-              <div>
-                <label class="form-label">結束月份</label>
-                <VDatePicker
-                  v-model="endMonth"
-                  locale="zh-TW"
-                  :popover="popoverOptions"
-                  :min-view="month"
-                  :max-view="month"
-                  is-inline
-                />
-                <p>startMonth: {{ startMonth }}</p>
-                <p>endMonth: {{ endMonth }}</p>
-              </div>
-              <button class="btn btn-primary" @click="loadReportData">
-                查詢
-              </button>
+
               <!-- 選擇起始月份與結束月份 -->
             </div>
             <div>
               <!-- 數據三欄三張卡片 -->
-              <div class="row mb-4 justify-content-space-around">
-                <div class="col-12 col-md-4 mb-3">
+              <div class="row gap-2 mb-4 justify-content-space-around">
+                <div class="summary-card col mb-3">
                   <h6>總收入</h6>
-                  <p>區間: {{ totalIncome }}</p>
+                  <p>總計: {{ totalIncome }}</p>
                   <p>本月: {{ currentMonthIncome }}</p>
                 </div>
-                <div class="col-12 col-md-4 mb-3">
+                <div class="summary-card col mb-3">
                   <h6>活躍會員數</h6>
                   <p>訂閱總數: {{ totalMembers }}</p>
                   <p>本月新增: {{ newMembersThisMonth }}</p>
                 </div>
-                <div class="col-12 col-md-4 mb-3">
+                <div class="summary-card col mb-3">
                   <h6>教練與課程數</h6>
                   <p>教練總數: {{ totalCoaches }}</p>
                   <p>課程總數: {{ totalCourses }}</p>
                 </div>
               </div>
               <!-- 圖表兩欄 -->
-              <div class="row mb-4 align-items-center">
+              <div class="row col-12 mb-4 align-items-start">
                 <div class="col-12 col-md-4 mb-3">
                   <h5>訂閱方案人數比例圖</h5>
                   <Pie
@@ -175,13 +170,10 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
-  LineElement,
-  Interaction
+  LineElement
 } from 'chart.js'
 
 import { Pie, Bar, Line } from 'vue-chartjs'
-import { DatePicker as VDatePicker } from 'v-calendar'
-import 'v-calendar/style.css'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -219,13 +211,8 @@ const today = dayjs()
 const sixMonthsAgo = today.subtract(6, 'month').startOf('month')
 
 // 狀態
-const startMonth = ref(sixMonthsAgo.toDate())
-const endMonth = ref(today.startOf('month').toDate())
-
-// popover options: 讓 datepicker 以彈出模式顯示
-// const popoverOptions = {
-//   placement: 'bottom-start'
-// }
+const startMonth = ref(sixMonthsAgo.format('YYYY-MM'))
+const endMonth = ref(today.startOf('month').format('YYYY-MM'))
 
 // 送出選取月份
 
@@ -250,11 +237,9 @@ const loadReportData = async () => {
   console.log(`查詢從 ${startString} 到 ${endString}的報表`)
 
   try {
-    // const token = localStorage.getItem('token')
-    const token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE2YTEyMmUwLThiMzEtNDU3NS1hODhjLTlmNDVhNDUwYmUwMiIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1MjE4MTExMSwiZXhwIjoxNzU0NzczMTExfQ.RnyyWo_Rj5uDoX1ldUamhgklVjuwMEYVUy6-8sXT0Ng'
+    const token = localStorage.getItem('token')
     const { data } = await axios.get(
-      `http://localhost:8080/api/v1/admin/data-analysis`,
+      `https://sportify.zeabur.app/api/v1/admin/data-analysis`,
       {
         headers: { Authorization: `Bearer ${token}` },
         params: { startMonth: startString, endMonth: endString }
@@ -340,7 +325,8 @@ function transformLineChartData(apiData) {
   const labels = Object.keys(apiData[0].monthly)
   const datasets = apiData.map(item => ({
     label: item.name,
-    data: labels.map(month => item.monthly[month] || 0) // 確保每個月都有數值
+    data: labels.map(month => item.monthly[month] || 0), // 確保每個月都有數值
+    borderColor: getRandomColor()
   }))
 
   return { labels, datasets }
@@ -436,15 +422,17 @@ const lineChartOptions = {
   maintainAspectRatio: false, // 圖表填滿容器高度
   scales: {
     x: { title: { display: true, text: '月份' } },
-    y: { beginAtZero: true, title: { display: true, text: '訂閱人數' } }
+    y: {
+      beginAtZero: true,
+      title: { display: true, text: '訂閱人數', rotation: 90 }
+    }
   },
   plugins: {
     legend: {
       position: 'top'
     },
     title: {
-      display: true,
-      text: '訂閱方案人數變化'
+      display: false
     },
     tooltip: {
       mode: 'index', // hover時顯示x軸對應所有dataset
@@ -461,6 +449,7 @@ const lineChartOptions = {
 
 <style scoped lang="scss">
 h6 {
+  padding-top: 1rem;
   margin-bottom: 1rem;
 }
 .side-nav {
@@ -519,5 +508,14 @@ h6 {
   height: 450px;
   margin: 0 auto;
   padding: 1rem;
+}
+.month-picker {
+  background-color: $grey-000;
+  color: black;
+}
+.summary-card {
+  border-radius: 10px;
+  border: 1px solid $grey-400;
+  background-color: $primary-000;
 }
 </style>

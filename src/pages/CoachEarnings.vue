@@ -17,14 +17,14 @@
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownCourses">
             <li @click="selectCourse('all')">
-              <a class="dropdown-item" href="#">所有課程</a>
+              <a class="dropdown-item rounded-2" href="#">所有課程</a>
             </li>
             <li
               v-for="course in courseOptions"
               :key="course.id"
               @click="selectCourse(course.id, course.name)"
             >
-              <a class="dropdown-item" href="#">{{ course.name }}</a>
+              <a class="dropdown-item rounded-2" href="#">{{ course.name }}</a>
             </li>
           </ul>
         </div>
@@ -37,7 +37,7 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            起始月份: {{ selectedMonth || '尚未選擇' }}
+            起始月份: {{ selectedMonth }}
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownStartMonth">
             <li
@@ -45,7 +45,7 @@
               :key="month"
               @click="selectMonth(month)"
             >
-              <a class="dropdown-item" href="#">{{ month }}</a>
+              <a class="dropdown-item rounded-2" href="#">{{ month }}</a>
             </li>
           </ul>
         </div>
@@ -179,7 +179,6 @@ import CoachEarningChapterAccordion from '@/components/CoachEarningChapterAccord
 
 const selectedCourse = ref('all')
 const selectedCourseName = ref('所有課程')
-const selectedMonth = ref(null)
 
 const courseOptions = ref([])
 const monthOptions = ref([])
@@ -212,8 +211,7 @@ for (let i = 11; i >= 0; i--) {
   monthOptions.value.push(`${year}-${month}`)
 }
 // 預設選取一年內最早月份
-const monthStart = ref(monthOptions.value[0])
-
+const selectedMonth = ref(monthOptions.value[0])
 function getRandomColor() {
   const letters = '0123456789ABCDEF'
   let color = '#'
@@ -231,8 +229,8 @@ function transformGroupedBarChartData(apiData) {
       datasets: []
     }
   }
-  // 只取 >= monthStart資料
-  const filtered = apiData.filter(item => item.month >= monthStart.value)
+  // 只取 >= selectedMonth資料
+  const filtered = apiData.filter(item => item.month >= selectedMonth.value)
 
   const courseMap = new Map()
   const allMonths = new Set()
