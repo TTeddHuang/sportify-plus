@@ -35,7 +35,7 @@
             </li>
             <li
               class="list-group-item"
-              :class="{ active: route.path === '/admin/coaches' }"
+              :class="{ active: route.path === '/admin/reports' }"
             >
               <router-link to="/admin/reports" class="nav-link">
                 報表管理

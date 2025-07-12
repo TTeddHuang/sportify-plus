@@ -36,7 +36,7 @@
             </li>
             <li
               class="list-group-item"
-              :class="{ active: route.path === '/admin/coaches' }"
+              :class="{ active: route.path === '/admin/reports' }"
             >
               <router-link to="/admin/reports" class="nav-link">
                 報表管理
@@ -261,7 +261,7 @@ const loadReportData = async () => {
       coachProfitData.value = transformPieChartData(result.profitShare)
     }
   } catch (err) {
-    console.err('讀取管理員報表資料失敗')
+    console.error('讀取管理員報表資料失敗', err)
   }
 }
 onMounted(() => {
