@@ -33,6 +33,14 @@
                 教練管理
               </router-link>
             </li>
+            <li
+              class="list-group-item"
+              :class="{ active: route.path === '/admin/reports' }"
+            >
+              <router-link to="/admin/reports" class="nav-link">
+                報表管理
+              </router-link>
+            </li>
           </ul>
         </div>
       </div>
