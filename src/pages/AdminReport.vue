@@ -222,7 +222,6 @@ const loadReportData = async () => {
     alert('請選擇起始月份與結束月份')
     return
   }
-  console.log(startMonth.value, endMonth.value)
   const start = dayjs(startMonth.value)
   const end = dayjs(endMonth.value)
 
